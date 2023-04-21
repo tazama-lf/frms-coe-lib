@@ -1,0 +1,70 @@
+// SPDX-License-Identifier: Apache-2.0
+
+import type { Pool } from 'pg';
+import type { Pacs002, Pacs008, Pain001, Pain013 } from '..';
+import type { QuarantineRecord } from '../DEMS/QuarantineRecord';
+import type { TrackedFields } from '../DEMS/TrackedFields';
+
+export interface RawHistoryDB {
+  _rawHistory: Pool;
+
+  /**
+   * @param endToEndId An endToEndId String used to filter on the EndToEndId field
+   * @param tenantId The tenantId String to filter on the TenantId field
+   * @memberof RawHistoryDB
+   */
+  getTransactionPacs008: (endToEndId: string, tenantId: string) => Promise<Pacs008 | undefined>;
+
+  /**
+   * @param endToEndId An endToEndId String used to filter on the EndToEndId field
+   * @param tenantId The tenantId String to filter on the TenantId field
+   * @param tableName The name of the table to query
+   * @memberof RawHistoryDB
+   */
+  getTransactionAny: (endToEndId: string, tenantId: string, tableName: string) => Promise<Record<string, unknown> | undefined>;
+
+  /**
+   * @param transaction Transaction of Type Pain001 to store
+   *
+   * @memberof RawHistoryDB
+   */
+  saveTransactionHistoryPain001: (transaction: Pain001) => Promise<void>;
+
+  /**
+   * @param transaction Transaction of Type Pain013 to store
+   *
+   * @memberof RawHistoryDB
+   */
+  saveTransactionHistoryPain013: (transaction: Pain013) => Promise<void>;
+
+  /**
+   * @param transaction Transaction of Type Pacs008 to store
+   *
+   * @memberof RawHistoryDB
+   */
+  saveTransactionHistoryPacs008: (transaction: Pacs008) => Promise<void>;
+
+  /**
+   * @param transaction Transaction of Type Pacs002 to store
+   *
+   * @memberof RawHistoryDB
+   */
+  saveTransactionHistoryPacs002: (transaction: Pacs002) => Promise<void>;
+
+  /**
+   *
+   * @param record Record to be saved into the quarantine table
+   *
+   * @memberof RawHistoryDB
+   */
+
+  saveToQuarantine: (record: QuarantineRecord) => Promise<void>;
+
+  /**
+   * @param tableName Name of the table to save transaction history into (dynamic)
+   * @param tran Transaction record to be saved
+   *
+   * @memberof RawHistoryDB
+   */
+  saveDynamicTransactionHistory: (tableName: string, tran: Record<string, unknown>, trackedFields?: TrackedFields) => Promise<void>;
+}

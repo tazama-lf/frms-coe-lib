@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+message ClearingSystemMemberId {
+    string mmbId = 1;
+}
+
+message FinancialInstitutionId {
+    ClearingSystemMemberId clrSysMmbId = 1;
+}
+
+message Agent {
+    FinancialInstitutionId finInstnId = 1;
+}
+
+message Account {
+    string id = 1;
+    SchemeName schmeNm = 2;
+    Agent agt = 3;
+}
+
+message SchemeName {
+    string prtry = 1;
+}
+
+message Entity {
+    string id = 1;
+    SchemeName schmeNm = 2;
+    string tenantId = 3;
+}
+
+message Perspective {
+    string prsptv = 1;
+    repeated string evtTp = 2;
+    string incptnDtTm = 3;
+    string xprtnDtTm = 4;
+}
+
+message ConditionDetails {
+    string condId = 1;
+    string condTp = 2;
+    string incptnDtTm = 3;
+    string xprtnDtTm = 4;
+    string condRsn = 5;
+    string usr = 6;
+    string creDtTm = 7;
+    repeated Perspective prsptvs = 8;
+    string tenantId = 9;
+}
+
+message Conditions {
+    Entity ntty = 1;
+    Account acct = 2;
+    repeated ConditionDetails conditions = 3;
+}
+
+message CacheConditions {
+    Conditions account = 1;
+    Conditions entity = 2;
+}
+
+message SimpleCondition {
+    repeated string evtTp = 1;
+    string condTp = 2;
+    string prsptv = 3;
+    string incptnDtTm = 4;
+    string condRsn = 5;
+    bool forceCret = 6;
+    string usr = 7;
+    string creDtTm = 8;
+    string condId = 9;
+    string xprtnDtTm = 10;
+    string tenantId = 13;
+    oneof entityType {
+      Account acct = 11;
+      Entity ntty = 12;
+    }
+}
+
+message SimpleConditions {
+  repeated SimpleCondition conditions = 1;
+}

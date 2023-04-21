@@ -1,0 +1,257 @@
+// SPDX-License-Identifier: Apache-2.0
+
+import {
+  createMessageBuffer,
+  createCacheConditionsBuffer,
+  createConditionsBuffer,
+  createSimpleConditionsBuffer,
+  decodeMessageBuffer,
+  decodeCacheConditionsBuffer,
+  decodeConditionsBuffer,
+  decodeSimpleConditionsBuffer,
+} from '../src/helpers/protobuf';
+import { AccountCondition, EntityCondition } from '../src/interfaces';
+import { Acct } from '../src/interfaces/event-flow/EntityConditionEdge';
+
+const acct: Acct = {
+  id: '1010101010',
+  schmeNm: {
+    prtry: 'Mxx',
+  },
+  agt: {
+    finInstnId: {
+      clrSysMmbId: {
+        mmbId: 'dfsp001',
+      },
+    },
+  },
+};
+const conditions = [
+  {
+    condId: '26819',
+    condTp: 'non-overridable-block',
+    incptnDtTm: '2024-09-01T24:00:00.999Z',
+    xprtnDtTm: '2024-09-03T24:00:00.999Z',
+    condRsn: 'R001',
+    usr: 'bob',
+    creDtTm: '2024-08-23T11:46:53.091Z',
+    tenantId: 'tenantId',
+    prsptvs: [
+      {
+        prsptv: 'governed_as_creditor_by',
+        evtTp: ['pacs.008.001.10', 'pacs.002.001.12'],
+        incptnDtTm: '2024-09-01T24:00:00.999Z',
+        xprtnDtTm: '2024-09-03T24:00:00.999Z',
+      },
+      {
+        prsptv: 'governed_as_debtor_by',
+        evtTp: ['pacs.008.001.10', 'pacs.002.001.12'],
+        incptnDtTm: '2024-09-01T24:00:00.999Z',
+        xprtnDtTm: '2024-09-03T24:00:00.999Z',
+      },
+    ],
+  },
+];
+
+const entity = {
+  id: '+27733161225',
+  schmeNm: {
+    prtry: 'MSISDN',
+  },
+  tenantId: 'tenantId',
+};
+
+describe('Should serialise/deserialise EFRuP conditions', () => {
+  test('se/deserialise EFRuP conditions', () => {
+    const accountConditions = { acct: acct, conditions };
+    const bufAcc = createConditionsBuffer(accountConditions);
+    expect(bufAcc).toBeDefined();
+
+    const deserialisedAccConditions = decodeConditionsBuffer(bufAcc!);
+    expect(deserialisedAccConditions).toBeDefined();
+    expect(deserialisedAccConditions).toEqual(accountConditions);
+
+    const entityConditons = { ntty: entity, conditions };
+    const bufEntity = createConditionsBuffer(entityConditons);
+    expect(bufEntity).toBeDefined();
+
+    const deserialisedEntityConditions = decodeConditionsBuffer(bufEntity!);
+    expect(deserialisedEntityConditions).toBeDefined();
+    expect(deserialisedEntityConditions).toEqual(entityConditons);
+  });
+
+  test('se/deserialise ALL EFRuP conditions through graph/edges', () => {
+    const accountConditions = { acct: acct, conditions };
+    const entityConditons = { ntty: entity, conditions };
+    let conds = { account: accountConditions, entity: entityConditons };
+    const bufConds = createCacheConditionsBuffer(conds);
+    expect(bufConds).toBeDefined();
+    expect(bufConds?.byteLength).toBeGreaterThan(0);
+
+    const deserialisedConditions = decodeCacheConditionsBuffer(bufConds!);
+    expect(deserialisedConditions).toBeDefined();
+    expect(deserialisedConditions).toEqual(conds);
+  });
+
+  test('se/deserialise conditions from conditions collections', () => {
+    const items: (EntityCondition | AccountCondition)[] = [
+      {
+        evtTp: ['pacs.008.001.10'],
+        condTp: 'non-overridable-block',
+        prsptv: 'creditor',
+        incptnDtTm: '2024-09-10T00:00:00.000Z',
+        condRsn: 'R001',
+        acct,
+        forceCret: true,
+        usr: 'bob',
+        creDtTm: '2024-09-09T07:38:16.421Z',
+        condId: 'a66e78a0-2508-4fca-aac3-3207d8d2f88b',
+        tenantId: 'tenantId',
+      },
+      {
+        evtTp: ['pacs.008.001.10'],
+        condTp: 'overridable-block',
+        prsptv: 'both',
+        incptnDtTm: '2024-09-17T21:00:00.999Z',
+        condRsn: 'R001',
+        ntty: entity,
+        forceCret: true,
+        usr: 'bob',
+        creDtTm: '2024-09-09T07:38:24.349Z',
+        condId: 'c859d422-d67f-454e-aae2-5011b0b16af2',
+        tenantId: 'tenantId',
+      },
+      {
+        evtTp: ['pacs.008.001.10'],
+        condTp: 'overridable-block',
+        prsptv: 'both',
+        incptnDtTm: '2024-09-17T21:00:00.999Z',
+        xprtnDtTm: '2024-10-10T21:00:00.999Z',
+        condRsn: 'R001',
+        ntty: entity,
+        forceCret: true,
+        usr: 'bob',
+        creDtTm: '2024-09-10T08:38:40.265Z',
+        condId: '62b21fc0-5f4f-4f49-9cb0-c69e0123b3ec',
+        tenantId: 'tenantId',
+      },
+    ];
+    let bufConds = createSimpleConditionsBuffer(items);
+    expect(bufConds).toBeDefined();
+    expect(bufConds?.byteLength).toBeGreaterThan(0);
+
+    const deserialisedConditions = decodeSimpleConditionsBuffer(bufConds!);
+    expect(deserialisedConditions).toBeDefined();
+    expect(deserialisedConditions).toEqual(items);
+  });
+});
+
+describe('Should serialise/deserialise BaseMessage payload', () => {
+  test('se/deserialise transaction BaseMessage with dynamic payload object', () => {
+    const message = {
+      transaction: {
+        TxTp: 'custom.type.001',
+        TenantId: 'tenantId',
+        MsgId: 'msg-001',
+        endpointPath: '/cbe/1.0.0/frms-stories/fable003',
+        Payload: {
+          anyKey: 'anyValue',
+          nested: {
+            flag: true,
+            count: 2,
+          },
+          items: ['a', 'b'],
+        },
+      },
+    };
+
+    const buffer = createMessageBuffer(message);
+    expect(buffer).toBeDefined();
+
+    const decoded = decodeMessageBuffer(buffer!);
+    expect(decoded).toBeDefined();
+
+    expect(decoded?.transaction).toEqual({
+      TxTp: message.transaction.TxTp,
+      TenantId: message.transaction.TenantId,
+      MsgId: message.transaction.MsgId,
+      endpointPath: message.transaction.endpointPath,
+      Payload: message.transaction.Payload,
+    });
+  });
+
+  test('keeps raw payload when transaction BaseMessage Payload.Json is malformed', () => {
+    const message = {
+      transaction: {
+        TxTp: 'custom.type.002',
+        TenantId: 'tenantId',
+        MsgId: 'msg-002',
+        Payload: {
+          Json: '{"invalid":',
+        },
+      },
+    };
+
+    const buffer = createMessageBuffer(message);
+    expect(buffer).toBeDefined();
+
+    const decoded = decodeMessageBuffer(buffer!);
+    expect(decoded).toBeDefined();
+
+    expect(decoded?.transaction).toEqual({
+      TxTp: message.transaction.TxTp,
+      TenantId: message.transaction.TenantId,
+      MsgId: message.transaction.MsgId,
+      Payload: message.transaction.Payload,
+    });
+  });
+
+  test('rejects non-pacs002 transaction when MsgId is missing', () => {
+    const invalidMessage = {
+      transaction: {
+        TxTp: 'custom.type.004',
+        TenantId: 'tenantId',
+        Payload: {
+          amount: 500,
+        },
+      },
+    };
+
+    const buffer = createMessageBuffer(invalidMessage);
+    expect(buffer).toBeUndefined();
+  });
+
+  test('rejects non-pacs002 transaction when Payload is missing', () => {
+    const invalidMessage = {
+      transaction: {
+        TxTp: 'custom.type.005',
+        TenantId: 'tenantId',
+        MsgId: 'msg-005',
+      },
+    };
+
+    const buffer = createMessageBuffer(invalidMessage);
+    expect(buffer).toBeUndefined();
+  });
+
+  test('rejects deprecated top-level BaseMessage shape', () => {
+    const deprecatedMessage = {
+      BaseMessage: {
+        TxTp: 'custom.type.003',
+        TenantId: 'tenantId',
+        MsgId: 'msg-003',
+        Payload: {
+          anyKey: 'anyValue',
+        },
+      },
+    };
+
+    const buffer = createMessageBuffer(deprecatedMessage);
+    expect(buffer).toBeDefined();
+
+    const decoded = decodeMessageBuffer(buffer!);
+    // Deprecated shape has no `transaction` key — decodes as empty object
+    expect(decoded).toBeDefined();
+    expect(decoded?.transaction).toBeUndefined();
+  });
+});

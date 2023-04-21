@@ -1,0 +1,100 @@
+# SPDX-License-Identifier: Apache-2.0
+
+# This workflow publishes an npm package to the GitHub Package Registry (@tazama-lf scope).
+#
+# Versioning policy:
+#   The version in package.json is the only signal used to determine the dist-tag:
+#     - Prerelease (X.Y.Z-rc.N)  → published under the 'rc' dist-tag  (triggered manually from dev)
+#     - Stable (X.Y.Z)           → published under 'latest' dist-tag   (triggered automatically on merge to main)
+#
+#   Developers set the version in package.json manually. The version-check.yml workflow
+#   enforces that no prerelease version can merge to main.
+#
+# Resolves: https://github.com/tazama-lf/workflows/issues/27
+#
+# Please do not attempt to edit this flow without the direct consent from the DevOps team.
+# This file is managed centrally.
+
+name: Publish npm package to GitHub Packages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          token: ${{ secrets.GH_TOKEN_LIB }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f  # v6.3.0
+        with:
+          node-version: '20'
+          registry-url: 'https://npm.pkg.github.com/'
+          scope: '@tazama-lf'
+
+      - name: Set up npm authentication
+        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_TOKEN_LIB }}" >> ~/.npmrc
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN_LIB }}
+
+      - name: Build
+        run: npm run build
+
+      - name: Publish package
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if [[ "$VERSION" == *-* ]]; then
+            # Prerelease version (e.g. 1.2.3-rc.1): publish under the 'rc' dist-tag
+            # so it does not become the default 'latest' install target.
+            npm publish --tag rc
+          else
+            npm publish
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN_LIB }}
+
+      # Send Slack notification — requires SLACK_WEBHOOK_URL org/repo secret
+      - name: Send Slack notification
+        continue-on-error: true
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl --fail -sS -X POST -H 'Content-type: application/json' --data '{
+            "blocks": [
+              {
+                "type": "header",
+                "text": {
+                  "type": "plain_text",
+                  "text": "New npm package published :white_check_mark:",
+                  "emoji": true
+                }
+              },
+              {
+                "type": "section",
+                "fields": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Repository:*\nhttps://github.com/${{ github.repository }}"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Triggered by:*\n${{ github.actor }}"
+                  }
+                ]
+              }
+            ]
+          }' "$SLACK_WEBHOOK_URL"
