@@ -1,6 +1,6 @@
 src/
 tsconfig.json
-*.ts
+src/*.ts
 *.tsx
 .eslintrc.js
 dist/
