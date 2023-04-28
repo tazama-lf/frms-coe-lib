@@ -1,11 +1,11 @@
 {
-  "name": "@frmscoe/frms-scoe-lib",
+  "name": "@frmscoe/frms-coe-lib",
   "version": "0.0.1",
   "description": "FRMS Center of Excellence package library",
   "main": "lib/index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/frmscoe/frms-scoe-lib.git"
+    "url": "git+https://github.com/frmscoe/frms-coe-lib.git"
   },
   "publishConfig": {
     "@frmscoe:registry": "https://npm.pkg.github.com/"
