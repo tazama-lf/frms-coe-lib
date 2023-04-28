@@ -1,0 +1,7 @@
+src/
+tsconfig.json
+src/*.ts
+*.tsx
+.eslintrc.js
+dist/
+.github
