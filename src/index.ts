@@ -1,10 +1,20 @@
-import { ArangoDBService } from "./services/arango"
-import { LoggerService } from "./services/logger"
-import { RedisService } from "./services/redis"
+import {
+  CreateDatabaseManager,
+  ManagerConfig,
+  ConfigurationDB,
+  PseudonymsDB,
+  TransactionHistoryDB,
+  DatabaseManagerInstance,
+} from "./services/dbManager";
+import { RedisService, RedisConfig } from "./services/redis";
 
-//Services exposed as libraries
-module.exports = {
-    LoggerService,
-    RedisService,
-    ArangoDBService
+export {
+  RedisService,
+  RedisConfig,
+  CreateDatabaseManager,
+  ManagerConfig,
+  ConfigurationDB,
+  PseudonymsDB,
+  TransactionHistoryDB,
+  DatabaseManagerInstance,
 };

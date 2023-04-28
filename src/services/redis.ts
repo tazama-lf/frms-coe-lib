@@ -1,14 +1,9 @@
 import Redis from "ioredis";
-import { RedisConfig } from "../interfaces/config";
-import { LoggerService } from "./logger";
 
 export class RedisService {
   private readonly client: Redis;
-  private readonly logger: LoggerService;
 
-  private constructor(config: RedisConfig, logger: LoggerService) {
-    this.logger = logger;
-
+  private constructor(config: RedisConfig) {
     this.client = new Redis({
       db: config?.db,
       host: config?.host,
@@ -17,24 +12,28 @@ export class RedisService {
     });
   }
 
-  private async init(): Promise<void> {
+  private async init(): Promise<string> {
     return new Promise((resolve, reject) => {
       this.client.on("connect", () => {
-        this.logger.log("✅ Redis connection is ready");
-        resolve();
+        resolve("✅ Redis connection is ready");
       });
       this.client.on("error", (error) => {
-        this.logger.error("❌ Redis connection is not ready", error);
-        reject(new Error("Error connecting to redis"));
+        reject(new Error("❌ Redis connection is not ready"));
       });
     });
   }
 
-  public static async create(
-    config: RedisConfig,
-    logger: LoggerService
+  /**
+  * Create an instance of a ready to use RedisService
+  *
+  * @param {RedisConfig} config the required config to start a connection to Redis
+  * @return {Promise<RedisService>}
+  */
+  static async create(
+    config: RedisConfig
   ): Promise<RedisService> {
-    const redisInstance = new RedisService(config, logger);
+    const redisInstance = new RedisService(config);
+  
     await redisInstance.init();
     return redisInstance;
   }
@@ -43,13 +42,7 @@ export class RedisService {
     new Promise((resolve) => {
       this.client.smembers(key, (err, res) => {
         if (err) {
-          this.logger.error(
-            "Error while getting key from redis with message:",
-            err,
-            "RedisService"
-          );
-
-          resolve([]);
+          throw new Error(`Error while getting key from redis with message: ${err}`)
         }
         resolve(res ?? [""]);
       });
@@ -63,13 +56,7 @@ export class RedisService {
     new Promise((resolve) => {
       this.client.set(key, value, "EX", expire, (err, res) => {
         if (err) {
-          this.logger.error(
-            "Error while setting key in redis with message:",
-            err,
-            "RedisService"
-          );
-
-          resolve(undefined);
+          throw new Error(`Error while setting key in redis with message: ${err}`)
         }
         resolve(res);
       });
@@ -79,13 +66,7 @@ export class RedisService {
     new Promise((resolve) => {
       this.client.del(key, (err, res) => {
         if (err) {
-          this.logger.error(
-            "Error while deleting key from redis with message:",
-            err,
-            "RedisService"
-          );
-
-          resolve(0);
+          throw new Error(`Error while deleting key from redis with message: ${err}`)
         }
         resolve(res as number);
       });
@@ -94,4 +75,11 @@ export class RedisService {
   quit = (): void => {
     this.client.quit();
   };
+}
+
+export interface RedisConfig {
+  db: number;
+  host: string;
+  port: number;
+  password: string;
 }

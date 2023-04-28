@@ -1,10 +1,14 @@
 {
-  "name": "frms-scoe-lib",
-  "version": "1.0.0",
+  "name": "@frmscoe/frms-scoe-lib",
+  "version": "0.0.1",
   "description": "FRMS Center of Excellence package library",
-  "main": "dist/index.js",
+  "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/frmscoe/frms-scoe-lib.git"
+  },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com/@frmscoe"
+    "@frmscoe:registry": "https://npm.pkg.github.com/"
   },
   "scripts": {
     "build": "tsc --project tsconfig.json",
@@ -12,8 +16,7 @@
   },
   "dependencies": {
     "arangojs": "^8.2.1",
-    "ioredis": "^5.3.2",
-    "log4js": "6.9.1"
+    "ioredis": "^5.3.2"
   },
   "keywords": [],
   "author": "",
