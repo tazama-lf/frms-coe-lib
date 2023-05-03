@@ -3,6 +3,7 @@ import { AqlQuery } from "arangojs/aql";
 import * as fs from "fs";
 import { TransactionRelationship } from "../interfaces";
 import { RedisService, RedisConfig } from "..";
+import NodeCache from 'node-cache';
 
 type DBConfig = {
   url: string;
@@ -10,6 +11,8 @@ type DBConfig = {
   password: string;
   databaseName: string;
   certPath: string;
+  localCacheEnabled?: boolean;
+  localCacheTTL?: number;
 };
 
 type ManagerConfig = {
@@ -38,11 +41,13 @@ type TransactionHistoryDB = {
 
 type ConfigurationDB = {
   _configuration: Database;
+  setupConfig: DBConfig;
+  nodeCache: NodeCache;
   getRuleConfig: (ruleId: string, cfg: string) => Promise<any>;
 };
 
-type DatabaseManagerInstance<T extends ManagerConfig> = 
-  (T extends { pseudonyms: DBConfig;} ? PseudonymsDB : {}) &
+type DatabaseManagerInstance<T extends ManagerConfig> =
+  (T extends { pseudonyms: DBConfig; } ? PseudonymsDB : {}) &
   (T extends { transactionHistory: DBConfig } ? TransactionHistoryDB : {}) &
   (T extends { configuration: DBConfig } ? ConfigurationDB : {}) &
   (T extends { redisConfig: RedisConfig } ? RedisService : {});
@@ -53,7 +58,7 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(
   const manager: Partial<
     PseudonymsDB & TransactionHistoryDB & ConfigurationDB & RedisConfig
   > = {};
-  const redis:RedisService = await RedisService.create(config.redisConfig)
+  const redis: RedisService = await RedisService.create(config.redisConfig)
 
   if (config.pseudonyms) {
     manager._pseudonymsDb = new Database({
@@ -69,6 +74,11 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(
           : [],
       },
     });
+
+    if (config.configuration) {
+      manager.setupConfig = config.configuration;
+      manager.nodeCache = new NodeCache();
+    }
 
     manager.getPseudonyms = async (hash: string) => {
       const db = "pseudonyms";
@@ -128,12 +138,12 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(
       },
     }) as Database;
 
-    manager.getTransactionPacs008 = async (endToEndId: string, cacheKey:string = "") => {
+    manager.getTransactionPacs008 = async (endToEndId: string, cacheKey: string = "") => {
       let cacheVal: string[] = [];
 
       if (cacheKey) {
         cacheVal = await redis.getJson(cacheKey);
-        if (cacheVal.length > 0) 
+        if (cacheVal.length > 0)
           return Promise.resolve(cacheVal);
       }
 
@@ -208,8 +218,12 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(
     });
 
     manager.getRuleConfig = async (ruleId: string, cfg: string) => {
+      const cacheKey = `${ruleId}_${cfg}`;
+      if (manager.setupConfig?.localCacheEnabled) {
+        const cacheVal = manager.nodeCache?.get(cacheKey);
+        if (cacheVal) return Promise.resolve(cacheVal);
+      }
       const db = "configuration";
-
       const query: AqlQuery = aql`
         FOR doc IN ${db}
         FILTER doc.id == ${ruleId}
@@ -217,11 +231,15 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(
         RETURN doc
       `;
 
-      return (await manager._configuration!.query(query)).batches.all();
+      const toReturn = (await manager._configuration!.query(query)).batches.all();
+      if (manager.setupConfig?.localCacheEnabled)
+        manager.nodeCache?.set(cacheKey, toReturn, manager.setupConfig?.localCacheTTL ?? 3000);
+
+      return toReturn;
     };
   }
 
   return manager as DatabaseManagerInstance<T>;
 }
 
-export {ManagerConfig, TransactionHistoryDB, ConfigurationDB, PseudonymsDB, DatabaseManagerInstance}
+export { ManagerConfig, TransactionHistoryDB, ConfigurationDB, PseudonymsDB, DatabaseManagerInstance }
