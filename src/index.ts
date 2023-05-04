@@ -1,20 +1,20 @@
 import {
   CreateDatabaseManager,
-  ManagerConfig,
-  ConfigurationDB,
-  PseudonymsDB,
-  TransactionHistoryDB,
-  DatabaseManagerInstance,
+  type ManagerConfig,
+  type ConfigurationDB,
+  type PseudonymsDB,
+  type TransactionHistoryDB,
+  type DatabaseManagerInstance,
 } from "./services/dbManager";
-import { RedisService, RedisConfig } from "./services/redis";
+import { RedisService, type RedisConfig } from "./services/redis";
 
 export {
   RedisService,
-  RedisConfig,
+  type RedisConfig,
   CreateDatabaseManager,
-  ManagerConfig,
-  ConfigurationDB,
-  PseudonymsDB,
-  TransactionHistoryDB,
-  DatabaseManagerInstance,
+  type ManagerConfig,
+  type ConfigurationDB,
+  type PseudonymsDB,
+  type TransactionHistoryDB,
+  type DatabaseManagerInstance,
 };
