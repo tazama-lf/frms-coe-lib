@@ -16,9 +16,6 @@ class MockDatabase {
   query(query) {
     return query;
   }
-  query(query, queryOptions) {
-    return query;
-  }
   save(data, options) {
     return data;
   }
