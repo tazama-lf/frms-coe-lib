@@ -11,3 +11,4 @@ dist/
 .github
 .prettierrc.json
 __tests__/
+.husky/
