@@ -2,14 +2,18 @@
 
 FRMS Center of Excellence package library.
 
-## install
+## Installation
 
-npm install @frmscoe/frms-coe-lib
+A personal access token is required to install this repository. For more information read the following.
+https://docs.github.com/en/packages/learn-github-packages/about-permissions-for-github-packages#about-scopes-and-permissions-for-package-registries
 
-## usage
+Thereafter you can run 
+  > npm install @frmscoe/frms-coe-lib
+
+## Usage
 
 ```ts
-// import functionality and types
+// Import functionality and types
 import { RedisConfig, CreateDatabaseManager, DatabaseManagerInstance, ManagerConfig, TransactionHistoryDB} from "@frmscoe/frms-coe-lib/lib";
 
 // Populate the Config for redis and transactionHistory

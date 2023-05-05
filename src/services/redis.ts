@@ -13,60 +13,54 @@ export class RedisService {
   }
 
   private async init(): Promise<string> {
-    return new Promise((resolve, reject) => {
+    return await new Promise((resolve, reject) => {
       this.client.on("connect", () => {
         resolve("✅ Redis connection is ready");
       });
-      this.client.on("error", (error) => {
-        reject(new Error("❌ Redis connection is not ready"));
+      this.client.on("error", () => {
+        reject(new Error("❌ Redis connection could not be established"));
       });
     });
   }
 
   /**
-  * Create an instance of a ready to use RedisService
-  *
-  * @param {RedisConfig} config the required config to start a connection to Redis
-  * @return {Promise<RedisService>}
-  */
-  static async create(
-    config: RedisConfig
-  ): Promise<RedisService> {
+   * Create an instance of a ready to use RedisService
+   *
+   * @param {RedisConfig} config the required config to start a connection to Redis
+   * @return {Promise<RedisService>}
+   */
+  static async create(config: RedisConfig): Promise<RedisService> {
     const redisInstance = new RedisService(config);
-  
+
     await redisInstance.init();
     return redisInstance;
   }
 
-  getJson = (key: string): Promise<string[]> =>
-    new Promise((resolve) => {
+  getJson = async (key: string): Promise<string[]> =>
+    await new Promise((resolve) => {
       this.client.smembers(key, (err, res) => {
-        if (err) {
-          throw new Error(`Error while getting key from redis with message: ${err}`)
+        if (err != null) {
+          throw new Error("Error while getting key from redis with message", err);
         }
         resolve(res ?? [""]);
       });
     });
 
-  setJson = (
-    key: string,
-    value: string,
-    expire: number
-  ): Promise<"OK" | undefined> =>
-    new Promise((resolve) => {
+  setJson = async (key: string, value: string, expire: number): Promise<"OK" | undefined> =>
+    await new Promise((resolve) => {
       this.client.set(key, value, "EX", expire, (err, res) => {
-        if (err) {
-          throw new Error(`Error while setting key in redis with message: ${err}`)
+        if (err != null) {
+          throw new Error("Error while setting key in redis with message", err);
         }
         resolve(res);
       });
     });
 
-  deleteKey = (key: string): Promise<number> =>
-    new Promise((resolve) => {
+  deleteKey = async (key: string): Promise<number> =>
+    await new Promise((resolve) => {
       this.client.del(key, (err, res) => {
-        if (err) {
-          throw new Error(`Error while deleting key from redis with message: ${err}`)
+        if (err != null) {
+          throw new Error("Error while deleting key from redis with message", err);
         }
         resolve(res as number);
       });

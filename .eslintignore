@@ -1,0 +1,8 @@
+coverage
+templates
+lib
+node_modules
+docs
+.github
+jest.config.ts
+__tests__
