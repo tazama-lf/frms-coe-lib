@@ -20,6 +20,7 @@ type ManagerConfig = {
   transactionHistory?: DBConfig;
   configuration?: DBConfig;
   redisConfig: RedisConfig;
+  networkMap: DBConfig;
 };
 
 type PseudonymsDB = {
@@ -46,18 +47,25 @@ type ConfigurationDB = {
   getRuleConfig: (ruleId: string, cfg: string) => Promise<any>;
 };
 
+type NetworkMapDB = {
+  _networkMap: Database;
+  getNetworkMap: () => Promise<any>;
+};
+
 type DatabaseManagerInstance<T extends ManagerConfig> =
   (T extends { pseudonyms: DBConfig; } ? PseudonymsDB : {}) &
   (T extends { transactionHistory: DBConfig } ? TransactionHistoryDB : {}) &
   (T extends { configuration: DBConfig } ? ConfigurationDB : {}) &
+  (T extends { networkMap: DBConfig } ? NetworkMapDB : {}) &
   (T extends { redisConfig: RedisConfig } ? RedisService : {});
 
 export async function CreateDatabaseManager<T extends ManagerConfig>(
   config: T
 ): Promise<DatabaseManagerInstance<T>> {
   const manager: Partial<
-    PseudonymsDB & TransactionHistoryDB & ConfigurationDB & RedisConfig
+    PseudonymsDB & TransactionHistoryDB & ConfigurationDB & NetworkMapDB & RedisConfig
   > = {};
+  
   const redis: RedisService = await RedisService.create(config.redisConfig)
 
   if (config.pseudonyms) {
@@ -236,6 +244,31 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(
         manager.nodeCache?.set(cacheKey, toReturn, manager.setupConfig?.localCacheTTL ?? 3000);
 
       return toReturn;
+    };
+  }
+
+  if (config.networkMap) {
+    manager._networkMap = new Database({
+      url: config.networkMap.url,
+      databaseName: config.networkMap.databaseName,
+      auth: {
+        username: config.networkMap.user,
+        password: config.networkMap.password,
+      },
+      agentOptions: {
+        ca: fs.existsSync(config.networkMap.certPath)
+          ? [fs.readFileSync(config.networkMap.certPath)]
+          : [],
+      },
+    });
+
+    manager.getNetworkMap = async () => {
+      const networkConfigurationQuery = `
+        FOR doc IN networkConfiguration
+        FILTER doc.active == true
+        RETURN UNSET(doc, ['_key', '_id', '_rev' ])
+      `;
+      return (await manager._networkMap!.query(networkConfigurationQuery)).batches.all();
     };
   }
 
