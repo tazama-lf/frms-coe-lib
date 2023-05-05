@@ -1,7 +1,7 @@
 import { AqlLiteral, isAqlQuery } from "arangojs/aql";
 import { ConfigurationDB, PseudonymsDB, RedisService, TransactionHistoryDB } from "../src";
 import { TransactionRelationship } from "../src/interfaces";
-import { CreateDatabaseManager, DatabaseManagerInstance } from "../src/services/dbManager";
+import { CreateDatabaseManager, DatabaseManagerInstance, NetworkMapDB } from "../src/services/dbManager";
 
 // redis and aragojs is mocked
 // setup.jest.js
@@ -39,6 +39,14 @@ const pseudonymsConfig = {
   url: "TestPseudonym",
 };
 
+const networkMapConfig = {
+  certPath: "TestNetworkMap",
+  databaseName: "TestNetworkMap",
+  user: "TestNetworkMap",
+  password: "TestNetworkMap",
+  url: "TestNetworkMap",
+};
+
 const mockTR: TransactionRelationship = {
   CreDtTm: "MOCK-CreDtTm",
   EndToEndId: "MOCK-EndToEndId",
@@ -55,6 +63,7 @@ const config = {
   transactionHistory: transactionHistoryConfig,
   configuration: configurationConfig,
   pseudonyms: pseudonymsConfig,
+  networkMap: networkMapConfig,
 };
 
 let globalManager: DatabaseManagerInstance<typeof config>;
@@ -65,6 +74,7 @@ beforeAll(async () => {
     transactionHistory: transactionHistoryConfig,
     configuration: configurationConfig,
     pseudonyms: pseudonymsConfig,
+    networkMap: networkMapConfig,
   };
   globalManager = await CreateDatabaseManager(config);
 });
@@ -78,6 +88,7 @@ describe("CreateDatabaseManager", () => {
   let configSpy: jest.SpyInstance;
   let pseudoSpy: jest.SpyInstance;
   let getJsonSpy: jest.SpyInstance;
+  let networkMapSpy: jest.SpyInstance;
 
   beforeEach(() => {
     transSpy = jest.spyOn(globalManager._transactionHistory, "query").mockImplementation((query: string | AqlLiteral): Promise<any> => {
@@ -115,6 +126,18 @@ describe("CreateDatabaseManager", () => {
       });
     });
 
+    networkMapSpy = jest.spyOn(globalManager._networkMap, "query").mockImplementation((query: string | AqlLiteral): Promise<any> => {
+      return new Promise((resolve, reject) => {
+        isAqlQuery(query)
+          ? resolve({
+              batches: {
+                all: jest.fn().mockImplementation(() => ["MOCK-QUERY"]),
+              },
+            })
+          : reject(new Error("Not AQL Query"));
+      });
+    });
+
     getJsonSpy = jest.spyOn(globalManager, "getJson").mockImplementation((key: string): Promise<any> => {
       return new Promise((resolve, reject) => {
         resolve(["MOCK-CACHE-QUERY"]);
@@ -136,7 +159,6 @@ describe("CreateDatabaseManager", () => {
     expect(await dbManager.getSuccessfulPacs002Msgs("test")).toEqual(["MOCK-QUERY"]);
     expect(await dbManager.getTransactionPacs008("test")).toEqual(["MOCK-QUERY"]);
     expect(await dbManager.getTransactionGeneric("testCollection", "testFilter")).toEqual(["MOCK-QUERY"]);
-    
   });
 
   it("should create a manager with configuration methods", async () => {
@@ -163,6 +185,15 @@ describe("CreateDatabaseManager", () => {
     expect(await dbManager.getPseudonyms("test")).toEqual(["MOCK-QUERY"]);
     expect(await dbManager.saveTransactionRelationship(mockTR)).toEqual("MOCK-SAVE");
     expect(await dbManager.getPseudonymGeneric("testCollection", "testFilter")).toEqual(["MOCK-QUERY"]);
+  });
+
+  it("should create a manager with network map methods", async () => {
+    const testTypes = <NetworkMapDB>{};
+    const dbManager: typeof testTypes = globalManager;
+
+    expect(dbManager.getNetworkMap).toBeDefined();
+
+    expect(await dbManager.getNetworkMap()).toEqual(["MOCK-QUERY"]);
   });
 
   it("should create a manager with all methods", async () => {
@@ -223,6 +254,10 @@ describe("CreateDatabaseManager", () => {
         ...pseudonymsConfig,
         certPath: "./__tests__/fake-cert.crt",
       },
+      networkMap: {
+        ...networkMapConfig,
+        certPath: "./__tests__/fake-cert.crt",
+      },
     };
     const dbManager = await CreateDatabaseManager(cert_config);
 
@@ -241,6 +276,9 @@ describe("CreateDatabaseManager", () => {
     expect(dbManager.addAccount).toBeDefined();
     expect(dbManager.getPseudonyms).toBeDefined();
     expect(dbManager.saveTransactionRelationship).toBeDefined();
+
+    // network map
+    expect(dbManager.getNetworkMap).toBeDefined();
 
     dbManager.quit();
   });
@@ -266,8 +304,8 @@ describe("CreateDatabaseManager", () => {
     });
 
     expect(dbManager.getTransactionPacs008).toBeDefined();
-    expect(await dbManager.getTransactionPacs008("test")).toEqual(["MOCK-QUERY"]);    
-    
+    expect(await dbManager.getTransactionPacs008("test")).toEqual(["MOCK-QUERY"]);
+
     dbManager.quit();
   });
 });
