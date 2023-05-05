@@ -129,11 +129,14 @@ describe("CreateDatabaseManager", () => {
     expect(dbManager.getDebitorPain001Msgs).toBeDefined();
     expect(dbManager.getSuccessfulPacs002Msgs).toBeDefined();
     expect(dbManager.getTransactionPacs008).toBeDefined();
+    expect(dbManager.getTransactionGeneric).toBeDefined();
 
     expect(await dbManager.getCreditorPain001Msgs("test")).toEqual(["MOCK-QUERY"]);
     expect(await dbManager.getDebitorPain001Msgs("test")).toEqual(["MOCK-QUERY"]);
     expect(await dbManager.getSuccessfulPacs002Msgs("test")).toEqual(["MOCK-QUERY"]);
     expect(await dbManager.getTransactionPacs008("test")).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.getTransactionGeneric("testCollection", "testFilter")).toEqual(["MOCK-QUERY"]);
+    
   });
 
   it("should create a manager with configuration methods", async () => {
@@ -141,8 +144,10 @@ describe("CreateDatabaseManager", () => {
     const dbManager: typeof testTypes = globalManager;
 
     expect(dbManager.getRuleConfig).toBeDefined();
+    expect(dbManager.getConfigurationGeneric).toBeDefined();
 
     expect(await dbManager.getRuleConfig("test", "test")).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.getConfigurationGeneric("testCollection", "testFilter")).toEqual(["MOCK-QUERY"]);
   });
 
   it("should create a manager with pseudonyms methods", async () => {
@@ -152,10 +157,12 @@ describe("CreateDatabaseManager", () => {
     expect(dbManager.addAccount).toBeDefined();
     expect(dbManager.getPseudonyms).toBeDefined();
     expect(dbManager.saveTransactionRelationship).toBeDefined();
+    expect(dbManager.getPseudonymGeneric).toBeDefined();
 
     expect(await dbManager.addAccount("test")).toEqual("MOCK-SAVE");
     expect(await dbManager.getPseudonyms("test")).toEqual(["MOCK-QUERY"]);
     expect(await dbManager.saveTransactionRelationship(mockTR)).toEqual("MOCK-SAVE");
+    expect(await dbManager.getPseudonymGeneric("testCollection", "testFilter")).toEqual(["MOCK-QUERY"]);
   });
 
   it("should create a manager with all methods", async () => {
@@ -167,25 +174,31 @@ describe("CreateDatabaseManager", () => {
     expect(dbManager.getDebitorPain001Msgs).toBeDefined();
     expect(dbManager.getSuccessfulPacs002Msgs).toBeDefined();
     expect(dbManager.getTransactionPacs008).toBeDefined();
+    expect(dbManager.getTransactionGeneric).toBeDefined();
 
     expect(await dbManager.getCreditorPain001Msgs("test")).toEqual(["MOCK-QUERY"]);
     expect(await dbManager.getDebitorPain001Msgs("test")).toEqual(["MOCK-QUERY"]);
     expect(await dbManager.getSuccessfulPacs002Msgs("test")).toEqual(["MOCK-QUERY"]);
     expect(await dbManager.getTransactionPacs008("test")).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.getTransactionGeneric("testCollection", "testFilter")).toEqual(["MOCK-QUERY"]);
 
     // configuration
     expect(dbManager.getRuleConfig).toBeDefined();
+    expect(dbManager.getConfigurationGeneric).toBeDefined();
 
     expect(await dbManager.getRuleConfig("test", "test")).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.getConfigurationGeneric("testCollection", "testFilter")).toEqual(["MOCK-QUERY"]);
 
     // pseudonyms
     expect(dbManager.addAccount).toBeDefined();
     expect(dbManager.getPseudonyms).toBeDefined();
     expect(dbManager.saveTransactionRelationship).toBeDefined();
+    expect(dbManager.getPseudonymGeneric).toBeDefined();
 
     expect(await dbManager.addAccount("test")).toEqual("MOCK-SAVE");
     expect(await dbManager.getPseudonyms("test")).toEqual(["MOCK-QUERY"]);
     expect(await dbManager.saveTransactionRelationship(mockTR)).toEqual("MOCK-SAVE");
+    expect(await dbManager.getPseudonymGeneric("testCollection", "testFilter")).toEqual(["MOCK-QUERY"]);
   });
 
   it("should use cache for pacs008 when provided cacheKey", async () => {
@@ -213,6 +226,8 @@ describe("CreateDatabaseManager", () => {
     };
     const dbManager = await CreateDatabaseManager(cert_config);
 
+    // Requires dbManager spies if executing methods
+
     // transactionHistory
     expect(dbManager.getCreditorPain001Msgs).toBeDefined();
     expect(dbManager.getDebitorPain001Msgs).toBeDefined();
@@ -227,6 +242,32 @@ describe("CreateDatabaseManager", () => {
     expect(dbManager.getPseudonyms).toBeDefined();
     expect(dbManager.saveTransactionRelationship).toBeDefined();
 
+    dbManager.quit();
+  });
+
+  it("should create a manager with transactionHistory methods - no cache", async () => {
+    const cert_config = {
+      transactionHistory: {
+        ...transactionHistoryConfig,
+      },
+    };
+    const dbManager = await CreateDatabaseManager(cert_config);
+
+    jest.spyOn(dbManager._transactionHistory, "query").mockImplementation((query: string | AqlLiteral): Promise<any> => {
+      return new Promise((resolve, reject) => {
+        isAqlQuery(query)
+          ? resolve({
+              batches: {
+                all: jest.fn().mockImplementation(() => ["MOCK-QUERY"]),
+              },
+            })
+          : reject(new Error("Not AQL Query"));
+      });
+    });
+
+    expect(dbManager.getTransactionPacs008).toBeDefined();
+    expect(await dbManager.getTransactionPacs008("test")).toEqual(["MOCK-QUERY"]);    
+    
     dbManager.quit();
   });
 });
