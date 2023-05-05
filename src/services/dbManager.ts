@@ -31,17 +31,17 @@ interface PseudonymsDB {
   /**
    * @param collection: this is a Collection name against which this query will be run
    * @param filter: this is a string that will put next to the FILTER keyword to run against Arango
-   * 
-   * This is what the query looks like internally: 
-   * 
-  * const query = aql`
-  * FOR doc IN ${collection}
-  * FILTER ${filter}
-  * RETURN doc`;
-  * 
-  * Note, use "doc." in your query string, as we make use of "doc" as the query and return name. 
-  * @memberof PseudonymsDB
-  */
+   *
+   * This is what the query looks like internally:
+   *
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER ${filter}
+   * RETURN doc`;
+   *
+   * Note, use "doc." in your query string, as we make use of "doc" as the query and return name.
+   * @memberof PseudonymsDB
+   */
   getPseudonymGeneric: (collection: string, filter: string) => Promise<any>;
   getPseudonyms: (hash: string) => Promise<any>;
   addAccount: (hash: string) => Promise<any>;
@@ -52,21 +52,21 @@ interface PseudonymsDB {
 
 interface TransactionHistoryDB {
   _transactionHistory: Database;
-  
+
   /**
    * @param collection: this is a Collection name against which this query will be run
    * @param filter: this is a string that will put next to the FILTER keyword to run against Arango
-   * 
-   * This is what the query looks like internally: 
-   * 
-  * const query = aql`
-  * FOR doc IN ${collection}
-  * FILTER ${filter}
-  * RETURN doc`;
-  * 
-  * Note, use "doc." in your query string, as we make use of "doc" as the query and return name. 
-  * @memberof TransactionHistoryDB
-  */
+   *
+   * This is what the query looks like internally:
+   *
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER ${filter}
+   * RETURN doc`;
+   *
+   * Note, use "doc." in your query string, as we make use of "doc" as the query and return name.
+   * @memberof TransactionHistoryDB
+   */
   getTransactionGeneric: (collection: string, filter: string) => Promise<any>;
   getTransactionPacs008: (endToEndId: string, cacheKey?: string) => Promise<any>;
   getDebitorPain001Msgs: (creditorId: string) => Promise<any>;
@@ -78,21 +78,21 @@ interface ConfigurationDB {
   _configuration: Database;
   setupConfig: DBConfig;
   nodeCache: NodeCache;
-  
+
   /**
    * @param collection: this is a Collection name against which this query will be run
    * @param filter: this is a string that will put next to the FILTER keyword to run against Arango
-   * 
-   * This is what the query looks like internally: 
-   * 
-  * const query = aql`
-  * FOR doc IN ${collection}
-  * FILTER ${filter}
-  * RETURN doc`;
-  * 
-  * Note, use "doc." in your query string, as we make use of "doc" as the query and return name. 
-  * @memberof ConfigurationDB
-  */
+   *
+   * This is what the query looks like internally:
+   *
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER ${filter}
+   * RETURN doc`;
+   *
+   * Note, use "doc." in your query string, as we make use of "doc" as the query and return name.
+   * @memberof ConfigurationDB
+   */
   getConfigurationGeneric: (collection: string, filter: string) => Promise<any>;
   getRuleConfig: (ruleId: string, cfg: string) => Promise<any>;
 }
@@ -100,7 +100,7 @@ interface ConfigurationDB {
 interface NetworkMapDB {
   _networkMap: Database;
   getNetworkMap: () => Promise<any>;
-};
+}
 
 type DatabaseManagerType = Partial<PseudonymsDB & TransactionHistoryDB & ConfigurationDB & NetworkMapDB & RedisService>;
 
@@ -116,7 +116,7 @@ type DatabaseManagerInstance<T extends ManagerConfig> = (T extends {
 
 /**
  * Creates a DatabaseManagerInstance which consists of all optionally configured databases and a redis cache
- * 
+ *
  * Returns functionality for configured options
  *
  * @param {T} config RedisService | PseudonymsDB | TransactionHistoryDB | ConfigurationDB
@@ -124,7 +124,7 @@ type DatabaseManagerInstance<T extends ManagerConfig> = (T extends {
  */
 export async function CreateDatabaseManager<T extends ManagerConfig>(config: T): Promise<DatabaseManagerInstance<T>> {
   const manager: DatabaseManagerType = {};
-  let redis = config.redisConfig ? await redisBuilder(manager, config.redisConfig) : null;
+  const redis = config.redisConfig ? await redisBuilder(manager, config.redisConfig) : null;
 
   if (config.pseudonyms) {
     await pseudonymsBuilder(manager, config.pseudonyms);
@@ -153,7 +153,7 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
 }
 
 async function redisBuilder(manager: DatabaseManagerType, redisConfig: RedisConfig): Promise<RedisService> {
-  let redis = await RedisService.create(redisConfig);
+  const redis = await RedisService.create(redisConfig);
   manager.getJson = redis.getJson;
   manager.setJson = redis.setJson;
   manager.deleteKey = redis.deleteKey;
@@ -386,9 +386,7 @@ async function networkMapBuilder(manager: DatabaseManagerType, NetworkMapConfig:
       password: NetworkMapConfig.password,
     },
     agentOptions: {
-      ca: fs.existsSync(NetworkMapConfig.certPath)
-        ? [fs.readFileSync(NetworkMapConfig.certPath)]
-        : [],
+      ca: fs.existsSync(NetworkMapConfig.certPath) ? [fs.readFileSync(NetworkMapConfig.certPath)] : [],
     },
   });
 
@@ -398,7 +396,7 @@ async function networkMapBuilder(manager: DatabaseManagerType, NetworkMapConfig:
         FILTER doc.active == true
         RETURN doc
       `;
-    return (await manager._networkMap!.query(networkConfigurationQuery)).batches.all();
+    return await (await manager._networkMap!.query(networkConfigurationQuery)).batches.all();
   };
 }
 

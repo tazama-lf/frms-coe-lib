@@ -63,7 +63,7 @@ const config = {
   transactionHistory: transactionHistoryConfig,
   configuration: configurationConfig,
   pseudonyms: pseudonymsConfig,
-  networkMap: networkMapConfig
+  networkMap: networkMapConfig,
 };
 
 let globalManager: DatabaseManagerInstance<typeof config>;
@@ -159,7 +159,6 @@ describe("CreateDatabaseManager", () => {
     expect(await dbManager.getSuccessfulPacs002Msgs("test")).toEqual(["MOCK-QUERY"]);
     expect(await dbManager.getTransactionPacs008("test")).toEqual(["MOCK-QUERY"]);
     expect(await dbManager.getTransactionGeneric("testCollection", "testFilter")).toEqual(["MOCK-QUERY"]);
-    
   });
 
   it("should create a manager with configuration methods", async () => {
@@ -305,8 +304,8 @@ describe("CreateDatabaseManager", () => {
     });
 
     expect(dbManager.getTransactionPacs008).toBeDefined();
-    expect(await dbManager.getTransactionPacs008("test")).toEqual(["MOCK-QUERY"]);    
-    
+    expect(await dbManager.getTransactionPacs008("test")).toEqual(["MOCK-QUERY"]);
+
     dbManager.quit();
   });
 });
