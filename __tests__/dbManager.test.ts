@@ -1,6 +1,6 @@
 import { AqlLiteral, isAqlQuery } from "arangojs/aql";
 import { ConfigurationDB, PseudonymsDB, RedisService, TransactionHistoryDB } from "../src";
-import { TransactionRelationship } from "../src/interfaces";
+import { AccountType, TransactionRelationship } from "../src/interfaces";
 import { CreateDatabaseManager, DatabaseManagerInstance, NetworkMapDB } from "../src/services/dbManager";
 
 // redis and aragojs is mocked
@@ -29,6 +29,14 @@ const configurationConfig = {
   url: "TestConfiguration",
   localCacheEnabled: true,
   localCacheTTL: 10,
+};
+
+const configurationConfigNoCache = {
+  certPath: "TestConfiguration",
+  databaseName: "TestConfiguration",
+  user: "TestConfiguration",
+  password: "TestConfiguration",
+  url: "TestConfiguration",
 };
 
 const pseudonymsConfig = {
@@ -148,43 +156,77 @@ describe("CreateDatabaseManager", () => {
     const testTypes = <RedisService & TransactionHistoryDB>{};
     const dbManager: typeof testTypes = globalManager;
 
-    expect(dbManager.getCreditorPain001Msgs).toBeDefined();
-    expect(dbManager.getDebitorPain001Msgs).toBeDefined();
-    expect(dbManager.getSuccessfulPacs002Msgs).toBeDefined();
+    expect(dbManager.queryTransactionDB).toBeDefined();
     expect(dbManager.getTransactionPacs008).toBeDefined();
-    expect(dbManager.getTransactionGeneric).toBeDefined();
+    expect(dbManager.getDebtorPain001Msgs).toBeDefined();
+    expect(dbManager.getCreditorPain001Msgs).toBeDefined();
+    expect(dbManager.getSuccessfulPacs002Msgs).toBeDefined();
+    expect(dbManager.getSuccessfulPacs002EndToEndIds).toBeDefined();
+    expect(dbManager.getDebtorPacs002Msgs).toBeDefined();
+    expect(dbManager.getEquivalentPain001Msg).toBeDefined();
+    expect(dbManager.getAccountEndToEndIds).toBeDefined();
+    expect(dbManager.getAccountHistoryPacs008Msgs).toBeDefined();
 
-    expect(await dbManager.getCreditorPain001Msgs("test")).toEqual(["MOCK-QUERY"]);
-    expect(await dbManager.getDebitorPain001Msgs("test")).toEqual(["MOCK-QUERY"]);
-    expect(await dbManager.getSuccessfulPacs002Msgs("test")).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.queryTransactionDB("testCollection", "testFilter")).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.queryTransactionDB("testCollection", "testFilter", 10)).toEqual(["MOCK-QUERY"]);
     expect(await dbManager.getTransactionPacs008("test")).toEqual(["MOCK-QUERY"]);
-    expect(await dbManager.getTransactionGeneric("testCollection", "testFilter")).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.getDebtorPain001Msgs("test")).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.getCreditorPain001Msgs("test")).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.getSuccessfulPacs002Msgs("test")).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.getSuccessfulPacs002EndToEndIds(["test"])).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.getDebtorPacs002Msgs("test")).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.getEquivalentPain001Msg(["test"])).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.getAccountEndToEndIds("test", AccountType.CreditorAcct)).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.getAccountEndToEndIds("test", AccountType.DebtorAcct)).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.getAccountHistoryPacs008Msgs("test", AccountType.CreditorAcct)).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.getAccountHistoryPacs008Msgs("test", AccountType.DebtorAcct)).toEqual(["MOCK-QUERY"]);
   });
 
   it("should create a manager with configuration methods", async () => {
     const testTypes = <RedisService & ConfigurationDB>{};
     const dbManager: typeof testTypes = globalManager;
 
+    expect(dbManager.queryConfigurationDB).toBeDefined();
     expect(dbManager.getRuleConfig).toBeDefined();
-    expect(dbManager.getConfigurationGeneric).toBeDefined();
 
+    expect(await dbManager.queryConfigurationDB("testCollection", "testFilter")).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.queryConfigurationDB("testCollection", "testFilter", 10)).toEqual(["MOCK-QUERY"]);
     expect(await dbManager.getRuleConfig("test", "test")).toEqual(["MOCK-QUERY"]);
-    expect(await dbManager.getConfigurationGeneric("testCollection", "testFilter")).toEqual(["MOCK-QUERY"]);
   });
 
   it("should create a manager with pseudonyms methods", async () => {
     const testTypes = <RedisService & PseudonymsDB>{};
     const dbManager: typeof testTypes = globalManager;
 
-    expect(dbManager.addAccount).toBeDefined();
+    expect(dbManager.queryPseudonymDB).toBeDefined();
     expect(dbManager.getPseudonyms).toBeDefined();
+    expect(dbManager.addAccount).toBeDefined();
     expect(dbManager.saveTransactionRelationship).toBeDefined();
-    expect(dbManager.getPseudonymGeneric).toBeDefined();
+    expect(dbManager.getPacs008Edge).toBeDefined();
+    expect(dbManager.getPacs008Edges).toBeDefined();
+    expect(dbManager.getPacs002Edge).toBeDefined();
+    expect(dbManager.getDebtorPacs002Edges).toBeDefined();
+    expect(dbManager.getSuccessfulPacs002Edges).toBeDefined();
+    expect(dbManager.getDebtorPacs008Edges).toBeDefined();
+    expect(dbManager.getCreditorPacs008Edges).toBeDefined();
+    expect(dbManager.getPreviousPacs008Edges).toBeDefined();
+    expect(dbManager.getCreditorPacs002Edges).toBeDefined();
 
-    expect(await dbManager.addAccount("test")).toEqual("MOCK-SAVE");
+    expect(await dbManager.queryPseudonymDB("testCollection", "testFilter")).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.queryPseudonymDB("testCollection", "testFilter", 10)).toEqual(["MOCK-QUERY"]);
     expect(await dbManager.getPseudonyms("test")).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.addAccount("test")).toEqual("MOCK-SAVE");
     expect(await dbManager.saveTransactionRelationship(mockTR)).toEqual("MOCK-SAVE");
-    expect(await dbManager.getPseudonymGeneric("testCollection", "testFilter")).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.getPacs008Edge(["test"])).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.getPacs008Edges("test", "test", 1000)).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.getPacs002Edge(["test"])).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.getDebtorPacs002Edges("test")).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.getSuccessfulPacs002Edges("test", "test", "test")).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.getDebtorPacs008Edges("test", "test")).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.getCreditorPacs008Edges("test")).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.getPreviousPacs008Edges("test")).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.getPreviousPacs008Edges("test", 2, ["to-test-1", "to-test-2"])).toEqual(["MOCK-QUERY"]);
+    expect(await dbManager.getCreditorPacs002Edges("test", 50)).toEqual(["MOCK-QUERY"]);
   });
 
   it("should create a manager with network map methods", async () => {
@@ -197,39 +239,42 @@ describe("CreateDatabaseManager", () => {
   });
 
   it("should create a manager with all methods", async () => {
-    const testTypes = <RedisService & TransactionHistoryDB & ConfigurationDB & PseudonymsDB>{};
+    const testTypes = <RedisService & TransactionHistoryDB & ConfigurationDB & PseudonymsDB & NetworkMapDB>{};
     const dbManager: typeof testTypes = globalManager;
 
     // transactionHistory
-    expect(dbManager.getCreditorPain001Msgs).toBeDefined();
-    expect(dbManager.getDebitorPain001Msgs).toBeDefined();
-    expect(dbManager.getSuccessfulPacs002Msgs).toBeDefined();
+    expect(dbManager.queryTransactionDB).toBeDefined();
     expect(dbManager.getTransactionPacs008).toBeDefined();
-    expect(dbManager.getTransactionGeneric).toBeDefined();
-
-    expect(await dbManager.getCreditorPain001Msgs("test")).toEqual(["MOCK-QUERY"]);
-    expect(await dbManager.getDebitorPain001Msgs("test")).toEqual(["MOCK-QUERY"]);
-    expect(await dbManager.getSuccessfulPacs002Msgs("test")).toEqual(["MOCK-QUERY"]);
-    expect(await dbManager.getTransactionPacs008("test")).toEqual(["MOCK-QUERY"]);
-    expect(await dbManager.getTransactionGeneric("testCollection", "testFilter")).toEqual(["MOCK-QUERY"]);
+    expect(dbManager.getDebtorPain001Msgs).toBeDefined();
+    expect(dbManager.getCreditorPain001Msgs).toBeDefined();
+    expect(dbManager.getSuccessfulPacs002Msgs).toBeDefined();
+    expect(dbManager.getSuccessfulPacs002EndToEndIds).toBeDefined();
+    expect(dbManager.getDebtorPacs002Msgs).toBeDefined();
+    expect(dbManager.getEquivalentPain001Msg).toBeDefined();
+    expect(dbManager.getAccountEndToEndIds).toBeDefined();
+    expect(dbManager.getAccountHistoryPacs008Msgs).toBeDefined();
 
     // configuration
+    expect(dbManager.queryConfigurationDB).toBeDefined();
     expect(dbManager.getRuleConfig).toBeDefined();
-    expect(dbManager.getConfigurationGeneric).toBeDefined();
-
-    expect(await dbManager.getRuleConfig("test", "test")).toEqual(["MOCK-QUERY"]);
-    expect(await dbManager.getConfigurationGeneric("testCollection", "testFilter")).toEqual(["MOCK-QUERY"]);
 
     // pseudonyms
-    expect(dbManager.addAccount).toBeDefined();
+    expect(dbManager.queryPseudonymDB).toBeDefined();
     expect(dbManager.getPseudonyms).toBeDefined();
+    expect(dbManager.addAccount).toBeDefined();
     expect(dbManager.saveTransactionRelationship).toBeDefined();
-    expect(dbManager.getPseudonymGeneric).toBeDefined();
+    expect(dbManager.getPacs008Edge).toBeDefined();
+    expect(dbManager.getPacs008Edges).toBeDefined();
+    expect(dbManager.getPacs002Edge).toBeDefined();
+    expect(dbManager.getDebtorPacs002Edges).toBeDefined();
+    expect(dbManager.getSuccessfulPacs002Edges).toBeDefined();
+    expect(dbManager.getDebtorPacs008Edges).toBeDefined();
+    expect(dbManager.getCreditorPacs008Edges).toBeDefined();
+    expect(dbManager.getPreviousPacs008Edges).toBeDefined();
+    expect(dbManager.getCreditorPacs002Edges).toBeDefined();
 
-    expect(await dbManager.addAccount("test")).toEqual("MOCK-SAVE");
-    expect(await dbManager.getPseudonyms("test")).toEqual(["MOCK-QUERY"]);
-    expect(await dbManager.saveTransactionRelationship(mockTR)).toEqual("MOCK-SAVE");
-    expect(await dbManager.getPseudonymGeneric("testCollection", "testFilter")).toEqual(["MOCK-QUERY"]);
+    // networkMap
+    expect(dbManager.getNetworkMap).toBeDefined();
   });
 
   it("should use cache for pacs008 when provided cacheKey", async () => {
@@ -238,6 +283,57 @@ describe("CreateDatabaseManager", () => {
 
     expect(await dbManager.getTransactionPacs008("test", "test-cache")).toEqual(["MOCK-CACHE-QUERY"]);
   });
+
+  it("should not try use cache for getRuleConfig when cached not enabled", async () => {
+    const confConfig = {
+      configuration: {
+        ...configurationConfigNoCache,
+      },
+    };
+
+    const dbManager = await CreateDatabaseManager(confConfig);
+
+    jest.spyOn(dbManager._configuration, "query").mockImplementation((query: string | AqlLiteral): Promise<any> => {
+      return new Promise((resolve, reject) => {
+        isAqlQuery(query)
+          ? resolve({
+              batches: {
+                all: jest.fn().mockImplementation(() => ["MOCK-QUERY"]),
+              },
+            })
+          : reject(new Error("Not AQL Query"));
+      });
+    });
+
+    expect(await dbManager.getRuleConfig("test-ruleid", "test-cfg")).toEqual(["MOCK-QUERY"]);
+
+    dbManager.quit();
+  });
+
+  // it("should use cache for getRuleConfig when cached previously", async () => {
+  //   const confConfig = {
+  //     config: {
+  //       ...configurationConfig,
+  //     },
+  //   };
+  //   const dbManager = await CreateDatabaseManager(confConfig);
+
+  //   jest.spyOn(dbManager._transactionHistory, "query").mockImplementation((query: string | AqlLiteral): Promise<any> => {
+  //     return new Promise((resolve, reject) => {
+  //       isAqlQuery(query)
+  //         ? resolve({
+  //             batches: {
+  //               all: jest.fn().mockImplementation(() => ["MOCK-QUERY"]),
+  //             },
+  //           })
+  //         : reject(new Error("Not AQL Query"));
+  //     });
+  //   });
+
+  //   expect(await dbManager.getRuleConfig("test-ruleid", "test-cfg")).toEqual(["MOCK-CACHE-QUERY"]);
+  //   dbManager.quit();
+
+  // });
 
   it("should use cert if path valid", async () => {
     const cert_config = {
@@ -265,7 +361,7 @@ describe("CreateDatabaseManager", () => {
 
     // transactionHistory
     expect(dbManager.getCreditorPain001Msgs).toBeDefined();
-    expect(dbManager.getDebitorPain001Msgs).toBeDefined();
+    expect(dbManager.getDebtorPain001Msgs).toBeDefined();
     expect(dbManager.getSuccessfulPacs002Msgs).toBeDefined();
     expect(dbManager.getTransactionPacs008).toBeDefined();
 
@@ -284,12 +380,13 @@ describe("CreateDatabaseManager", () => {
   });
 
   it("should create a manager with transactionHistory methods - no cache", async () => {
-    const cert_config = {
+    // only transactionHistory
+    const transHistoryConfig = {
       transactionHistory: {
         ...transactionHistoryConfig,
       },
     };
-    const dbManager = await CreateDatabaseManager(cert_config);
+    const dbManager = await CreateDatabaseManager(transHistoryConfig);
 
     jest.spyOn(dbManager._transactionHistory, "query").mockImplementation((query: string | AqlLiteral): Promise<any> => {
       return new Promise((resolve, reject) => {
