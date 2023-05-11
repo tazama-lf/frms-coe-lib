@@ -221,7 +221,7 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.getPacs008Edges('test', 'test', 1000)).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getPacs002Edge(['test'])).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getDebtorPacs002Edges('test')).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getSuccessfulPacs002Edges('test', 'test', 'test')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getSuccessfulPacs002Edges(['test'], 'test', ['test'])).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getDebtorPacs008Edges('test', 'test')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getCreditorPacs008Edges('test')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getPreviousPacs008Edges('test')).toEqual(['MOCK-QUERY']);

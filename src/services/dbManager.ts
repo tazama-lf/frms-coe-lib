@@ -52,7 +52,7 @@ interface PseudonymsDB {
   getPacs008Edges: (creditorId: string, threshold: string, amount: number) => Promise<any>;
   getPacs002Edge: (endToEndIds: string[]) => Promise<any>;
   getDebtorPacs002Edges: (debtorId: string) => Promise<any>;
-  getSuccessfulPacs002Edges: (creditorId: string, debtorId: string, endToEndId: string) => Promise<any>;
+  getSuccessfulPacs002Edges: (creditorId: string[], debtorId: string, endToEndId: string[]) => Promise<any>;
   getDebtorPacs008Edges: (debtorId: string, endToEndId: string) => Promise<any>;
   getCreditorPacs008Edges: (creditorId: string) => Promise<any>;
   getPreviousPacs008Edges: (debtorId: string, limit?: number, to?: string[]) => Promise<any>;
@@ -191,7 +191,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
   manager.queryPseudonymDB = async (collection: string, filter: string, limit?: number) => {
     const db = manager._pseudonymsDb!.collection(collection);
     const aqlFilter = aql`${filter}`;
-    const aqlLimit = limit ? aql`LIMIT ${limit}` : null;
+    const aqlLimit = limit ? aql`LIMIT ${limit}` : undefined;
 
     const query: AqlQuery = aql`
       FOR doc IN ${db}
@@ -294,7 +294,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
     return await (await manager._pseudonymsDb!.query(query)).batches.all();
   };
 
-  manager.getSuccessfulPacs002Edges = async (creditorId: string, debtorId: string, endToEndId: string): Promise<any> => {
+  manager.getSuccessfulPacs002Edges = async (creditorId: string[], debtorId: string, endToEndId: string[]): Promise<any> => {
     const db = manager._pseudonymsDb!.collection('transactionRelationship');
     const debtorAccount = `accounts/${debtorId}`;
     const debtorAccountAql = aql`${debtorAccount}`;
@@ -405,7 +405,7 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
   manager.queryTransactionDB = async (collection: string, filter: string, limit?: number) => {
     const db = manager._transactionHistory!.collection(collection);
     const aqlFilter = aql`${filter}`;
-    const aqlLimit = limit ? aql`LIMIT ${limit}` : null;
+    const aqlLimit = limit ? aql`LIMIT ${limit}` : undefined;
 
     const query: AqlQuery = aql`
       FOR doc IN ${db}
@@ -586,7 +586,7 @@ async function configurationBuilder(manager: DatabaseManagerType, configurationC
   manager.queryConfigurationDB = async (collection: string, filter: string, limit?: number) => {
     const db = manager._configuration!.collection(collection);
     const aqlFilter = aql`${filter}`;
-    const aqlLimit = limit ? aql`LIMIT ${limit}` : null;
+    const aqlLimit = limit ? aql`LIMIT ${limit}` : undefined;
 
     const query: AqlQuery = aql`
       FOR doc IN ${db}
@@ -604,7 +604,7 @@ async function configurationBuilder(manager: DatabaseManagerType, configurationC
       const cacheVal = manager.nodeCache?.get(cacheKey);
       if (cacheVal) return await Promise.resolve(cacheVal);
     }
-    const aqlLimit = limit ? aql`LIMIT ${limit}` : null;
+    const aqlLimit = limit ? aql`LIMIT ${limit}` : undefined;
     const db = manager._configuration!.collection('configuration');
     const query: AqlQuery = aql`
       FOR doc IN ${db}
