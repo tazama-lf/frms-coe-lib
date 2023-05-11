@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { aql, Database } from "arangojs";
-import { join, type AqlQuery, type GeneratedAqlQuery } from "arangojs/aql";
-import * as fs from "fs";
-import NodeCache from "node-cache";
-import { RedisService, type RedisConfig } from "..";
-import { AccountType, type TransactionRelationship } from "../interfaces";
+import { aql, Database } from 'arangojs';
+import { join, type AqlQuery, type GeneratedAqlQuery } from 'arangojs/aql';
+import * as fs from 'fs';
+import NodeCache from 'node-cache';
+import { RedisService, type RedisConfig } from '..';
+import { AccountType, type TransactionRelationship } from '../interfaces';
 
 interface DBConfig {
   url: string;
@@ -108,7 +108,7 @@ interface ConfigurationDB {
    * @memberof ConfigurationDB
    */
   queryConfigurationDB: (collection: string, filter: string, limit?: number) => Promise<any>;
-  getRuleConfig: (ruleId: string, cfg: string) => Promise<any>;
+  getRuleConfig: (ruleId: string, cfg: string, limit?: number) => Promise<any>;
 }
 
 interface NetworkMapDB {
@@ -204,7 +204,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
   };
 
   manager.getPseudonyms = async (hash: string) => {
-    const db = manager._pseudonymsDb!.collection("pseudonyms");
+    const db = manager._pseudonymsDb!.collection('pseudonyms');
 
     const query: AqlQuery = aql`
       FOR i IN ${db}
@@ -218,7 +218,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
   manager.addAccount = async (hash: string) => {
     const data = { _key: hash };
 
-    return await manager._pseudonymsDb!.collection("accounts").save(data, { overwriteMode: "ignore" });
+    return await manager._pseudonymsDb!.collection('accounts').save(data, { overwriteMode: 'ignore' });
   };
 
   manager.saveTransactionRelationship = async (tR: TransactionRelationship) => {
@@ -236,11 +236,11 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
       long: tR.long,
     };
 
-    return await manager._pseudonymsDb!.collection("transactionRelationship").save(data, { overwriteMode: "ignore" });
+    return await manager._pseudonymsDb!.collection('transactionRelationship').save(data, { overwriteMode: 'ignore' });
   };
 
   manager.getPacs008Edge = async (endToEndIds: string[]) => {
-    const db = manager._pseudonymsDb!.collection("transactionRelationship");
+    const db = manager._pseudonymsDb!.collection('transactionRelationship');
 
     const query = aql`
       FOR doc IN ${db} 
@@ -252,7 +252,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
   };
 
   manager.getPacs008Edges = async (creditorId: string, threshold?: string, amount?: number) => {
-    const db = manager._pseudonymsDb!.collection("transactionRelationship");
+    const db = manager._pseudonymsDb!.collection('transactionRelationship');
     const filters: GeneratedAqlQuery[] = [aql`FILTER doc.TxTp == 'pacs.008.001.10' && doc._to == ${creditorId}`];
 
     if (threshold !== undefined) filters.push(aql`FILTER doc.CreDtTm < ${threshold}`);
@@ -268,7 +268,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
   };
 
   manager.getPacs002Edge = async (endToEndIds: string[]) => {
-    const db = manager._pseudonymsDb!.collection("transactionRelationship");
+    const db = manager._pseudonymsDb!.collection('transactionRelationship');
 
     const query = aql`
       FOR doc IN ${db} 
@@ -280,11 +280,14 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
   };
 
   manager.getDebtorPacs002Edges = async (debtorId: string): Promise<any> => {
-    const db = manager._pseudonymsDb!.collection("transactionRelationship");
+    const db = manager._pseudonymsDb!.collection('transactionRelationship');
+    const debtorAccount = `accounts/${debtorId}`;
+    const debtorAccountAql = aql`${debtorAccount}`;
 
     const query = aql`
       FOR doc IN ${db} 
-      FILTER doc._from == 'accounts/${debtorId}' && doc.TxTp == 'pacs.002.001.12' && doc.TxSts == 'ACCC'
+      FILTER doc._from == ${debtorAccountAql}
+      FILTER doc.TxTp == 'pacs.002.001.12' && doc.TxSts == 'ACCC'
       RETURN doc
     `;
 
@@ -292,12 +295,14 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
   };
 
   manager.getSuccessfulPacs002Edges = async (creditorId: string, debtorId: string, endToEndId: string): Promise<any> => {
-    const db = manager._pseudonymsDb!.collection("transactionRelationship");
+    const db = manager._pseudonymsDb!.collection('transactionRelationship');
+    const debtorAccount = `accounts/${debtorId}`;
+    const debtorAccountAql = aql`${debtorAccount}`;
 
     const query = aql`
       FOR doc IN ${db} 
       FILTER doc._to IN ${JSON.stringify(creditorId)}  
-      FILTER doc._from == 'accounts/${debtorId}' 
+      FILTER doc._from == ${debtorAccountAql}
       FILTER doc.TxTp == 'pacs.002.001.12' 
       FILTER doc.EndToEndId IN ${JSON.stringify(endToEndId)}
       FILTER doc.TxSts == 'ACCC'
@@ -310,11 +315,13 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
   };
 
   manager.getDebtorPacs008Edges = async (debtorId: string, endToEndId: string) => {
-    const db = manager._pseudonymsDb!.collection("transactionRelationship");
+    const db = manager._pseudonymsDb!.collection('transactionRelationship');
+    const debtorAccount = `accounts/${debtorId}`;
+    const debtorAccountAql = aql`${debtorAccount}`;
 
     const query = aql`
       FOR doc IN ${db}
-      FILTER doc._from == 'accounts/${debtorId}' 
+      FILTER doc._from == ${debtorAccountAql}
       FILTER doc.EndToEndId ==  ${endToEndId}
       FILTER doc.TxTp == 'pacs.008.001.10' 
       SORT   doc.CreDtTm DESC
@@ -326,11 +333,13 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
   };
 
   manager.getCreditorPacs008Edges = async (creditorId: string) => {
-    const db = manager._pseudonymsDb!.collection("transactionRelationship");
+    const db = manager._pseudonymsDb!.collection('transactionRelationship');
+    const creditorAccount = `accounts/${creditorId}`;
+    const creditorAccountAql = aql`${creditorAccount}`;
 
     const query = aql`
       FOR doc IN ${db}
-      FILTER doc._to == 'accounts/${creditorId}' 
+      FILTER doc._to == ${creditorAccountAql} 
       FILTER doc.TxTp == 'pacs.008.001.10' 
       SORT   doc.CreDtTm DESC
       LIMIT 2
@@ -341,13 +350,19 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
   };
 
   manager.getPreviousPacs008Edges = async (accountId: string, limit?: number, to?: string[]) => {
-    const db = manager._pseudonymsDb!.collection("transactionRelationship");
-    const filters: GeneratedAqlQuery[] = [aql`FILTER doc._from == 'accounts/${accountId}' && doc.TxTp == 'pacs.008.001.10'`];
+    const db = manager._pseudonymsDb!.collection('transactionRelationship');
+
+    const filters: GeneratedAqlQuery[] = [];
+    filters.push(aql`FILTER doc.TxTp == 'pacs.008.001.10'`);
     if (to !== undefined) filters.push(aql`FILTER doc._to IN ${JSON.stringify(to)}`);
+
     const aqlLimit = limit ? aql`${limit}` : aql`3`;
+    const account = `accounts/${accountId}`;
+    const accountAql = aql`${account}`;
 
     const query = aql`
       FOR doc IN ${db}
+      FILTER doc._from == ${accountAql}
       ${join(filters)}
       SORT doc.CreDtTm DESC
       LIMIT ${aqlLimit}
@@ -358,12 +373,15 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
   };
 
   manager.getCreditorPacs002Edges = async (creditorId: string, threshold: number) => {
-    const db = manager._pseudonymsDb!.collection("transactionRelationship");
+    const db = manager._pseudonymsDb!.collection('transactionRelationship');
     const date: string = new Date(new Date().getTime() - threshold).toISOString();
+
+    const creditorAccount = `accounts/${creditorId}`;
+    const creditorAccountAql = aql`${creditorAccount}`;
 
     const query = aql`
       FOR doc IN ${db}
-      FILTER doc._from == 'accounts/${creditorId}' && doc.TxTp == 'pacs.002.001.12' && doc.TxSts == 'ACCC' && doc.CreDtTm >= ${date}
+      FILTER doc._from == '${creditorAccountAql}' && doc.TxTp == 'pacs.002.001.12' && doc.TxSts == 'ACCC' && doc.CreDtTm >= ${date}
         RETURN doc
     `;
 
@@ -400,15 +418,15 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
   };
 
   if (redis) {
-    manager.getTransactionPacs008 = async (endToEndId: string, cacheKey = "") => {
+    manager.getTransactionPacs008 = async (endToEndId: string, cacheKey = '') => {
       let cacheVal: string[] = [];
 
-      if (cacheKey !== "") {
+      if (cacheKey !== '') {
         cacheVal = await manager.getJson!(cacheKey);
         if (cacheVal.length > 0) return await Promise.resolve(cacheVal);
       }
 
-      const db = manager._transactionHistory!.collection("transactionHistoryPacs008");
+      const db = manager._transactionHistory!.collection('transactionHistoryPacs008');
 
       const query: AqlQuery = aql`
         FOR doc IN ${db}
@@ -420,7 +438,7 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
     };
   } else {
     manager.getTransactionPacs008 = async (endToEndId: string) => {
-      const db = manager._transactionHistory!.collection("transactionHistoryPacs008");
+      const db = manager._transactionHistory!.collection('transactionHistoryPacs008');
 
       const query: AqlQuery = aql`
         FOR doc IN ${db}
@@ -433,7 +451,7 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
   }
 
   manager.getDebtorPain001Msgs = async (creditorId: string) => {
-    const db = manager._transactionHistory!.collection("transactionHistoryPain001");
+    const db = manager._transactionHistory!.collection('transactionHistoryPain001');
 
     const query: AqlQuery = aql`
       FOR doc IN ${db} 
@@ -447,7 +465,7 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
   };
 
   manager.getCreditorPain001Msgs = async (creditorId: string) => {
-    const db = manager._transactionHistory!.collection("transactionHistoryPain001");
+    const db = manager._transactionHistory!.collection('transactionHistoryPain001');
 
     const query: AqlQuery = aql`
       FOR doc IN ${db} 
@@ -461,7 +479,7 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
   };
 
   manager.getSuccessfulPacs002Msgs = async (endToEndId: string) => {
-    const db = manager._transactionHistory!.collection("transactionHistoryPacs002");
+    const db = manager._transactionHistory!.collection('transactionHistoryPacs002');
 
     const query: AqlQuery = aql`
       FOR doc IN ${db} 
@@ -476,7 +494,7 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
   };
 
   manager.getSuccessfulPacs002EndToEndIds = async (endToEndIds: string[]) => {
-    const db = manager._transactionHistory!.collection("transactionHistoryPacs002");
+    const db = manager._transactionHistory!.collection('transactionHistoryPacs002');
 
     const query: AqlQuery = aql`
       FOR doc IN ${db} 
@@ -489,7 +507,7 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
   };
 
   manager.getDebtorPacs002Msgs = async (endToEndId: string) => {
-    const db = manager._transactionHistory!.collection("transactionHistoryPacs002");
+    const db = manager._transactionHistory!.collection('transactionHistoryPacs002');
 
     const query: AqlQuery = aql`
       FOR doc IN ${db} 
@@ -501,7 +519,7 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
   };
 
   manager.getEquivalentPain001Msg = async (endToEndIds: string[]) => {
-    const db = manager._transactionHistory!.collection("transactionHistoryPain001");
+    const db = manager._transactionHistory!.collection('transactionHistoryPain001');
 
     const query: AqlQuery = aql`
       FOR doc IN ${db} 
@@ -514,12 +532,15 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
   };
 
   manager.getAccountEndToEndIds = async (accountId: string, accountType: AccountType) => {
-    const db = manager._transactionHistory!.collection("transactionHistoryPacs008");
-    const accType = accountType === AccountType.CreditorAcct ? aql`CreditorAcctId` : aql`DebtorAcctId`;
+    const db = manager._transactionHistory!.collection('transactionHistoryPacs008');
+    const filterType =
+      accountType === AccountType.CreditorAcct
+        ? aql`FILTER doc.CreditorAcctId == ${accountId}`
+        : aql`FILTER doc.DebtorAcctId == ${accountId}`;
 
     const query: AqlQuery = aql`
       FOR doc IN ${db} 
-      FILTER doc.${accType} == ${accountId}
+      ${filterType}
       RETURN { 
         e2eId: doc.EndToEndId,
         timestamp: DATE_TIMESTAMP(doc.CreDtTm) 
@@ -530,12 +551,15 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
   };
 
   manager.getAccountHistoryPacs008Msgs = async (accountId: string, accountType: AccountType) => {
-    const db = manager._transactionHistory!.collection("transactionHistoryPacs008");
-    const accType = accountType === AccountType.CreditorAcct ? aql`CreditorAcctId` : aql`DebtorAcctId`;
+    const db = manager._transactionHistory!.collection('transactionHistoryPacs008');
+    const filterType =
+      accountType === AccountType.CreditorAcct
+        ? aql`FILTER doc.CreditorAcctId == ${accountId}`
+        : aql`FILTER doc.DebtorAcctId == ${accountId}`;
 
     const query: AqlQuery = aql`
       FOR doc IN ${db} 
-      FILTER doc.${accType} == ${accountId}
+      ${filterType}
       RETURN doc
     `;
 
@@ -574,17 +598,19 @@ async function configurationBuilder(manager: DatabaseManagerType, configurationC
     return await (await manager._configuration!.query(query)).batches.all();
   };
 
-  manager.getRuleConfig = async (ruleId: string, cfg: string) => {
+  manager.getRuleConfig = async (ruleId: string, cfg: string, limit?: number) => {
     const cacheKey = `${ruleId}_${cfg}`;
     if (manager.setupConfig?.localCacheEnabled ?? false) {
       const cacheVal = manager.nodeCache?.get(cacheKey);
       if (cacheVal) return await Promise.resolve(cacheVal);
     }
-    const db = manager._configuration!.collection("configuration");
+    const aqlLimit = limit ? aql`LIMIT ${limit}` : null;
+    const db = manager._configuration!.collection('configuration');
     const query: AqlQuery = aql`
       FOR doc IN ${db}
       FILTER doc.id == ${ruleId}
       FILTER doc.cfg == ${cfg}
+      ${aqlLimit}
       RETURN doc
     `;
 
