@@ -3,7 +3,7 @@
  * https://jestjs.io/docs/en/configuration.html
  */
 
-import type { Config } from "@jest/types";
+import type { Config } from '@jest/types';
 
 // Sync object
 const config: Config.InitialOptions = {
@@ -23,30 +23,30 @@ const config: Config.InitialOptions = {
   collectCoverage: true,
 
   // An array of glob patterns indicating a set of files for which coverage information should be collected
-  collectCoverageFrom: ["src/services/dbManager.ts"],
+  collectCoverageFrom: ['src/services/dbManager.ts'],
 
   // The directory where Jest should output its coverage files
-  coverageDirectory: "<rootDir>/coverage/",
+  coverageDirectory: '<rootDir>/coverage/',
 
   // An array of regexp pattern strings used to skip coverage collection
   coveragePathIgnorePatterns: [
-    "/node_modules/",
-    "./src/interfaces",
-    "./src/models",
-    "./__tests__",
-    "interfaces",
-    ".module.ts",
-    ".mock.ts",
-    "./src/index.ts",
-    "./src/clients/arangodb.ts",
-    "./src/clients/index.ts",
-    "./src/clients/redis.ts",
-    "./router.ts",
-    "./jest.config.ts",
+    '/node_modules/',
+    './src/interfaces',
+    './src/models',
+    './__tests__',
+    'interfaces',
+    '.module.ts',
+    '.mock.ts',
+    './src/index.ts',
+    './src/clients/arangodb.ts',
+    './src/clients/index.ts',
+    './src/clients/redis.ts',
+    './router.ts',
+    './jest.config.ts',
   ],
 
   // Indicates which provider should be used to instrument code for coverage
-  coverageProvider: "v8",
+  coverageProvider: 'v8',
 
   // A list of reporter names that Jest uses when writing coverage reports
   // coverageReporters: [
@@ -115,7 +115,7 @@ const config: Config.InitialOptions = {
   // notifyMode: "failure-change",
 
   // A preset that is used as a base for Jest's configuration
-  preset: "ts-jest",
+  preset: 'ts-jest',
 
   // Run tests from one or more projects
   // projects: undefined,
@@ -139,7 +139,7 @@ const config: Config.InitialOptions = {
   // rootDir: ".",
 
   // A list of paths to directories that Jest should use to search for files in
-  roots: ["<rootDir>/__tests__/"],
+  roots: ['<rootDir>/__tests__/'],
 
   // Allows you to use a custom runner instead of Jest's default test runner
   // runner: "jest-runner",
@@ -148,7 +148,7 @@ const config: Config.InitialOptions = {
   //setupFiles: ['dotenv/config'],
 
   // A list of paths to modules that run some code to configure or set up the testing framework before each test
-  setupFilesAfterEnv: ["./setup.jest.js"],
+  setupFilesAfterEnv: ['./setup.jest.js'],
 
   // The number of seconds after which a test is considered as slow and reported as such in the results.
   // slowTestThreshold: 5,
@@ -157,7 +157,7 @@ const config: Config.InitialOptions = {
   // snapshotSerializers: [],
 
   // The test environment that will be used for testing
-  testEnvironment: "node",
+  testEnvironment: 'node',
 
   // Options that will be passed to the testEnvironment
   // testEnvironmentOptions: {},
@@ -166,10 +166,10 @@ const config: Config.InitialOptions = {
   // testLocationInResults: false,
 
   // The glob patterns Jest uses to detect test files
-  testMatch: ["**/*.test.ts"],
+  testMatch: ['**/*.test.ts'],
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
-  testPathIgnorePatterns: ["/node_modules/"],
+  testPathIgnorePatterns: ['/node_modules/'],
 
   // The regexp pattern or array of patterns that Jest uses to detect test files
   // testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.(ts|js)$',
@@ -188,7 +188,7 @@ const config: Config.InitialOptions = {
 
   // A map from regular expressions to paths to transformers
   transform: {
-    "^.+\\.ts$": "ts-jest",
+    '^.+\\.ts$': 'ts-jest',
   },
 
   // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
