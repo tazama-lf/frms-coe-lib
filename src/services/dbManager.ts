@@ -244,7 +244,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
 
     const query = aql`
       FOR doc IN ${db} 
-      FILTER doc.EndToEndId == IN ${JSON.stringify(endToEndIds)} && doc.TxTp == 'pacs.008.001.10'
+      FILTER doc.EndToEndId IN ${JSON.stringify(endToEndIds)} && doc.TxTp == 'pacs.008.001.10'
       RETURN doc
     `;
 
@@ -272,7 +272,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
 
     const query = aql`
       FOR doc IN ${db} 
-      FILTER doc.EndToEndId == IN ${JSON.stringify(endToEndIds)} && doc.TxTp == 'pacs.002.001.12'
+      FILTER doc.EndToEndId IN ${JSON.stringify(endToEndIds)} && doc.TxTp == 'pacs.002.001.12'
       RETURN doc
     `;
 
