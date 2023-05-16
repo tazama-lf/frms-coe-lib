@@ -211,6 +211,8 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.getCreditorPacs008Edges).toBeDefined();
     expect(dbManager.getPreviousPacs008Edges).toBeDefined();
     expect(dbManager.getCreditorPacs002Edges).toBeDefined();
+    expect(dbManager.getIncomingPacs002Edges).toBeDefined();
+    expect(dbManager.getOutgoingPacs002Edges).toBeDefined();
 
     expect(await dbManager.queryPseudonymDB('testCollection', 'testFilter')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.queryPseudonymDB('testCollection', 'testFilter', 10)).toEqual(['MOCK-QUERY']);
@@ -227,6 +229,10 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.getPreviousPacs008Edges('test')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getPreviousPacs008Edges('test', 2, ['to-test-1', 'to-test-2'])).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getCreditorPacs002Edges('test', 50)).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getIncomingPacs002Edges('test')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getIncomingPacs002Edges('test', 50)).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getOutgoingPacs002Edges('test')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getOutgoingPacs002Edges('test', 50)).toEqual(['MOCK-QUERY']);
   });
 
   it('should create a manager with network map methods', async () => {

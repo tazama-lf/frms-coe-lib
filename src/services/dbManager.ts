@@ -57,6 +57,8 @@ interface PseudonymsDB {
   getCreditorPacs008Edges: (creditorId: string) => Promise<any>;
   getPreviousPacs008Edges: (debtorId: string, limit?: number, to?: string[]) => Promise<any>;
   getCreditorPacs002Edges: (creditorId: string, threshold: number) => Promise<any>;
+  getIncomingPacs002Edges: (accountId: string, limit?: number) => Promise<any>;
+  getOutgoingPacs002Edges: (accountId: string, limit?: number) => Promise<any>;
 }
 
 interface TransactionHistoryDB {
@@ -288,6 +290,42 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
       FOR doc IN ${db} 
       FILTER doc._from == ${debtorAccountAql}
       FILTER doc.TxTp == 'pacs.002.001.12' && doc.TxSts == 'ACCC'
+      RETURN doc
+    `;
+
+    return await (await manager._pseudonymsDb!.query(query)).batches.all();
+  };
+
+  manager.getIncomingPacs002Edges = async (accountId: string, limit?: number): Promise<any> => {
+    const db = manager._pseudonymsDb!.collection('transactionRelationship');
+    const account = `accounts/${accountId}`;
+    const accountAql = aql`${account}`;
+
+    const aqlLimit = limit ? aql`${limit}` : undefined;
+
+    const query = aql`
+      FOR doc IN ${db} 
+      FILTER doc._to == ${accountAql}
+      FILTER doc.TxTp == 'pacs.002.001.12' && doc.TxSts == 'ACCC'
+      ${aqlLimit}
+      RETURN doc
+    `;
+
+    return await (await manager._pseudonymsDb!.query(query)).batches.all();
+  };
+
+  manager.getOutgoingPacs002Edges = async (accountId: string, limit?: number): Promise<any> => {
+    const db = manager._pseudonymsDb!.collection('transactionRelationship');
+    const account = `accounts/${accountId}`;
+    const accountAql = aql`${account}`;
+
+    const aqlLimit = limit ? aql`${limit}` : undefined;
+
+    const query = aql`
+      FOR doc IN ${db} 
+      FILTER doc._from == ${accountAql}
+      FILTER doc.TxTp == 'pacs.002.001.12' && doc.TxSts == 'ACCC'
+      ${aqlLimit}
       RETURN doc
     `;
 
