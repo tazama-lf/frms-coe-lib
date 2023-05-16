@@ -67,7 +67,7 @@ export class RedisService {
     });
 
   quit = (): void => {
-    this.client.quit();
+    this.client.disconnect();
   };
 }
 
