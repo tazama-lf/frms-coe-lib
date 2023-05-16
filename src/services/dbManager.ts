@@ -246,7 +246,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
 
     const query = aql`
       FOR doc IN ${db} 
-      FILTER doc.EndToEndId IN ${JSON.stringify(endToEndIds)} && doc.TxTp == 'pacs.008.001.10'
+      FILTER doc.EndToEndId IN ${endToEndIds} && doc.TxTp == 'pacs.008.001.10'
       RETURN doc
     `;
 
@@ -274,7 +274,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
 
     const query = aql`
       FOR doc IN ${db} 
-      FILTER doc.EndToEndId IN ${JSON.stringify(endToEndIds)} && doc.TxTp == 'pacs.002.001.12'
+      FILTER doc.EndToEndId IN ${endToEndIds} && doc.TxTp == 'pacs.002.001.12'
       RETURN doc
     `;
 
@@ -339,10 +339,10 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
 
     const query = aql`
       FOR doc IN ${db} 
-      FILTER doc._to IN ${JSON.stringify(creditorId)}  
+      FILTER doc._to IN ${creditorId}  
       FILTER doc._from == ${debtorAccountAql}
       FILTER doc.TxTp == 'pacs.002.001.12' 
-      FILTER doc.EndToEndId IN ${JSON.stringify(endToEndId)}
+      FILTER doc.EndToEndId IN ${endToEndId}
       FILTER doc.TxSts == 'ACCC'
       SORT   doc.CreDtTm DESC
       LIMIT 2
@@ -392,7 +392,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
 
     const filters: GeneratedAqlQuery[] = [];
     filters.push(aql`FILTER doc.TxTp == 'pacs.008.001.10'`);
-    if (to !== undefined) filters.push(aql`FILTER doc._to IN ${JSON.stringify(to)}`);
+    if (to !== undefined) filters.push(aql`FILTER doc._to IN ${to}`);
 
     const aqlLimit = limit ? aql`${limit}` : aql`3`;
     const account = `accounts/${accountId}`;
@@ -536,7 +536,7 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
 
     const query: AqlQuery = aql`
       FOR doc IN ${db} 
-      FILTER doc.EndToEndId IN ${JSON.stringify(endToEndIds)}
+      FILTER doc.EndToEndId IN ${endToEndIds}
       FILTER doc.TxSts == 'ACCC'
       RETURN doc.EndToEndId
     `;
@@ -561,7 +561,7 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
 
     const query: AqlQuery = aql`
       FOR doc IN ${db} 
-      FILTER doc.EndToEndId IN ${JSON.stringify(endToEndIds)}
+      FILTER doc.EndToEndId IN ${endToEndIds}
       SORT  doc.EndToEndId DESC 
       RETURN doc.CstmrCdtTrfInitn.PmtInf.CdtTrfTxInf.RmtInf.Ustrd 
     `;
