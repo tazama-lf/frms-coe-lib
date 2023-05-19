@@ -49,7 +49,7 @@ interface PseudonymsDB {
   // addAccountHolder: (entityId: string, accountId: string, CreDtTm: string) => Promise<any>;
   saveTransactionRelationship: (tR: TransactionRelationship) => Promise<any>;
   getPacs008Edge: (endToEndIds: string[]) => Promise<any>;
-  getPacs008Edges: (creditorId: string, threshold: string, amount: number) => Promise<any>;
+  getPacs008Edges: (accountId: string, threshold?: string, amount?: number) => Promise<any>;
   getPacs002Edge: (endToEndIds: string[]) => Promise<any>;
   getDebtorPacs002Edges: (debtorId: string) => Promise<any>;
   getSuccessfulPacs002Edges: (creditorId: string[], debtorId: string, endToEndId: string[]) => Promise<any>;
@@ -253,9 +253,10 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
     return await (await manager._pseudonymsDb!.query(query)).batches.all();
   };
 
-  manager.getPacs008Edges = async (creditorId: string, threshold?: string, amount?: number) => {
+  manager.getPacs008Edges = async (accountId: string, threshold?: string, amount?: number) => {
     const db = manager._pseudonymsDb!.collection('transactionRelationship');
-    const filters: GeneratedAqlQuery[] = [aql`FILTER doc.TxTp == 'pacs.008.001.10' && doc._to == ${creditorId}`];
+    const account = `accounts/${accountId}`;
+    const filters: GeneratedAqlQuery[] = [aql`FILTER doc.TxTp == 'pacs.008.001.10' && doc._to == ${account}`];
 
     if (threshold !== undefined) filters.push(aql`FILTER doc.CreDtTm < ${threshold}`);
     if (amount !== undefined) filters.push(aql`FILTER doc.Amt == ${amount}`);
@@ -654,7 +655,6 @@ async function configurationBuilder(manager: DatabaseManagerType, configurationC
 
     const toReturn = await (await manager._configuration!.query(query)).batches.all();
     if (manager.setupConfig?.localCacheEnabled) manager.nodeCache?.set(cacheKey, toReturn, manager.setupConfig?.localCacheTTL ?? 3000);
-
     return toReturn;
   };
 }
