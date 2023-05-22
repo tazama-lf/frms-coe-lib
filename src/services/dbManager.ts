@@ -29,46 +29,253 @@ interface PseudonymsDB {
   _pseudonymsDb: Database;
 
   /**
-   * @param collection: this is a Collection name against which this query will be run
-   * @param filter: this is a string that will put next to the FILTER keyword to run against Arango
+   * @param collection Collection name against which this query will be run
+   * @param filter String that will put next to the FILTER keyword to run against Arango
    *
-   * This is what the query looks like internally:
-   *
+   * ```
    * const query = aql`
    * FOR doc IN ${collection}
    * FILTER ${filter}
    * RETURN doc`;
+   * ```
    *
    * Note, use "doc." in your query string, as we make use of "doc" as the query and return name.
    * @memberof PseudonymsDB
    */
   queryPseudonymDB: (collection: string, filter: string, limit?: number) => Promise<any>;
+
+  /**
+   * @param hash Hash String used to identify the pseudonym we are looking up
+   *
+   * ```
+   * const query: AqlQuery = aql`
+   * FOR doc IN ${collection}
+   * FILTER doc.pseudonym == ${hash}
+   * RETURN doc`
+   * ```
+   *
+   * @memberof PseudonymsDB
+   */
   getPseudonyms: (hash: string) => Promise<any>;
+
+  /**
+   * @param hash Hash string used to identify the pseudonym we are storing
+   *
+   * This is a insert query to the accounts collection with overwrite mode set to `ignore`
+   * @memberof PseudonymsDB
+   */
   addAccount: (hash: string) => Promise<any>;
-  // addEntity: (entityId: string, CreDtTm: string) => Promise<any>;
-  // addAccountHolder: (entityId: string, accountId: string, CreDtTm: string) => Promise<any>;
+
+  /**
+   * @param {TransactionRelationship} tR TransactionRelationship Object
+   *
+   * This is a insert query to the transactionRelationship collection with overwrite mode set to `ignore`
+   * @memberof PseudonymsDB
+   */
   saveTransactionRelationship: (tR: TransactionRelationship) => Promise<any>;
+
+  /**
+   * @param endToEndIds An Array of endToEndIds Strings to find their related pacs.008 edge set
+   *
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER doc.EndToEndId IN ${endToEndIds}
+   * FILTER doc.TxTp == 'pacs.008.001.10'
+   * RETURN doc`
+   * ```
+   * @memberof PseudonymsDB
+   */
   getPacs008Edge: (endToEndIds: string[]) => Promise<any>;
+
+  /**
+   * @param accountId The accountId String to filter on the _to field
+   * @param threshold The time String Threshold to return transactions newer that date threshold
+   * @param amount The amount Number to filter on the Amt field
+   *
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER doc._to == accounts/${accountId}
+   * FILTER doc.TxTp == 'pacs.008.001.10'
+   * *FILTER doc.CreDtTm < ${threshold}
+   * *FILTER doc.Amt == ${amount}
+   * RETURN doc`
+   * ```
+   * \* Indicates filter is only applied when parameter is passed in
+   * @memberof PseudonymsDB
+   */
   getPacs008Edges: (accountId: string, threshold?: string, amount?: number) => Promise<any>;
+
+  /**
+   * @param endToEndIds An Array of endToEndIds Strings to find their related pacs.002 edge set
+   *
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER doc.EndToEndId IN ${endToEndIds}
+   * FILTER doc.TxTp == 'pacs.002.001.12'
+   * RETURN doc`
+   * ```
+   * @memberof PseudonymsDB
+   */
   getPacs002Edge: (endToEndIds: string[]) => Promise<any>;
+
+  /**
+   * @param debtorId A debtorId String to filter on the _from field
+   *
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER doc._from == accounts/${debtorId}
+   * FILTER doc.TxTp == 'pacs.002.001.12'
+   * FILTER doc.TxSts == 'ACCC'
+   * RETURN doc`
+   * ```
+   * Returns only successful transactions as denoted by 'ACCC'
+   * @memberof PseudonymsDB
+   */
   getDebtorPacs002Edges: (debtorId: string) => Promise<any>;
-  getSuccessfulPacs002Edges: (creditorId: string[], debtorId: string, endToEndId: string[]) => Promise<any>;
-  getDebtorPacs008Edges: (debtorId: string, endToEndId: string) => Promise<any>;
-  getCreditorPacs008Edges: (creditorId: string) => Promise<any>;
-  getPreviousPacs008Edges: (debtorId: string, limit?: number, to?: string[]) => Promise<any>;
-  getCreditorPacs002Edges: (creditorId: string, threshold: number) => Promise<any>;
+
+  /**
+   * @param accountId A accountId String to filter on the _to field
+   * @param limit A limit Number to optionally limit results
+   *
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER doc._to == accounts/${accountId}
+   * FILTER doc.TxTp == 'pacs.002.001.12'
+   * FILTER doc.TxSts == 'ACCC'
+   * *LIMIT ${limit}
+   * RETURN doc`
+   * ```
+   *
+   * \* Indicates filter is only applied when parameter is passed in
+   * @memberof PseudonymsDB
+   */
   getIncomingPacs002Edges: (accountId: string, limit?: number) => Promise<any>;
+
+  /**
+   * @param accountId A accountId String to filter on the _from field
+   * @param limit A limit Number to optionally limit results
+   *
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER doc._from == accounts/${accountId}
+   * FILTER doc.TxTp == 'pacs.002.001.12'
+   * FILTER doc.TxSts == 'ACCC'
+   * *LIMIT ${limit}
+   * RETURN doc`
+   * ```
+   *
+   * \* Indicates filter is only applied when parameter is passed in
+   * @memberof PseudonymsDB
+   */
   getOutgoingPacs002Edges: (accountId: string, limit?: number) => Promise<any>;
+
+  /**
+   * @param creditorId A creditorId Array of String to filter on the _to field
+   * @param debtorId A debtorId String to filter on the _from field
+   * @param endToEndId A endToEndId Array of String to filter on the EndToEndId field
+   *
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER doc._to IN ${creditorId}
+   * FILTER doc._from == accounts/${debtorId}
+   * FILTER doc.TxTp == 'pacs.002.001.12'
+   * FILTER doc.EndToEndId IN ${endToEndId}
+   * FILTER doc.TxSts == 'ACCC'
+   * SORT doc.CreDtTm DESC
+   * LIMIT 2
+   * RETURN doc`
+   * ```
+   *
+   * @memberof PseudonymsDB
+   */
+  getSuccessfulPacs002Edges: (creditorId: string[], debtorId: string, endToEndId: string[]) => Promise<any>;
+
+  /**
+   * @param debtorId A debtorId String to filter on the _from field
+   * @param endToEndId A endToEndId String to filter on the EndToEndId field
+   *
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER doc._from == accounts/${debtorId}
+   * FILTER doc.EndToEndId ==  ${endToEndId}
+   * FILTER doc.TxTp == 'pacs.008.001.10'
+   * SORT doc.CreDtTm DESC
+   * LIMIT 2
+   * RETURN doc`
+   * ```
+   *
+   * @memberof PseudonymsDB
+   */
+  getDebtorPacs008Edges: (debtorId: string, endToEndId: string) => Promise<any>;
+
+  /**
+   * @param creditorId A creditorId String to filter on the _to field
+   *
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER doc._to == accounts/${creditorId}
+   * FILTER doc.TxTp == 'pacs.008.001.10'
+   * SORT doc.CreDtTm DESC
+   * LIMIT 2
+   * RETURN doc`
+   * ```
+   * @memberof PseudonymsDB
+   */
+  getCreditorPacs008Edges: (creditorId: string) => Promise<any>;
+
+  /**
+   * @param debtorId A debtorId String to filter on the _from field
+   * @param limit A limit Number to optionally limit results
+   * @param to A to Array of String to filter on the _to field
+   *
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER doc._from == accounts/${accountId}
+   * *FILTER doc._to IN ${to}
+   * SORT doc.CreDtTm DESC
+   * LIMIT ${aqlLimit} (default 3)
+   * RETURN doc`
+   * ```
+   *
+   * \* Indicates filter is only applied when parameter is passed in
+   * @memberof PseudonymsDB
+   */
+  getPreviousPacs008Edges: (debtorId: string, limit?: number, to?: string[]) => Promise<any>;
+
+  /**
+   * @param creditorId A creditorId String to filter on the _from field
+   * @param threshold A threshold Number (in seconds) used to determine how far back to filter
+   *
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER doc._from == accounts/${creditorId}
+   * FILTER doc.TxTp == 'pacs.002.001.12'
+   * FILTER doc.TxSts == 'ACCC'
+   * FILTER doc.CreDtTm >= ${now - threshold}
+   * RETURN doc`
+   * ```
+   * @memberof PseudonymsDB
+   */
+  getCreditorPacs002Edges: (creditorId: string, threshold: number) => Promise<any>;
 }
 
 interface TransactionHistoryDB {
   _transactionHistory: Database;
 
   /**
-   * @param collection: this is a Collection name against which this query will be run
-   * @param filter: this is a string that will put next to the FILTER keyword to run against Arango
-   *
-   * This is what the query looks like internally:
+   * @param collection: Collection name against which this query will be run
+   * @param filter: A String that will put next to the FILTER keyword to run against Arango
    *
    * const query = aql`
    * FOR doc IN ${collection}
@@ -79,14 +286,148 @@ interface TransactionHistoryDB {
    * @memberof TransactionHistoryDB
    */
   queryTransactionDB: (collection: string, filter: string, limit?: number) => Promise<any>;
+
+  /**
+   * @param endToEndId An endToEndId String used to filter on the EndToEndId field
+   * @param cacheKey A cacheKey String used to check the cache instead of executing the arango query
+   *
+   * Will only execute query if no cache key or cache didn't contain the key
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER doc.EndToEndId == ${endToEndId}
+   * RETURN doc`
+   * ```
+   * @memberof TransactionHistoryDB
+   */
   getTransactionPacs008: (endToEndId: string, cacheKey?: string) => Promise<any>;
+
+  /**
+   * @param debtorId A debtorId String used to filter on the DebtorAcctId field
+   *
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER doc.DebtorAcctId == ${debtorId}
+   * SORT doc.CreDtTm
+   * LIMIT 1
+   * RETURN doc`
+   * ```
+   *
+   * @memberof TransactionHistoryDB
+   */
   getDebtorPain001Msgs: (debtorId: string) => Promise<any>;
+
+  /**
+   * @param creditorId A creditorId String used to filter on the CreditorAcctId field
+   *
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER doc.CreditorAcctId == ${creditorId}
+   * SORT doc.CreDtTm
+   * LIMIT 1
+   * RETURN doc`
+   * ```
+   * @memberof TransactionHistoryDB
+   */
   getCreditorPain001Msgs: (creditorId: string) => Promise<any>;
+
+  /**
+   * @param endToEndId An endToEndId String used to filter on the EndToEndId field
+   *
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER doc.EndToEndId == ${endToEndId}
+   * FILTER doc.TxSts == 'ACCC'
+   * SORT doc.CreDtTm DESC
+   * LIMIT 1
+   * RETURN doc`
+   * ```
+   *
+   * @memberof TransactionHistoryDB
+   */
   getSuccessfulPacs002Msgs: (endToEndId: string) => Promise<any>;
+
+  /**
+   * @param endToEndIds An endToEndId Array of String used to filter on the EndToEndId field
+   *
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER doc.EndToEndId IN ${endToEndIds}
+   * FILTER doc.TxSts == 'ACCC'
+   * RETURN doc.EndToEndId`
+   * ```
+   * Note only returns EndToEndIds of those successful ('ACCC')
+   * @memberof TransactionHistoryDB
+   */
   getSuccessfulPacs002EndToEndIds: (endToEndIds: string[]) => Promise<any>;
+
+  /**
+   * @param endToEndId An endToEndId String used to filter on the EndToEndId field
+   *
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER doc.EndToEndId == ${endToEndId}
+   * RETURN doc
+   * ```
+   *
+   * @memberof TransactionHistoryDB
+   */
   getDebtorPacs002Msgs: (endToEndId: string) => Promise<any>;
+
+  /**
+   * @param endToEndIds An endToEndId Array of String used to filter on the EndToEndId field
+   *
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER doc.EndToEndId IN ${endToEndIds}
+   * SORT doc.EndToEndId DESC
+   * RETURN doc.CstmrCdtTrfInitn.PmtInf.CdtTrfTxInf.RmtInf.Ustrd
+   * ```
+   *
+   * Note only returns the `CstmrCdtTrfInitn.PmtInf.CdtTrfTxInf.RmtInf.Ustrd` field
+   * @memberof TransactionHistoryDB
+   */
   getEquivalentPain001Msg: (endToEndIds: string[]) => Promise<any>;
+
+  /**
+   * @param accountId An accountId String to filter on the provided accountId field
+   * @param accountType An accountType Enum to distinguish which type of account to filter to apply: [0 , 1]
+   *
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * *FILTER doc.CreditorAcctId == ${accountId} (accountType == 1)
+   * *FILTER doc.DebtorAcctId == ${accountId} (accountType == 0)
+   * RETURN {
+   *  e2eId: doc.EndToEndId,
+   *  timestamp: DATE_TIMESTAMP(doc.CreDtTm)
+   * }
+   * ```
+   *
+   * @memberof TransactionHistoryDB
+   */
   getAccountEndToEndIds: (accountId: string, accountType: AccountType) => Promise<any>;
+
+  /**
+   * @param accountId An accountId String to filter on the provided accountId field
+   * @param accountType An accountType Enum to distinguish which type of account to filter to apply: [0 , 1]
+   *
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * *FILTER doc.CreditorAcctId == ${accountId} (accountType == 1)
+   * *FILTER doc.DebtorAcctId == ${accountId} (accountType == 0)
+   * RETURN doc
+   * ```
+   *
+   * @memberof TransactionHistoryDB
+   */
   getAccountHistoryPacs008Msgs: (accountId: string, accountType: AccountType) => Promise<any>;
 }
 
@@ -96,25 +437,58 @@ interface ConfigurationDB {
   nodeCache: NodeCache;
 
   /**
-   * @param collection: this is a Collection name against which this query will be run
-   * @param filter: this is a string that will put next to the FILTER keyword to run against Arango
+   * @param collection: Collection name against which this query will be run
+   * @param filter: String that will put next to the FILTER keyword to run against Arango
    *
    * This is what the query looks like internally:
    *
+   * ```
    * const query = aql`
    * FOR doc IN ${collection}
    * FILTER ${filter}
    * RETURN doc`;
+   * ```
    *
    * Note, use "doc." in your query string, as we make use of "doc" as the query and return name.
    * @memberof ConfigurationDB
    */
   queryConfigurationDB: (collection: string, filter: string, limit?: number) => Promise<any>;
+
+  /**
+   * Returns rule config
+   * @param ruleId A ruleId String used to filter on the id field
+   * @param cfg A cfg String used to filter on the cfg field
+   * @param limit A limit Number used to limit the amount of results
+   *
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER doc.id == ${ruleId}
+   * FILTER doc.cfg == ${cfg}
+   * *LIMIT ${limit}
+   * RETURN doc`
+   * ```
+   * \* Indicates filter is only applied when parameter is passed in
+   * @memberof ConfigurationDB
+   */
   getRuleConfig: (ruleId: string, cfg: string, limit?: number) => Promise<any>;
 }
 
 interface NetworkMapDB {
   _networkMap: Database;
+
+  /**
+   * Finds all active networkmaps
+   *
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER doc.active == true
+   * RETURN doc
+   * ```
+   *
+   * @memberof NetworkMapDB
+   */
   getNetworkMap: () => Promise<any>;
 }
 
@@ -302,7 +676,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
     const account = `accounts/${accountId}`;
     const accountAql = aql`${account}`;
 
-    const aqlLimit = limit ? aql`${limit}` : undefined;
+    const aqlLimit = limit ? aql`LIMIT ${limit}` : undefined;
 
     const query = aql`
       FOR doc IN ${db} 
@@ -320,7 +694,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
     const account = `accounts/${accountId}`;
     const accountAql = aql`${account}`;
 
-    const aqlLimit = limit ? aql`${limit}` : undefined;
+    const aqlLimit = limit ? aql`LIMIT ${limit}` : undefined;
 
     const query = aql`
       FOR doc IN ${db} 
@@ -489,12 +863,12 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
     };
   }
 
-  manager.getDebtorPain001Msgs = async (creditorId: string) => {
+  manager.getDebtorPain001Msgs = async (debtorId: string) => {
     const db = manager._transactionHistory!.collection('transactionHistoryPain001');
 
     const query: AqlQuery = aql`
       FOR doc IN ${db} 
-      FILTER doc.DebtorAcctId == ${creditorId}
+      FILTER doc.DebtorAcctId == ${debtorId}
       SORT doc.CreDtTm 
       LIMIT 1 
       RETURN doc
@@ -524,7 +898,7 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
       FOR doc IN ${db} 
       FILTER doc.EndToEndId == ${endToEndId}
       && doc.TxSts == 'ACCC'
-      SORT doc.FIToFIPmtSts.GrpHdr.CreDtTm DESC
+      SORT doc.CreDtTm DESC
       LIMIT 1
       RETURN doc
     `;
