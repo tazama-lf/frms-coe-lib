@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import NodeCache from 'node-cache';
 import { RedisService, type RedisConfig } from '..';
 import { AccountType, type TransactionRelationship } from '../interfaces';
+import { arangoPseudonyms, arangoTransactions } from '../interfaces/ArangoCollections';
 
 interface DBConfig {
   url: string;
@@ -582,7 +583,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
   };
 
   manager.getPseudonyms = async (hash: string) => {
-    const db = manager._pseudonymsDb!.collection('pseudonyms');
+    const db = manager._pseudonymsDb!.collection(arangoPseudonyms.self);
 
     const query: AqlQuery = aql`
       FOR i IN ${db}
@@ -596,7 +597,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
   manager.addAccount = async (hash: string) => {
     const data = { _key: hash };
 
-    return await manager._pseudonymsDb!.collection('accounts').save(data, { overwriteMode: 'ignore' });
+    return await manager._pseudonymsDb!.collection(arangoPseudonyms.accounts).save(data, { overwriteMode: 'ignore' });
   };
 
   manager.saveTransactionRelationship = async (tR: TransactionRelationship) => {
@@ -613,12 +614,11 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
       lat: tR.lat,
       long: tR.long,
     };
-
-    return await manager._pseudonymsDb!.collection('transactionRelationship').save(data, { overwriteMode: 'ignore' });
+    return await manager._pseudonymsDb!.collection(arangoPseudonyms.edges).save(data, { overwriteMode: 'ignore' });
   };
 
   manager.getPacs008Edge = async (endToEndIds: string[]) => {
-    const db = manager._pseudonymsDb!.collection('transactionRelationship');
+    const db = manager._pseudonymsDb!.collection(arangoPseudonyms.edges);
 
     const query = aql`
       FOR doc IN ${db} 
@@ -630,7 +630,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
   };
 
   manager.getPacs008Edges = async (accountId: string, threshold?: string, amount?: number) => {
-    const db = manager._pseudonymsDb!.collection('transactionRelationship');
+    const db = manager._pseudonymsDb!.collection(arangoPseudonyms.edges);
     const account = `accounts/${accountId}`;
     const filters: GeneratedAqlQuery[] = [aql`FILTER doc.TxTp == 'pacs.008.001.10' && doc._to == ${account}`];
 
@@ -647,7 +647,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
   };
 
   manager.getPacs002Edge = async (endToEndIds: string[]) => {
-    const db = manager._pseudonymsDb!.collection('transactionRelationship');
+    const db = manager._pseudonymsDb!.collection(arangoPseudonyms.edges);
 
     const query = aql`
       FOR doc IN ${db} 
@@ -659,7 +659,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
   };
 
   manager.getDebtorPacs002Edges = async (debtorId: string): Promise<any> => {
-    const db = manager._pseudonymsDb!.collection('transactionRelationship');
+    const db = manager._pseudonymsDb!.collection(arangoPseudonyms.edges);
     const debtorAccount = `accounts/${debtorId}`;
     const debtorAccountAql = aql`${debtorAccount}`;
 
@@ -674,7 +674,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
   };
 
   manager.getIncomingPacs002Edges = async (accountId: string, limit?: number): Promise<any> => {
-    const db = manager._pseudonymsDb!.collection('transactionRelationship');
+    const db = manager._pseudonymsDb!.collection(arangoPseudonyms.edges);
     const account = `accounts/${accountId}`;
     const accountAql = aql`${account}`;
 
@@ -692,7 +692,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
   };
 
   manager.getOutgoingPacs002Edges = async (accountId: string, limit?: number): Promise<any> => {
-    const db = manager._pseudonymsDb!.collection('transactionRelationship');
+    const db = manager._pseudonymsDb!.collection(arangoPseudonyms.edges);
     const account = `accounts/${accountId}`;
     const accountAql = aql`${account}`;
 
@@ -710,7 +710,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
   };
 
   manager.getSuccessfulPacs002Edges = async (creditorId: string[], debtorId: string, endToEndId: string[]): Promise<any> => {
-    const db = manager._pseudonymsDb!.collection('transactionRelationship');
+    const db = manager._pseudonymsDb!.collection(arangoPseudonyms.edges);
     const debtorAccount = `accounts/${debtorId}`;
     const debtorAccountAql = aql`${debtorAccount}`;
 
@@ -730,7 +730,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
   };
 
   manager.getDebtorPacs008Edges = async (debtorId: string, endToEndId: string) => {
-    const db = manager._pseudonymsDb!.collection('transactionRelationship');
+    const db = manager._pseudonymsDb!.collection(arangoPseudonyms.edges);
     const debtorAccount = `accounts/${debtorId}`;
     const debtorAccountAql = aql`${debtorAccount}`;
 
@@ -748,7 +748,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
   };
 
   manager.getCreditorPacs008Edges = async (creditorId: string) => {
-    const db = manager._pseudonymsDb!.collection('transactionRelationship');
+    const db = manager._pseudonymsDb!.collection(arangoPseudonyms.edges);
     const creditorAccount = `accounts/${creditorId}`;
     const creditorAccountAql = aql`${creditorAccount}`;
 
@@ -765,7 +765,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
   };
 
   manager.getPreviousPacs008Edges = async (accountId: string, limit?: number, to?: string[]) => {
-    const db = manager._pseudonymsDb!.collection('transactionRelationship');
+    const db = manager._pseudonymsDb!.collection(arangoPseudonyms.edges);
 
     const filters: GeneratedAqlQuery[] = [];
     filters.push(aql`FILTER doc.TxTp == 'pacs.008.001.10'`);
@@ -788,7 +788,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
   };
 
   manager.getCreditorPacs002Edges = async (creditorId: string, threshold: number) => {
-    const db = manager._pseudonymsDb!.collection('transactionRelationship');
+    const db = manager._pseudonymsDb!.collection(arangoPseudonyms.edges);
     const date: string = new Date(new Date().getTime() - threshold).toISOString();
 
     const creditorAccount = `accounts/${creditorId}`;
@@ -841,7 +841,7 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
         if (cacheVal.length > 0) return await Promise.resolve(cacheVal);
       }
 
-      const db = manager._transactionHistory!.collection('transactionHistoryPacs008');
+      const db = manager._transactionHistory!.collection(arangoTransactions.pacs008);
 
       const query: AqlQuery = aql`
         FOR doc IN ${db}
@@ -853,7 +853,7 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
     };
   } else {
     manager.getTransactionPacs008 = async (endToEndId: string) => {
-      const db = manager._transactionHistory!.collection('transactionHistoryPacs008');
+      const db = manager._transactionHistory!.collection(arangoTransactions.pacs008);
 
       const query: AqlQuery = aql`
         FOR doc IN ${db}
@@ -866,7 +866,7 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
   }
 
   manager.getDebtorPain001Msgs = async (debtorId: string) => {
-    const db = manager._transactionHistory!.collection('transactionHistoryPain001');
+    const db = manager._transactionHistory!.collection(arangoTransactions.pain001);
 
     const query: AqlQuery = aql`
       FOR doc IN ${db} 
@@ -880,7 +880,7 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
   };
 
   manager.getCreditorPain001Msgs = async (creditorId: string) => {
-    const db = manager._transactionHistory!.collection('transactionHistoryPain001');
+    const db = manager._transactionHistory!.collection(arangoTransactions.pain001);
 
     const query: AqlQuery = aql`
       FOR doc IN ${db} 
@@ -894,7 +894,7 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
   };
 
   manager.getSuccessfulPacs002Msgs = async (endToEndId: string) => {
-    const db = manager._transactionHistory!.collection('transactionHistoryPacs002');
+    const db = manager._transactionHistory!.collection(arangoTransactions.pacs002);
 
     const query: AqlQuery = aql`
       FOR doc IN ${db} 
@@ -909,7 +909,7 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
   };
 
   manager.getSuccessfulPacs002EndToEndIds = async (endToEndIds: string[]) => {
-    const db = manager._transactionHistory!.collection('transactionHistoryPacs002');
+    const db = manager._transactionHistory!.collection(arangoTransactions.pacs002);
 
     const query: AqlQuery = aql`
       FOR doc IN ${db} 
@@ -922,7 +922,7 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
   };
 
   manager.getDebtorPacs002Msgs = async (endToEndId: string) => {
-    const db = manager._transactionHistory!.collection('transactionHistoryPacs002');
+    const db = manager._transactionHistory!.collection(arangoTransactions.pacs002);
 
     const query: AqlQuery = aql`
       FOR doc IN ${db} 
@@ -934,7 +934,7 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
   };
 
   manager.getEquivalentPain001Msg = async (endToEndIds: string[]) => {
-    const db = manager._transactionHistory!.collection('transactionHistoryPain001');
+    const db = manager._transactionHistory!.collection(arangoTransactions.pain001);
 
     const query: AqlQuery = aql`
       FOR doc IN ${db} 
@@ -947,7 +947,7 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
   };
 
   manager.getAccountEndToEndIds = async (accountId: string, accountType: AccountType) => {
-    const db = manager._transactionHistory!.collection('transactionHistoryPacs008');
+    const db = manager._transactionHistory!.collection(arangoTransactions.pacs008);
     const filterType =
       accountType === AccountType.CreditorAcct
         ? aql`FILTER doc.CreditorAcctId == ${accountId}`
@@ -966,7 +966,7 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
   };
 
   manager.getAccountHistoryPacs008Msgs = async (accountId: string, accountType: AccountType) => {
-    const db = manager._transactionHistory!.collection('transactionHistoryPacs008');
+    const db = manager._transactionHistory!.collection(arangoTransactions.pacs008);
     const filterType =
       accountType === AccountType.CreditorAcct
         ? aql`FILTER doc.CreditorAcctId == ${accountId}`
