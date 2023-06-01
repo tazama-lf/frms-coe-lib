@@ -9,8 +9,16 @@ const schema = {
     accounts: 'accounts',
     edges: 'transactionRelationship',
   },
+  networkMap: {
+    netConfig: 'networkConfiguration',
+  },
+  config: {
+    self: 'configuration',
+  },
 };
-const { transactions, pseudonyms } = schema;
-const arangoTransactions = Object.freeze(transactions);
-const arangoPseudonyms = Object.freeze(pseudonyms);
-export { arangoTransactions, arangoPseudonyms };
+const { transactions, pseudonyms, networkMap, config } = schema;
+const dbTransactions = Object.freeze(transactions);
+const dbPseudonyms = Object.freeze(pseudonyms);
+const dbConfiguration = Object.freeze(config);
+const dbNetworkMap = Object.freeze(networkMap);
+export { dbTransactions, dbPseudonyms, dbConfiguration, dbNetworkMap };
