@@ -3,7 +3,7 @@ import { ConfigurationDB, PseudonymsDB, RedisService, TransactionHistoryDB } fro
 import { AccountType, TransactionRelationship } from '../src/interfaces';
 import { CreateDatabaseManager, DatabaseManagerInstance, NetworkMapDB } from '../src/services/dbManager';
 
-// redis and aragojs is mocked
+// redis and aragojs are mocked
 // setup.jest.js
 
 const redisConfig = {
@@ -383,6 +383,35 @@ describe('CreateDatabaseManager', () => {
 
     expect(dbManager.getTransactionPacs008).toBeDefined();
     expect(await dbManager.getTransactionPacs008('test')).toEqual(['MOCK-QUERY']);
+
+    dbManager.quit();
+  });
+
+  it('should have an okay response for isReadyCheck with transactionHistoryDB', async () => {
+    // only transactionHistory
+    const transHistoryConfig = {
+      transactionHistory: {
+        ...transactionHistoryConfig,
+      },
+    };
+    const dbManager = await CreateDatabaseManager(transHistoryConfig);
+
+    jest.spyOn(dbManager._transactionHistory, 'query').mockImplementation((query: string | AqlLiteral): Promise<any> => {
+      return new Promise((resolve, reject) => {
+        isAqlQuery(query)
+          ? resolve({
+              batches: {
+                all: jest.fn().mockImplementation(() => ['MOCK-QUERY']),
+              },
+            })
+          : reject(new Error('Not AQL Query'));
+      });
+    });
+
+    expect(dbManager.getTransactionPacs008).toBeDefined();
+    expect(dbManager.isReadyCheck).toBeDefined();
+    expect(await dbManager.getTransactionPacs008('test')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.isReadyCheck()).toEqual({ TransactionHistoryDB: 'Ok' });
 
     dbManager.quit();
   });

@@ -1,10 +1,9 @@
 import Redis from 'ioredis';
-
 export class RedisService {
-  private readonly client: Redis;
+  _client: Redis;
 
   private constructor(config: RedisConfig) {
-    this.client = new Redis({
+    this._client = new Redis({
       db: config?.db,
       host: config?.host,
       port: config?.port,
@@ -14,10 +13,10 @@ export class RedisService {
 
   private async init(): Promise<string> {
     return await new Promise((resolve, reject) => {
-      this.client.on('connect', () => {
+      this._client.on('connect', () => {
         resolve('✅ Redis connection is ready');
       });
-      this.client.on('error', () => {
+      this._client.on('error', () => {
         reject(new Error('❌ Redis connection could not be established'));
       });
     });
@@ -31,14 +30,13 @@ export class RedisService {
    */
   static async create(config: RedisConfig): Promise<RedisService> {
     const redisInstance = new RedisService(config);
-
     await redisInstance.init();
     return redisInstance;
   }
 
   getJson = async (key: string): Promise<string[]> =>
     await new Promise((resolve) => {
-      this.client.smembers(key, (err, res) => {
+      this._client.smembers(key, (err, res) => {
         if (err != null) {
           throw new Error('Error while getting key from redis with message', err);
         }
@@ -48,7 +46,7 @@ export class RedisService {
 
   setJson = async (key: string, value: string, expire: number): Promise<'OK' | undefined> =>
     await new Promise((resolve) => {
-      this.client.set(key, value, 'EX', expire, (err, res) => {
+      this._client.set(key, value, 'EX', expire, (err, res) => {
         if (err != null) {
           throw new Error('Error while setting key in redis with message', err);
         }
@@ -58,7 +56,7 @@ export class RedisService {
 
   deleteKey = async (key: string): Promise<number> =>
     await new Promise((resolve) => {
-      this.client.del(key, (err, res) => {
+      this._client.del(key, (err, res) => {
         if (err != null) {
           throw new Error('Error while deleting key from redis with message', err);
         }
@@ -67,7 +65,7 @@ export class RedisService {
     });
 
   quit = (): void => {
-    this.client.disconnect();
+    this._client.disconnect();
   };
 }
 
