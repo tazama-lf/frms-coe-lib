@@ -309,9 +309,7 @@ interface TransactionHistoryDB {
 
   /**
    * @param endToEndId An endToEndId String used to filter on the EndToEndId field
-   * @param cacheKey A cacheKey String used to check the cache instead of executing the arango query
    *
-   * Will only execute query if no cache key or cache didn't contain the key
    * ```
    * const query = aql`
    * FOR doc IN ${collection}
