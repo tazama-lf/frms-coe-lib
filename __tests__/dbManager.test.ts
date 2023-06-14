@@ -95,7 +95,7 @@ describe('CreateDatabaseManager', () => {
   let transSpy: jest.SpyInstance;
   let configSpy: jest.SpyInstance;
   let pseudoSpy: jest.SpyInstance;
-  let getJsonSpy: jest.SpyInstance;
+  let getMembersSpy: jest.SpyInstance;
   let networkMapSpy: jest.SpyInstance;
 
   beforeEach(() => {
@@ -146,7 +146,7 @@ describe('CreateDatabaseManager', () => {
       });
     });
 
-    getJsonSpy = jest.spyOn(globalManager, 'getJson').mockImplementation((key: string): Promise<any> => {
+    getMembersSpy = jest.spyOn(globalManager, 'getMembers').mockImplementation((key: string): Promise<any> => {
       return new Promise((resolve, reject) => {
         resolve(['MOCK-CACHE-QUERY']);
       });

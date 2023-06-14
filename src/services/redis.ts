@@ -34,7 +34,17 @@ export class RedisService {
     return redisInstance;
   }
 
-  getJson = async (key: string): Promise<string[]> =>
+  getJson = async (key: string): Promise<string> =>
+    await new Promise((resolve) => {
+      this._client.get(key, (err, res) => {
+        if (err != null) {
+          throw new Error('Error while getting key from redis with message', err);
+        }
+        resolve(res ?? '');
+      });
+    });
+
+  getMembers = async (key: string): Promise<string[]> =>
     await new Promise((resolve) => {
       this._client.smembers(key, (err, res) => {
         if (err != null) {
