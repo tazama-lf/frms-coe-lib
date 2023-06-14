@@ -307,7 +307,7 @@ interface TransactionHistoryDB {
    */
   getTransactionPacs008: (endToEndId: string, cacheKey?: string) => Promise<any>;
 
-    /**
+  /**
    * @param endToEndId An endToEndId String used to filter on the EndToEndId field
    * @param cacheKey A cacheKey String used to check the cache instead of executing the arango query
    *
@@ -320,7 +320,7 @@ interface TransactionHistoryDB {
    * ```
    * @memberof TransactionHistoryDB
    */
-    getTransactionPain001: (endToEndId: string, cacheKey?: string) => Promise<any>;
+  getTransactionPain001: (endToEndId: string, cacheKey?: string) => Promise<any>;
 
   /**
    * @param debtorId A debtorId String used to filter on the DebtorAcctId field
