@@ -559,6 +559,7 @@ async function redisBuilder(manager: DatabaseManagerType, redisConfig: RedisConf
   try {
     const redis = await RedisService.create(redisConfig);
     manager.getJson = redis.getJson;
+    manager.getMembers = redis.getMembers;
     manager.setJson = redis.setJson;
     manager.deleteKey = redis.deleteKey;
     readyChecks.push({ Redis: 'Ok' });
@@ -866,7 +867,7 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
       let cacheVal: string[] = [];
 
       if (cacheKey !== '') {
-        cacheVal = await manager.getJson!(cacheKey);
+        cacheVal = await manager.getMembers!(cacheKey);
         if (cacheVal.length > 0) return await Promise.resolve(cacheVal);
       }
 
