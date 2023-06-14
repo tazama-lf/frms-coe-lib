@@ -44,7 +44,7 @@ export class RedisService {
       });
     });
 
-    getMembers = async (key: string): Promise<string[]> =>
+  getMembers = async (key: string): Promise<string[]> =>
     await new Promise((resolve) => {
       this._client.smembers(key, (err, res) => {
         if (err != null) {
