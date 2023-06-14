@@ -308,6 +308,19 @@ interface TransactionHistoryDB {
   getTransactionPacs008: (endToEndId: string, cacheKey?: string) => Promise<any>;
 
   /**
+   * @param endToEndId An endToEndId String used to filter on the EndToEndId field
+   *
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER doc.EndToEndId == ${endToEndId}
+   * RETURN doc`
+   * ```
+   * @memberof TransactionHistoryDB
+   */
+  getTransactionPain001: (endToEndId: string, cacheKey?: string) => Promise<any>;
+
+  /**
    * @param debtorId A debtorId String used to filter on the DebtorAcctId field
    *
    * ```
@@ -894,6 +907,18 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
       return await (await manager._transactionHistory!.query(query)).batches.all();
     };
   }
+
+  manager.getTransactionPain001 = async (endToEndId: string) => {
+    const db = manager._transactionHistory!.collection(dbTransactions.pain001);
+
+    const query: AqlQuery = aql`
+      FOR doc IN ${db}
+      FILTER doc.EndToEndId == ${endToEndId}
+      RETURN doc
+    `;
+
+    return await (await manager._transactionHistory!.query(query)).batches.all();
+  };
 
   manager.getDebtorPain001Msgs = async (debtorId: string) => {
     const db = manager._transactionHistory!.collection(dbTransactions.pain001);
