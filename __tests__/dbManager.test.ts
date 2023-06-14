@@ -170,6 +170,7 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.queryTransactionDB('testCollection', 'testFilter')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.queryTransactionDB('testCollection', 'testFilter', 10)).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getTransactionPacs008('test')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getTransactionPain001('test')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getDebtorPain001Msgs('test')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getCreditorPain001Msgs('test')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getSuccessfulPacs002Msgs('test')).toEqual(['MOCK-QUERY']);
@@ -251,6 +252,7 @@ describe('CreateDatabaseManager', () => {
     // transactionHistory
     expect(dbManager.queryTransactionDB).toBeDefined();
     expect(dbManager.getTransactionPacs008).toBeDefined();
+    expect(dbManager.getTransactionPain001).toBeDefined();
     expect(dbManager.getDebtorPain001Msgs).toBeDefined();
     expect(dbManager.getCreditorPain001Msgs).toBeDefined();
     expect(dbManager.getSuccessfulPacs002Msgs).toBeDefined();
@@ -345,6 +347,7 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.getDebtorPain001Msgs).toBeDefined();
     expect(dbManager.getSuccessfulPacs002Msgs).toBeDefined();
     expect(dbManager.getTransactionPacs008).toBeDefined();
+    expect(dbManager.getTransactionPain001).toBeDefined();
 
     // configuration
     expect(dbManager.getRuleConfig).toBeDefined();
@@ -409,8 +412,10 @@ describe('CreateDatabaseManager', () => {
     });
 
     expect(dbManager.getTransactionPacs008).toBeDefined();
+    expect(dbManager.getTransactionPain001).toBeDefined();
     expect(dbManager.isReadyCheck).toBeDefined();
     expect(await dbManager.getTransactionPacs008('test')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getTransactionPain001('test')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.isReadyCheck()).toEqual({ TransactionHistoryDB: 'Ok' });
 
     dbManager.quit();
