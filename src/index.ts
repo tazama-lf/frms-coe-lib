@@ -6,6 +6,7 @@ import {
   type TransactionHistoryDB,
   type DatabaseManagerInstance,
 } from './services/dbManager';
+import { LoggerService } from './services/logger';
 import { RedisService, type RedisConfig } from './services/redis';
 
 export {
@@ -17,4 +18,5 @@ export {
   type PseudonymsDB,
   type TransactionHistoryDB,
   type DatabaseManagerInstance,
+  LoggerService,
 };
