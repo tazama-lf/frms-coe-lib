@@ -1,20 +1,18 @@
 export interface RuleConfig {
-  _key: string;
-  _id: string;
-  _rev: string;
+  _key?: string;
+  _id?: string;
+  _rev?: string;
   id: string;
   cfg: string;
   config: Config;
-  desc: string;
+  desc?: string;
 }
 
 export interface Config {
-  timeframes: Timeframe[];
+  parameters?: Record<string | number, unknown>;
+  exitConditions?: Array<Pick<Band, 'subRuleRef' | 'outcome' | 'reason'>>;
   bands: Band[];
-}
-
-export interface Timeframe {
-  threshold: number;
+  timeframes?: Timeframe[];
 }
 
 export interface Band {
@@ -23,4 +21,8 @@ export interface Band {
   outcome: boolean;
   reason: string;
   upperLimit?: number;
+}
+
+export interface Timeframe {
+  threshold: number;
 }
