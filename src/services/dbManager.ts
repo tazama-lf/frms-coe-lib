@@ -8,7 +8,7 @@ import { RedisService, type RedisConfig } from '..';
 import { AccountType, type TransactionRelationship } from '../interfaces';
 import { dbConfiguration, dbNetworkMap, dbPseudonyms, dbTransactions } from '../interfaces/ArangoCollections';
 
-const readyChecks: any[] = [];
+let readyChecks: Record<string, string | unknown> = {};
 
 interface DBConfig {
   url: string;
@@ -536,7 +536,7 @@ type DatabaseManagerInstance<T extends ManagerConfig> = ManagerStatus &
  */
 export async function CreateDatabaseManager<T extends ManagerConfig>(config: T): Promise<DatabaseManagerInstance<T>> {
   const manager: DatabaseManagerType = {};
-  readyChecks.splice(0, readyChecks.length);
+  readyChecks = {};
   const redis = config.redisConfig ? await redisBuilder(manager, config.redisConfig) : null;
 
   if (config.pseudonyms) {
@@ -555,7 +555,7 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
     await networkMapBuilder(manager, config.networkMap);
   }
 
-  manager.isReadyCheck = () => readyChecks.reduce((acc, obj) => ({ ...acc, ...obj }), {});
+  manager.isReadyCheck = () => readyChecks;
 
   manager.quit = () => {
     redis?.quit();
@@ -574,11 +574,11 @@ async function redisBuilder(manager: DatabaseManagerType, redisConfig: RedisConf
     manager.getMembers = redis.getMembers;
     manager.setJson = redis.setJson;
     manager.deleteKey = redis.deleteKey;
-    readyChecks.push({ Redis: 'Ok' });
+    readyChecks.Redis = 'Ok';
 
     return redis;
   } catch (error) {
-    readyChecks.push({ Redis: error });
+    readyChecks.Redis = error;
   }
 }
 
@@ -597,9 +597,9 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
 
   try {
     await isDatabaseReady(manager._pseudonymsDb);
-    readyChecks.push({ PseudonymsDB: 'Ok' });
+    readyChecks.PseudonymsDB = 'Ok';
   } catch (err) {
-    readyChecks.push({ PseudonymsDB: err });
+    readyChecks.PseudonymsDB = err;
   }
 
   manager.queryPseudonymDB = async (collection: string, filter: string, limit?: number) => {
@@ -853,9 +853,9 @@ async function transactionHistoryBuilder(manager: DatabaseManagerType, transacti
 
   try {
     await isDatabaseReady(manager._transactionHistory);
-    readyChecks.push({ TransactionHistoryDB: 'Ok' });
+    readyChecks.TransactionHistoryDB = 'Ok';
   } catch (err) {
-    readyChecks.push({ TransactionHistoryDB: err });
+    readyChecks.TransactionHistoryDB = err;
   }
 
   manager.queryTransactionDB = async (collection: string, filter: string, limit?: number) => {
@@ -1050,9 +1050,9 @@ async function configurationBuilder(manager: DatabaseManagerType, configurationC
 
   try {
     await isDatabaseReady(manager._configuration);
-    readyChecks.push({ ConfigurationDB: 'Ok' });
+    readyChecks.ConfigurationDB = 'Ok';
   } catch (err) {
-    readyChecks.push({ ConfigurationDB: err });
+    readyChecks.ConfigurationDB = err;
   }
 
   manager.setupConfig = configurationConfig;
@@ -1110,9 +1110,9 @@ async function networkMapBuilder(manager: DatabaseManagerType, NetworkMapConfig:
 
   try {
     await isDatabaseReady(manager._networkMap);
-    readyChecks.push({ NetworkMapDB: 'Ok' });
+    readyChecks.NetworkMapDB = 'Ok';
   } catch (err) {
-    readyChecks.push({ NetworkMapDB: err });
+    readyChecks.NetworkMapDB = err;
   }
 
   manager.getNetworkMap = async () => {
