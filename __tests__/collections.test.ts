@@ -20,7 +20,7 @@ describe('Should point to correct collections in pseudonyms', () => {
   });
 
   test('transactionRelationship', () => {
-    expect(dbPseudonyms.edges).toBe('transactionRelationship');
+    expect(dbPseudonyms.transactionRelationship).toBe('transactionRelationship');
   });
 
   test('accounts', () => {
