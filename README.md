@@ -1,5 +1,10 @@
 # frms-coe-lib
 
+<div align="center">
+  <img alt="GitHub Workflow Status (with event)" src="https://img.shields.io/github/actions/workflow/status/frmscoe/frms-coe-lib/publish.yml">
+  <img alt="GitHub package.json version (subfolder of monorepo)" src="https://img.shields.io/github/package-json/v/frmscoe/frms-coe-lib">
+</div>
+
 FRMS Center of Excellence package library.
 
 ## Installation
