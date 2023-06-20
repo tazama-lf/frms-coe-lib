@@ -7,7 +7,7 @@ const schema = {
   pseudonyms: {
     self: 'pseudonyms',
     accounts: 'accounts',
-    edges: 'transactionRelationship',
+    transactionRelationship: 'transactionRelationship',
   },
   networkMap: {
     netConfig: 'networkConfiguration',
