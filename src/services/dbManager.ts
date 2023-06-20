@@ -202,13 +202,12 @@ interface PseudonymsDB {
 
   /**
    * @param debtorId A debtorId String to filter on the _from field
-   * @param endToEndId A endToEndId String to filter on the EndToEndId field
+   * @param @deprecated endToEndId no longer filters
    *
    * ```
    * const query = aql`
    * FOR doc IN ${collection}
    * FILTER doc._from == accounts/${debtorId}
-   * FILTER doc.EndToEndId ==  ${endToEndId}
    * FILTER doc.TxTp == 'pacs.008.001.10'
    * SORT doc.CreDtTm DESC
    * LIMIT 2
@@ -765,7 +764,7 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
     return await (await manager._pseudonymsDb!.query(query)).batches.all();
   };
 
-  manager.getDebtorPacs008Edges = async (debtorId: string, endToEndId: string) => {
+  manager.getDebtorPacs008Edges = async (debtorId: string, endToEndId = '') => {
     const db = manager._pseudonymsDb!.collection(dbPseudonyms.edges);
     const debtorAccount = `accounts/${debtorId}`;
     const debtorAccountAql = aql`${debtorAccount}`;
@@ -773,7 +772,6 @@ async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig:
     const query = aql`
       FOR doc IN ${db}
       FILTER doc._from == ${debtorAccountAql}
-      FILTER doc.EndToEndId ==  ${endToEndId}
       FILTER doc.TxTp == 'pacs.008.001.10' 
       SORT   doc.CreDtTm DESC
       LIMIT 2
