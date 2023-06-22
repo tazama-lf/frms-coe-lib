@@ -10,7 +10,7 @@ export interface RuleConfig {
 
 export interface Config {
   parameters?: Record<string | number, unknown>;
-  exitConditions?: OutcomeResult;
+  exitConditions?: OutcomeResult[];
   bands?: Band[];
   case?: Case[];
   timeframes?: Timeframe[];
