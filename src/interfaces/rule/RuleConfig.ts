@@ -10,17 +10,25 @@ export interface RuleConfig {
 
 export interface Config {
   parameters?: Record<string | number, unknown>;
-  exitConditions?: Array<Pick<Band, 'subRuleRef' | 'outcome' | 'reason'>>;
-  bands: Band[];
+  exitConditions?: OutcomeResult;
+  bands?: Band[];
+  case?: Case[];
   timeframes?: Timeframe[];
 }
 
-export interface Band {
+export interface OutcomeResult {
   subRuleRef: string;
-  lowerLimit?: number;
   outcome: boolean;
   reason: string;
+}
+
+export interface Band extends OutcomeResult {
+  lowerLimit?: number;
   upperLimit?: number;
+}
+
+export interface Case extends OutcomeResult {
+  value: number;
 }
 
 export interface Timeframe {
