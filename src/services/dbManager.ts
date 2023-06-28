@@ -1090,7 +1090,8 @@ async function configurationBuilder(manager: DatabaseManagerType, configurationC
     `;
 
     const toReturn = await (await manager._configuration!.query(query)).batches.all();
-    if (manager.setupConfig?.localCacheEnabled) manager.nodeCache?.set(cacheKey, toReturn, manager.setupConfig?.localCacheTTL ?? 3000);
+    if (manager.setupConfig?.localCacheEnabled && toReturn[0] && toReturn[0].length === 1)
+      manager.nodeCache?.set(cacheKey, toReturn, manager.setupConfig?.localCacheTTL ?? 3000);
     return toReturn;
   };
 }
