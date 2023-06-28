@@ -92,14 +92,8 @@ afterAll(() => {
 });
 
 describe('CreateDatabaseManager', () => {
-  let transSpy: jest.SpyInstance;
-  let configSpy: jest.SpyInstance;
-  let pseudoSpy: jest.SpyInstance;
-  let getMembersSpy: jest.SpyInstance;
-  let networkMapSpy: jest.SpyInstance;
-
   beforeEach(() => {
-    transSpy = jest.spyOn(globalManager._transactionHistory, 'query').mockImplementation((query: string | AqlLiteral): Promise<any> => {
+    jest.spyOn(globalManager._transactionHistory, 'query').mockImplementation((query: string | AqlLiteral): Promise<any> => {
       return new Promise((resolve, reject) => {
         isAqlQuery(query)
           ? resolve({
@@ -110,19 +104,7 @@ describe('CreateDatabaseManager', () => {
           : reject(new Error('Not AQL Query'));
       });
     });
-    configSpy = jest.spyOn(globalManager._configuration, 'query').mockImplementation((query: string | AqlLiteral): Promise<any> => {
-      return new Promise((resolve, reject) => {
-        isAqlQuery(query)
-          ? resolve({
-              batches: {
-                all: jest.fn().mockImplementation(() => ['MOCK-QUERY']),
-              },
-            })
-          : reject(new Error('Not AQL Query'));
-      });
-    });
-
-    pseudoSpy = jest.spyOn(globalManager._pseudonymsDb, 'query').mockImplementation((query: string | AqlLiteral): Promise<any> => {
+    jest.spyOn(globalManager._configuration, 'query').mockImplementation((query: string | AqlLiteral): Promise<any> => {
       return new Promise((resolve, reject) => {
         isAqlQuery(query)
           ? resolve({
@@ -134,7 +116,7 @@ describe('CreateDatabaseManager', () => {
       });
     });
 
-    networkMapSpy = jest.spyOn(globalManager._networkMap, 'query').mockImplementation((query: string | AqlLiteral): Promise<any> => {
+    jest.spyOn(globalManager._pseudonymsDb, 'query').mockImplementation((query: string | AqlLiteral): Promise<any> => {
       return new Promise((resolve, reject) => {
         isAqlQuery(query)
           ? resolve({
@@ -146,7 +128,19 @@ describe('CreateDatabaseManager', () => {
       });
     });
 
-    getMembersSpy = jest.spyOn(globalManager, 'getMembers').mockImplementation((key: string): Promise<any> => {
+    jest.spyOn(globalManager._networkMap, 'query').mockImplementation((query: string | AqlLiteral): Promise<any> => {
+      return new Promise((resolve, reject) => {
+        isAqlQuery(query)
+          ? resolve({
+              batches: {
+                all: jest.fn().mockImplementation(() => ['MOCK-QUERY']),
+              },
+            })
+          : reject(new Error('Not AQL Query'));
+      });
+    });
+
+    jest.spyOn(globalManager, 'getMembers').mockImplementation((key: string): Promise<any> => {
       return new Promise((resolve, reject) => {
         resolve(['MOCK-CACHE-QUERY']);
       });
@@ -416,7 +410,9 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.isReadyCheck).toBeDefined();
     expect(await dbManager.getTransactionPacs008('test')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getTransactionPain001('test')).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.isReadyCheck()).toEqual({ TransactionHistoryDB: 'Ok' });
+    expect(await dbManager.isReadyCheck()).toEqual({
+      TransactionHistoryDB: 'Ok',
+    });
 
     dbManager.quit();
   });
