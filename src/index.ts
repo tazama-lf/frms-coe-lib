@@ -1,22 +1,26 @@
+import { type aql } from 'arangojs';
+import { type GeneratedAqlQuery } from 'arangojs/aql';
 import {
   CreateDatabaseManager,
-  type ManagerConfig,
   type ConfigurationDB,
+  type DatabaseManagerInstance,
+  type ManagerConfig,
   type PseudonymsDB,
   type TransactionHistoryDB,
-  type DatabaseManagerInstance,
 } from './services/dbManager';
 import { LoggerService } from './services/logger';
 import { RedisService, type RedisConfig } from './services/redis';
 
 export {
-  RedisService,
-  type RedisConfig,
   CreateDatabaseManager,
-  type ManagerConfig,
-  type ConfigurationDB,
-  type PseudonymsDB,
-  type TransactionHistoryDB,
-  type DatabaseManagerInstance,
   LoggerService,
+  RedisService,
+  type ConfigurationDB,
+  type DatabaseManagerInstance,
+  type GeneratedAqlQuery,
+  type ManagerConfig,
+  type PseudonymsDB,
+  type RedisConfig,
+  type TransactionHistoryDB,
+  type aql,
 };
