@@ -1,4 +1,4 @@
-import { type aql } from 'arangojs';
+import { aql } from 'arangojs';
 import { type GeneratedAqlQuery } from 'arangojs/aql';
 import {
   CreateDatabaseManager,
@@ -22,5 +22,5 @@ export {
   type PseudonymsDB,
   type RedisConfig,
   type TransactionHistoryDB,
-  type aql,
+  aql,
 };
