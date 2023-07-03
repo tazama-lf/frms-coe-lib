@@ -1,22 +1,22 @@
 export class Typology {
-    id = '';
-    cfg = '';
-    threshold = 0;
+  id = '';
+  cfg = '';
+  threshold = 0;
 }
 
 export class Channel {
-    id = '';
-    cfg = '';
-    typologies: Array<Typology> = [];
+  id = '';
+  cfg = '';
+  typologies: Typology[] = [];
 }
 
 export class Message {
-    id = '';
-    cfg = '';
-    txTp = '';
-    channels: Array<Channel> = [];
+  id = '';
+  cfg = '';
+  txTp = '';
+  channels: Channel[] = [];
 }
 
 export class TransactionConfiguration {
-    messages: Array<Message> = [];
+  messages: Message[] = [];
 }

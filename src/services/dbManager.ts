@@ -1117,7 +1117,7 @@ async function networkMapBuilder(manager: DatabaseManagerType, NetworkMapConfig:
   }
 
   manager.getNetworkMap = async () => {
-    const db = manager._configuration!.collection(dbNetworkMap.netConfig);
+    const db = manager._networkMap!.collection(dbNetworkMap.netConfig);
     const networkConfigurationQuery: AqlQuery = aql`
         FOR doc IN ${db}
         FILTER doc.active == true

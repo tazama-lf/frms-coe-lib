@@ -1,10 +1,10 @@
-import { RuleResult } from "..";
+import { type RuleResult } from '..';
 
 export class TypologyResult {
-    id = '';
-    cfg = '';
-    desc = '';
-    result = 0.0;
-    threshold = 0.0;
-    ruleResults: RuleResult[] = [];
+  id = '';
+  cfg = '';
+  desc = '';
+  result = 0.0;
+  threshold = 0.0;
+  ruleResults: RuleResult[] = [];
 }
