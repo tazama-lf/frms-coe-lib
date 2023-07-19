@@ -13,7 +13,7 @@ if (config.nodeEnv !== 'dev' && config.nodeEnv !== 'test') {
       },
     },
     categories: {
-      default: { appenders: ['logstash'], level: 'info' },
+      default: { appenders: ['logstash'], level: config.logger.logstashLevel },
     },
   });
 }
@@ -58,5 +58,9 @@ export class LoggerService {
     }
 
     logger.error(`${this.messageStamp(serviceOperation)}[ERROR] - ${errMessage}`);
+  }
+
+  debug(message: string, serviceOperation?: string): void {
+    logger.debug(`${this.messageStamp(serviceOperation)}[DEBUG] - ${message}`);
   }
 }
