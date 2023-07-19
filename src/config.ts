@@ -24,7 +24,7 @@ export const config: IConfig = {
   logger: {
     logstashHost: process.env.LOGSTASH_HOST as string,
     logstashPort: parseInt(process.env.LOGSTASH_PORT ?? '0', 10),
-    logstashLevel: (process.env.LOGSTASH_HOST as string) || 'info',
+    logstashLevel: (process.env.LOGSTASH_LEVEL as string) || 'info',
   },
   apmLogging: process.env.APM_LOGGING === 'true',
   apmSecretToken: process.env.APM_SECRET_TOKEN as string,
