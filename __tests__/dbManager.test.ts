@@ -8,9 +8,14 @@ import { CreateDatabaseManager, DatabaseManagerInstance, NetworkMapDB } from '..
 
 const redisConfig = {
   db: 0,
-  host: 'Test',
+  servers: [
+    {
+      host: 'Test',
+      port: 63792,
+    },
+  ],
   password: 'Test',
-  port: 63792,
+  isCluster: false,
 };
 
 const transactionHistoryConfig = {

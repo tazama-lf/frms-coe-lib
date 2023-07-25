@@ -9,3 +9,4 @@ export * from './rule/RuleRequest';
 export * from './rule/RuleResult';
 export * from './AccountType';
 export * from './NetworkMap';
+export * from './RedisConfig';

@@ -9,18 +9,17 @@ import {
   type TransactionHistoryDB,
 } from './services/dbManager';
 import { LoggerService } from './services/logger';
-import { RedisService, type RedisConfig } from './services/redis';
+import { RedisService } from './services/redis';
 
 export {
   CreateDatabaseManager,
   LoggerService,
   RedisService,
+  aql,
   type ConfigurationDB,
   type DatabaseManagerInstance,
   type GeneratedAqlQuery,
   type ManagerConfig,
   type PseudonymsDB,
-  type RedisConfig,
   type TransactionHistoryDB,
-  aql,
 };
