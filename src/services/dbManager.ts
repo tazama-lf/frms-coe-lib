@@ -4,8 +4,8 @@ import { aql, Database } from 'arangojs';
 import { join, type AqlQuery, type GeneratedAqlQuery } from 'arangojs/aql';
 import * as fs from 'fs';
 import NodeCache from 'node-cache';
-import { RedisService, type RedisConfig } from '..';
-import { AccountType, type TransactionRelationship } from '../interfaces';
+import { RedisService } from '..';
+import { AccountType, type TransactionRelationship, type RedisConfig } from '../interfaces';
 import { dbConfiguration, dbNetworkMap, dbPseudonyms, dbTransactions } from '../interfaces/ArangoCollections';
 
 let readyChecks: Record<string, string | unknown> = {};
@@ -570,10 +570,13 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
 async function redisBuilder(manager: DatabaseManagerType, redisConfig: RedisConfig): Promise<RedisService | undefined> {
   try {
     const redis = await RedisService.create(redisConfig);
+    manager._redisClient = redis._redisClient;
     manager.getJson = redis.getJson;
     manager.getMembers = redis.getMembers;
-    manager.setJson = redis.setJson;
     manager.deleteKey = redis.deleteKey;
+    manager.setJson = redis.setJson;
+    manager.setAdd = redis.setAdd;
+    manager.addOneGetAll = redis.addOneGetAll;
     readyChecks.Redis = 'Ok';
 
     return redis;
