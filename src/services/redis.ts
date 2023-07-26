@@ -54,12 +54,16 @@ export class RedisService {
    * @returns {Promise<string>} A Promise that resolves to the JSON value as a string.
    */
   async getJson(key: string): Promise<string> {
-    const res = await this._redisClient.get(key);
-    if (res === null) {
-      throw new Error(`No value found for key ${key}`);
-    }
+    try {
+      const res = await this._redisClient.get(key);
+      if (res === null) {
+        return '';
+      }
 
-    return res;
+      return res;
+    } catch (err) {
+      throw new Error(`Error while getting ${key} from Redis`);
+    }
   }
 
   /**
@@ -69,12 +73,16 @@ export class RedisService {
    * @returns {Promise<string[]>} A Promise that resolves to an array of set members as strings.
    */
   async getMembers(key: string): Promise<string[]> {
-    const res = await this._redisClient.smembers(key);
-    if (!res || res.length === 0) {
-      throw new Error(`No members found for key ${key}`);
-    }
+    try {
+      const res = await this._redisClient.smembers(key);
+      if (!res || res.length === 0) {
+        return [];
+      }
 
-    return res;
+      return res;
+    } catch (err) {
+      throw new Error(`Error while getting members on ${key} from Redis`);
+    }
   }
 
   /**
@@ -84,9 +92,10 @@ export class RedisService {
    * @returns {Promise<void>} A Promise that resolves when the key is successfully deleted.
    */
   async deleteKey(key: string): Promise<void> {
-    const res = await this._redisClient.del(key);
-    if (res === 0) {
-      throw new Error(`No key found for deletion ${key}`);
+    try {
+      await this._redisClient.del(key);
+    } catch (err) {
+      throw new Error(`Error while deleting ${key} from Redis`);
     }
   }
 
