@@ -1,7 +1,9 @@
 import { AqlLiteral, isAqlQuery } from 'arangojs/aql';
 import { ConfigurationDB, PseudonymsDB, RedisService, TransactionHistoryDB } from '../src';
-import { AccountType, TransactionRelationship } from '../src/interfaces';
+import { AccountType, NetworkMap, Pacs002, TransactionRelationship } from '../src/interfaces';
 import { CreateDatabaseManager, DatabaseManagerInstance, NetworkMapDB } from '../src/services/dbManager';
+import * as isDatabaseReady from '../src/helpers/readyCheck';
+import { Redis } from 'ioredis';
 
 // redis and aragojs are mocked
 // setup.jest.js
@@ -96,6 +98,20 @@ afterAll(() => {
   globalManager.quit();
 });
 
+const getMockRequest = (): Pacs002 => {
+  const pacs002 = JSON.parse(
+    '{"TxTp":"pacs.002.001.12","FIToFIPmtSts":{"GrpHdr":{"MsgId":"136a-dbb6-43d8-a565-86b8f322411e","CreDtTm":"2023-02-03T09:53:58.069Z"},"TxInfAndSts":{"OrgnlInstrId":"5d158d92f70142a6ac7ffba30ac6c2db","OrgnlEndToEndId":"701b-ae14-46fd-a2cf-88dda2875fdd","TxSts":"ACCC","ChrgsInf":[{"Amt":{"Amt":307.14,"Ccy":"USD"},"Agt":{"FinInstnId":{"ClrSysMmbId":{"MmbId":"typolog028"}}}},{"Amt":{"Amt":153.57,"Ccy":"USD"},"Agt":{"FinInstnId":{"ClrSysMmbId":{"MmbId":"typolog028"}}}},{"Amt":{"Amt":300.71,"Ccy":"USD"},"Agt":{"FinInstnId":{"ClrSysMmbId":{"MmbId":"dfsp002"}}}}],"AccptncDtTm":"2023-02-03T09:53:58.069Z","InstgAgt":{"FinInstnId":{"ClrSysMmbId":{"MmbId":"typolog028"}}},"InstdAgt":{"FinInstnId":{"ClrSysMmbId":{"MmbId":"dfsp002"}}}}}}',
+  );
+
+  return pacs002;
+};
+
+const getMockNetworkMap = (): NetworkMap => {
+  return JSON.parse(
+    '{"messages":[{"id":"001@1.0.0","host":"http://openfaas:8080","cfg":"1.0.0","txTp":"pain.001.001.11","channels":[{"id":"001@1.0.0","host":"http://openfaas:8080","cfg":"1.0.0","typologies":[{"id":"028@1.0.0","host":"https://example.com/off-frm-typology-processor","cfg":"1.0.0","rules":[{"id":"003@1.0.0","host":"http://openfaas:8080","cfg":"1.0.0"}]},{"id":"029@1.0.0","host":"https://example.com/function/off-frm-typology-processor","cfg":"1.0.0","rules":[{"id":"003@1.0.0","host":"http://openfaas:8080","cfg":"1.0.0"},{"id":"004@1.0.0","host":"http://openfaas:8080","cfg":"1.0.0"}]}]}]}]}',
+  );
+};
+
 describe('CreateDatabaseManager', () => {
   beforeEach(() => {
     jest.spyOn(globalManager._transactionHistory, 'query').mockImplementation((query: string | AqlLiteral): Promise<any> => {
@@ -155,6 +171,9 @@ describe('CreateDatabaseManager', () => {
     const testTypes = <RedisService & TransactionHistoryDB>{};
     const dbManager: typeof testTypes = globalManager;
 
+    const testPacs002: Pacs002 = getMockRequest();
+    const testNetworkMap: NetworkMap = getMockNetworkMap();
+
     expect(dbManager.queryTransactionDB).toBeDefined();
     expect(dbManager.getTransactionPacs008).toBeDefined();
     expect(dbManager.getDebtorPain001Msgs).toBeDefined();
@@ -165,6 +184,8 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.getEquivalentPain001Msg).toBeDefined();
     expect(dbManager.getAccountEndToEndIds).toBeDefined();
     expect(dbManager.getAccountHistoryPacs008Msgs).toBeDefined();
+    expect(dbManager.saveTransactionHistory).toBeDefined();
+    expect(dbManager.insertTransaction).toBeDefined();
 
     expect(await dbManager.queryTransactionDB('testCollection', 'testFilter')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.queryTransactionDB('testCollection', 'testFilter', 10)).toEqual(['MOCK-QUERY']);
@@ -180,6 +201,8 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.getAccountEndToEndIds('test', AccountType.DebtorAcct)).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getAccountHistoryPacs008Msgs('test', AccountType.CreditorAcct)).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getAccountHistoryPacs008Msgs('test', AccountType.DebtorAcct)).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.saveTransactionHistory(testPacs002, 'testCollection')).toEqual('MOCK-SAVE');
+    expect(await dbManager.insertTransaction('testID', testPacs002, testNetworkMap, {})).toEqual(['MOCK-QUERY']);
   });
 
   it('should create a manager with configuration methods', async () => {
@@ -188,10 +211,14 @@ describe('CreateDatabaseManager', () => {
 
     expect(dbManager.queryConfigurationDB).toBeDefined();
     expect(dbManager.getRuleConfig).toBeDefined();
+    expect(dbManager.getTransactionConfig).toBeDefined();
+    expect(dbManager.getTypologyExpression).toBeDefined();
 
     expect(await dbManager.queryConfigurationDB('testCollection', 'testFilter')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.queryConfigurationDB('testCollection', 'testFilter', 10)).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getRuleConfig('test', 'test')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getTransactionConfig()).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getTypologyExpression({ id: 'testId', cfg: ' testCfg' })).toEqual(['MOCK-QUERY']);
   });
 
   it('should create a manager with pseudonyms methods', async () => {
@@ -213,6 +240,9 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.getCreditorPacs002Edges).toBeDefined();
     expect(dbManager.getIncomingPacs002Edges).toBeDefined();
     expect(dbManager.getOutgoingPacs002Edges).toBeDefined();
+    expect(dbManager.saveAccount).toBeDefined();
+    expect(dbManager.saveAccountHolder).toBeDefined();
+    expect(dbManager.saveEntity).toBeDefined();
 
     expect(await dbManager.queryPseudonymDB('testCollection', 'testFilter')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.queryPseudonymDB('testCollection', 'testFilter', 10)).toEqual(['MOCK-QUERY']);
@@ -233,6 +263,9 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.getIncomingPacs002Edges('test', 50)).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getOutgoingPacs002Edges('test')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getOutgoingPacs002Edges('test', 50)).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.saveAccount('test')).toEqual('MOCK-SAVE');
+    expect(await dbManager.saveAccountHolder('test', 'testID', 'testTime')).toEqual('MOCK-SAVE');
+    expect(await dbManager.saveEntity('test', 'testTime')).toEqual('MOCK-SAVE');
   });
 
   it('should create a manager with network map methods', async () => {
@@ -419,6 +452,57 @@ describe('CreateDatabaseManager', () => {
       TransactionHistoryDB: 'Ok',
     });
 
+    dbManager.quit();
+  });
+
+  it('should error gracefully on isReadyCheck for database builders', async () => {
+    const config = {
+      redisConfig: redisConfig,
+      transactionHistory: transactionHistoryConfig,
+      configuration: configurationConfig,
+      pseudonyms: pseudonymsConfig,
+      networkMap: networkMapConfig,
+    };
+    // false case
+    let readySpy = jest.spyOn(isDatabaseReady, 'isDatabaseReady').mockImplementation(() => Promise.resolve(false));
+
+    let dbManager = await CreateDatabaseManager(config);
+    expect(dbManager.isReadyCheck).toBeDefined();
+    expect(await dbManager.isReadyCheck()).toMatchObject({
+      TransactionHistoryDB: 'err',
+    });
+    readySpy.mockClear();
+    dbManager.quit();
+
+    // error case
+    readySpy = jest.spyOn(isDatabaseReady, 'isDatabaseReady').mockRejectedValue(new Error('test error'));
+    dbManager = await CreateDatabaseManager(config);
+    expect(dbManager.isReadyCheck).toBeDefined();
+    expect(await dbManager.isReadyCheck()).toMatchObject({
+      TransactionHistoryDB: new Error('test error'),
+    });
+
+    readySpy.mockClear();
+    dbManager.quit();
+  });
+
+  it('should error gracefully on isReadyCheck for redis builder', async () => {
+    const config = {
+      redisConfig: redisConfig,
+      transactionHistory: transactionHistoryConfig,
+      configuration: configurationConfig,
+      pseudonyms: pseudonymsConfig,
+      networkMap: networkMapConfig,
+    };
+    const createSpy = jest.spyOn(RedisService, 'create').mockRejectedValue(new Error('test error'));
+
+    const dbManager = await CreateDatabaseManager(config);
+    expect(dbManager.isReadyCheck).toBeDefined();
+    expect(await dbManager.isReadyCheck()).toMatchObject({
+      Redis: new Error('test error'),
+    });
+
+    createSpy.mockClear();
     dbManager.quit();
   });
 });

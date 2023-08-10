@@ -3,7 +3,8 @@ import { join, type AqlQuery, type GeneratedAqlQuery } from 'arangojs/aql';
 import * as fs from 'fs';
 import { type TransactionRelationship } from '../interfaces';
 import { dbPseudonyms } from '../interfaces/ArangoCollections';
-import { type DatabaseManagerType, type DBConfig, isDatabaseReady, readyChecks } from '../services/dbManager';
+import { type DatabaseManagerType, type DBConfig, readyChecks } from '../services/dbManager';
+import { isDatabaseReady } from '../helpers/readyCheck';
 
 export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig: DBConfig): Promise<void> {
   manager._pseudonymsDb = new Database({
@@ -19,8 +20,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
   });
 
   try {
-    await isDatabaseReady(manager._pseudonymsDb);
-    readyChecks.PseudonymsDB = 'Ok';
+    readyChecks.PseudonymsDB = (await isDatabaseReady(manager._pseudonymsDb)) ? 'Ok' : 'err';
   } catch (err) {
     readyChecks.PseudonymsDB = err;
   }

@@ -35,6 +35,7 @@ export interface PseudonymsDB {
   getPseudonyms: (hash: string) => Promise<unknown>;
 
   /**
+   * @deprecated use saveAccount instead
    * @param hash Hash string used to identify the pseudonym we are storing
    *
    * This is a insert query to the accounts collection with overwrite mode set to `ignore`

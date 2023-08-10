@@ -3,7 +3,8 @@ import { type AqlQuery } from 'arangojs/aql';
 import * as fs from 'fs';
 import { AccountType, type Pain001, type NetworkMap, type Pain013, type Pacs008, type Pacs002 } from '../interfaces';
 import { dbTransactions } from '../interfaces/ArangoCollections';
-import { isDatabaseReady, readyChecks, type DatabaseManagerType, type DBConfig } from '../services/dbManager';
+import { readyChecks, type DatabaseManagerType, type DBConfig } from '../services/dbManager';
+import { isDatabaseReady } from '../helpers/readyCheck';
 
 export async function transactionHistoryBuilder(
   manager: DatabaseManagerType,
@@ -23,8 +24,7 @@ export async function transactionHistoryBuilder(
   });
 
   try {
-    await isDatabaseReady(manager._transactionHistory);
-    readyChecks.TransactionHistoryDB = 'Ok';
+    readyChecks.TransactionHistoryDB = (await isDatabaseReady(manager._transactionHistory)) ? 'Ok' : 'err';
   } catch (err) {
     readyChecks.TransactionHistoryDB = err;
   }

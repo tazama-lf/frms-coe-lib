@@ -3,7 +3,8 @@ import { type AqlQuery } from 'arangojs/aql';
 import * as fs from 'fs';
 import NodeCache from 'node-cache';
 import { dbConfiguration } from '../interfaces/ArangoCollections';
-import { type DatabaseManagerType, type DBConfig, isDatabaseReady, readyChecks } from '../services/dbManager';
+import { type DatabaseManagerType, type DBConfig, readyChecks } from '../services/dbManager';
+import { isDatabaseReady } from '../helpers/readyCheck';
 
 export async function configurationBuilder(manager: DatabaseManagerType, configurationConfig: DBConfig): Promise<void> {
   manager._configuration = new Database({
@@ -19,8 +20,7 @@ export async function configurationBuilder(manager: DatabaseManagerType, configu
   });
 
   try {
-    await isDatabaseReady(manager._configuration);
-    readyChecks.ConfigurationDB = 'Ok';
+    readyChecks.ConfigurationDB = (await isDatabaseReady(manager._configuration)) ? 'Ok' : 'err';
   } catch (err) {
     readyChecks.ConfigurationDB = err;
   }
