@@ -3,10 +3,13 @@ const schema = {
     pacs008: 'transactionHistoryPacs008',
     pacs002: 'transactionHistoryPacs002',
     pain001: 'transactionHistoryPain001',
+    transactions: 'transactions',
   },
   pseudonyms: {
     self: 'pseudonyms',
     accounts: 'accounts',
+    account_holder: 'account_holder',
+    entities: 'entities',
     transactionRelationship: 'transactionRelationship',
   },
   networkMap: {
@@ -14,6 +17,7 @@ const schema = {
   },
   config: {
     self: 'configuration',
+    typologyExpression: 'typologyExpression',
   },
 };
 const { transactions, pseudonyms, networkMap, config } = schema;
