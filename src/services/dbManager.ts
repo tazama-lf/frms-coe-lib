@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { type Database } from 'arangojs';
 import { type RedisService } from '..';
 import { type RedisConfig } from '../interfaces';
 import { type PseudonymsDB } from '../interfaces/database/PseudonymsDB';
@@ -92,13 +91,6 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
   };
 
   return manager as DatabaseManagerInstance<T>;
-}
-
-export async function isDatabaseReady(db: Database | undefined): Promise<boolean> {
-  if (!db?.isArangoDatabase || !(await db.exists())) {
-    return false;
-  }
-  return true;
 }
 
 export type { ManagerConfig, TransactionHistoryDB, ConfigurationDB, PseudonymsDB, DatabaseManagerInstance, NetworkMapDB };
