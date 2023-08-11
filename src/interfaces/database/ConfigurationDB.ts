@@ -1,6 +1,7 @@
 import { type Database } from 'arangojs';
 import type NodeCache from 'node-cache';
 import { type DBConfig } from '../../services/dbManager';
+import { type Typology } from '..';
 
 export interface ConfigurationDB {
   _configuration: Database;
@@ -65,5 +66,5 @@ export interface ConfigurationDB {
    * ```
    * @memberof ConfigurationDB
    */
-  getTypologyExpression: (typology: { id: string; cfg: string }) => Promise<unknown>;
+  getTypologyExpression: (typology: Typology) => Promise<unknown>;
 }

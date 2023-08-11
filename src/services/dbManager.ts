@@ -88,6 +88,7 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
     manager._pseudonymsDb?.close();
     manager._transactionHistory?.close();
     manager._configuration?.close();
+    manager._networkMap?.close();
   };
 
   return manager as DatabaseManagerInstance<T>;

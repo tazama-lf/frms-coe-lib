@@ -5,6 +5,7 @@ import NodeCache from 'node-cache';
 import { dbConfiguration } from '../interfaces/ArangoCollections';
 import { type DatabaseManagerType, type DBConfig, readyChecks } from '../services/dbManager';
 import { isDatabaseReady } from '../helpers/readyCheck';
+import { type Typology } from '../interfaces';
 
 export async function configurationBuilder(manager: DatabaseManagerType, configurationConfig: DBConfig): Promise<void> {
   manager._configuration = new Database({
@@ -75,7 +76,7 @@ export async function configurationBuilder(manager: DatabaseManagerType, configu
     return await (await manager._configuration!.query(query)).batches.all();
   };
 
-  manager.getTypologyExpression = async (typology: { id: string; cfg: string }) => {
+  manager.getTypologyExpression = async (typology: Typology) => {
     const cacheKey = `${typology.id}_${typology.cfg}`;
     if (manager.setupConfig?.localCacheEnabled ?? false) {
       const cacheVal = manager.nodeCache?.get(cacheKey);
