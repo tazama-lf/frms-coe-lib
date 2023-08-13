@@ -32,6 +32,6 @@ export async function networkMapBuilder(manager: DatabaseManagerType, NetworkMap
         FILTER doc.active == true
         RETURN doc
       `;
-    return await (await manager._networkMap!.query(networkConfigurationQuery)).batches.all();
+    return await (await manager._networkMap?.query(networkConfigurationQuery))?.batches.all();
   };
 }

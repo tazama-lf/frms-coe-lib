@@ -42,7 +42,7 @@ export async function configurationBuilder(manager: DatabaseManagerType, configu
       RETURN doc
     `;
 
-    return await (await manager._configuration!.query(query)).batches.all();
+    return await (await manager._configuration?.query(query))?.batches.all();
   };
 
   manager.getRuleConfig = async (ruleId: string, cfg: string, limit?: number) => {
@@ -61,8 +61,8 @@ export async function configurationBuilder(manager: DatabaseManagerType, configu
       RETURN doc
     `;
 
-    const toReturn = await (await manager._configuration!.query(query)).batches.all();
-    if (manager.setupConfig?.localCacheEnabled && toReturn[0] && toReturn[0].length === 1)
+    const toReturn = await (await manager._configuration?.query(query))?.batches.all();
+    if (manager.setupConfig?.localCacheEnabled && toReturn && toReturn[0] && toReturn[0].length === 1)
       manager.nodeCache?.set(cacheKey, toReturn, manager.setupConfig?.localCacheTTL ?? 3000);
     return toReturn;
   };
@@ -74,7 +74,7 @@ export async function configurationBuilder(manager: DatabaseManagerType, configu
       RETURN UNSET(doc, "_id", "_key", "_rev")
     `;
 
-    return await (await manager._configuration!.query(query)).batches.all();
+    return await (await manager._configuration?.query(query))?.batches.all();
   };
 
   manager.getTypologyExpression = async (typology: Typology) => {
@@ -90,8 +90,8 @@ export async function configurationBuilder(manager: DatabaseManagerType, configu
       RETURN doc
     `;
 
-    const toReturn = await (await manager._configuration!.query(query)).batches.all();
-    if (manager.setupConfig?.localCacheEnabled && toReturn[0] && toReturn[0].length === 1)
+    const toReturn = await (await manager._configuration?.query(query))?.batches.all();
+    if (manager.setupConfig?.localCacheEnabled && toReturn && toReturn[0] && toReturn[0].length === 1)
       manager.nodeCache?.set(cacheKey, toReturn, manager.setupConfig?.localCacheTTL ?? 3000);
     return toReturn;
   };

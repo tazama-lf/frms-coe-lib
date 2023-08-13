@@ -38,7 +38,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       RETURN doc
     `;
 
-    return await (await manager._pseudonymsDb!.query(query)).batches.all();
+    return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
   manager.getPseudonyms = async (hash: string) => {
@@ -50,7 +50,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       RETURN i
     `;
 
-    return await (await manager._pseudonymsDb!.query(query)).batches.all();
+    return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
   manager.addAccount = async (hash: string) => {
@@ -86,7 +86,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       RETURN doc
     `;
 
-    return await (await manager._pseudonymsDb!.query(query)).batches.all();
+    return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
   manager.getPacs008Edges = async (accountId: string, threshold?: string, amount?: number) => {
@@ -103,7 +103,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       RETURN doc
     `;
 
-    return await (await manager._pseudonymsDb!.query(query)).batches.all();
+    return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
   manager.getPacs002Edge = async (endToEndIds: string[]) => {
@@ -115,7 +115,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       RETURN doc
     `;
 
-    return await (await manager._pseudonymsDb!.query(query)).batches.all();
+    return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
   manager.getDebtorPacs002Edges = async (debtorId: string): Promise<unknown> => {
@@ -130,7 +130,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       RETURN doc
     `;
 
-    return await (await manager._pseudonymsDb!.query(query)).batches.all();
+    return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
   manager.getIncomingPacs002Edges = async (accountId: string, limit?: number): Promise<unknown> => {
@@ -148,7 +148,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       RETURN doc
     `;
 
-    return await (await manager._pseudonymsDb!.query(query)).batches.all();
+    return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
   manager.getOutgoingPacs002Edges = async (accountId: string, limit?: number): Promise<unknown> => {
@@ -166,7 +166,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       RETURN doc
     `;
 
-    return await (await manager._pseudonymsDb!.query(query)).batches.all();
+    return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
   manager.getSuccessfulPacs002Edges = async (creditorId: string[], debtorId: string, endToEndId: string[]): Promise<unknown> => {
@@ -186,7 +186,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       RETURN doc
     `;
 
-    return await (await manager._pseudonymsDb!.query(query)).batches.all();
+    return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
   manager.getDebtorPacs008Edges = async (debtorId: string, endToEndId = '') => {
@@ -203,7 +203,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       RETURN doc
     `;
 
-    return await (await manager._pseudonymsDb!.query(query)).batches.all();
+    return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
   manager.getCreditorPacs008Edges = async (creditorId: string) => {
@@ -220,7 +220,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       RETURN doc
     `;
 
-    return await (await manager._pseudonymsDb!.query(query)).batches.all();
+    return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
   manager.getPreviousPacs008Edges = async (accountId: string, limit?: number, to?: string[]) => {
@@ -243,7 +243,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       RETURN doc
     `;
 
-    return await (await manager._pseudonymsDb!.query(query)).batches.all();
+    return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
   manager.getCreditorPacs002Edges = async (creditorId: string, threshold: number) => {
@@ -259,7 +259,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
         RETURN doc
     `;
 
-    return await (await manager._pseudonymsDb!.query(query)).batches.all();
+    return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
   manager.saveAccount = async (key: string) => {

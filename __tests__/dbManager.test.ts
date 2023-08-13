@@ -165,9 +165,7 @@ describe('CreateDatabaseManager', () => {
     });
 
     jest.spyOn(globalManager, 'getMembers').mockImplementation((key: string): Promise<any> => {
-      return new Promise((resolve, reject) => {
-        resolve(['MOCK-CACHE-QUERY']);
-      });
+      return Promise.resolve(['MOCK-CACHE-QUERY']);
     });
   });
   it('should create a manager with transactionHistory methods', async () => {

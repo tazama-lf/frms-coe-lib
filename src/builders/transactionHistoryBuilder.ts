@@ -42,7 +42,7 @@ export async function transactionHistoryBuilder(
       RETURN doc
     `;
 
-    return await (await manager._transactionHistory!.query(query)).batches.all();
+    return await (await manager._transactionHistory?.query(query))?.batches.all();
   };
 
   if (redis) {
@@ -62,7 +62,7 @@ export async function transactionHistoryBuilder(
         RETURN doc
       `;
 
-      return await (await manager._transactionHistory!.query(query)).batches.all();
+      return await (await manager._transactionHistory?.query(query))?.batches.all();
     };
   } else {
     manager.getTransactionPacs008 = async (endToEndId: string) => {
@@ -74,7 +74,7 @@ export async function transactionHistoryBuilder(
         RETURN doc
       `;
 
-      return await (await manager._transactionHistory!.query(query)).batches.all();
+      return await (await manager._transactionHistory?.query(query))?.batches.all();
     };
   }
 
@@ -87,7 +87,7 @@ export async function transactionHistoryBuilder(
       RETURN doc
     `;
 
-    return await (await manager._transactionHistory!.query(query)).batches.all();
+    return await (await manager._transactionHistory?.query(query))?.batches.all();
   };
 
   manager.getDebtorPain001Msgs = async (debtorId: string) => {
@@ -101,7 +101,7 @@ export async function transactionHistoryBuilder(
       RETURN doc
     `;
 
-    return await (await manager._transactionHistory!.query(query)).batches.all();
+    return await (await manager._transactionHistory?.query(query))?.batches.all();
   };
 
   manager.getCreditorPain001Msgs = async (creditorId: string) => {
@@ -115,7 +115,7 @@ export async function transactionHistoryBuilder(
       RETURN doc
     `;
 
-    return await (await manager._transactionHistory!.query(query)).batches.all();
+    return await (await manager._transactionHistory?.query(query))?.batches.all();
   };
 
   manager.getSuccessfulPacs002Msgs = async (endToEndId: string) => {
@@ -130,7 +130,7 @@ export async function transactionHistoryBuilder(
       RETURN doc
     `;
 
-    return await (await manager._transactionHistory!.query(query)).batches.all();
+    return await (await manager._transactionHistory?.query(query))?.batches.all();
   };
 
   manager.getSuccessfulPacs002EndToEndIds = async (endToEndIds: string[]) => {
@@ -143,7 +143,7 @@ export async function transactionHistoryBuilder(
       RETURN doc.EndToEndId
     `;
 
-    return await (await manager._transactionHistory!.query(query)).batches.all();
+    return await (await manager._transactionHistory?.query(query))?.batches.all();
   };
 
   manager.getDebtorPacs002Msgs = async (endToEndId: string) => {
@@ -155,7 +155,7 @@ export async function transactionHistoryBuilder(
       RETURN doc
     `;
 
-    return await (await manager._transactionHistory!.query(query)).batches.all();
+    return await (await manager._transactionHistory?.query(query))?.batches.all();
   };
 
   manager.getEquivalentPain001Msg = async (endToEndIds: string[]) => {
@@ -168,7 +168,7 @@ export async function transactionHistoryBuilder(
       RETURN doc.CstmrCdtTrfInitn.PmtInf.CdtTrfTxInf.RmtInf.Ustrd 
     `;
 
-    return await (await manager._transactionHistory!.query(query)).batches.all();
+    return await (await manager._transactionHistory?.query(query))?.batches.all();
   };
 
   manager.getAccountEndToEndIds = async (accountId: string, accountType: AccountType) => {
@@ -187,7 +187,7 @@ export async function transactionHistoryBuilder(
       }
     `;
 
-    return await (await manager._transactionHistory!.query(query)).batches.all();
+    return await (await manager._transactionHistory?.query(query))?.batches.all();
   };
 
   manager.getAccountHistoryPacs008Msgs = async (accountId: string, accountType: AccountType) => {
@@ -203,7 +203,7 @@ export async function transactionHistoryBuilder(
       RETURN doc
     `;
 
-    return await (await manager._transactionHistory!.query(query)).batches.all();
+    return await (await manager._transactionHistory?.query(query))?.batches.all();
   };
 
   manager.insertTransaction = async (transactionID: string, transaction: unknown, networkMap: NetworkMap, alert: unknown) => {
