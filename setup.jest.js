@@ -7,7 +7,6 @@ jest.mock('ioredis', () => jest.requireActual('ioredis-mock'));
 const arangojs = jest.requireActual('arangojs');
 
 class MockDatabase {
-  constructor(config) {}
   collection(col) {
     return {
       save: () => {

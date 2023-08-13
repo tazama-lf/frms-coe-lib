@@ -1,6 +1,6 @@
 import { AqlLiteral, isAqlQuery } from 'arangojs/aql';
 import { ConfigurationDB, PseudonymsDB, RedisService, TransactionHistoryDB } from '../src';
-import { AccountType, NetworkMap, Pacs002, TransactionRelationship } from '../src/interfaces';
+import { AccountType, NetworkMap, Pacs002, TransactionRelationship, Typology } from '../src/interfaces';
 import { CreateDatabaseManager, DatabaseManagerInstance, NetworkMapDB } from '../src/services/dbManager';
 import * as isDatabaseReady from '../src/helpers/readyCheck';
 import { Redis } from 'ioredis';
@@ -112,6 +112,10 @@ const getMockNetworkMap = (): NetworkMap => {
   );
 };
 
+const getMockTypology = (): Typology => {
+  return new Typology('testId', 'testCfg', 'testHost');
+};
+
 describe('CreateDatabaseManager', () => {
   beforeEach(() => {
     jest.spyOn(globalManager._transactionHistory, 'query').mockImplementation((query: string | AqlLiteral): Promise<any> => {
@@ -202,7 +206,7 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.getAccountHistoryPacs008Msgs('test', AccountType.CreditorAcct)).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getAccountHistoryPacs008Msgs('test', AccountType.DebtorAcct)).toEqual(['MOCK-QUERY']);
     expect(await dbManager.saveTransactionHistory(testPacs002, 'testCollection')).toEqual('MOCK-SAVE');
-    expect(await dbManager.insertTransaction('testID', testPacs002, testNetworkMap, {})).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.insertTransaction('testID', testPacs002, testNetworkMap, {})).toEqual('MOCK-SAVE');
   });
 
   it('should create a manager with configuration methods', async () => {
@@ -218,7 +222,7 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.queryConfigurationDB('testCollection', 'testFilter', 10)).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getRuleConfig('test', 'test')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getTransactionConfig()).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getTypologyExpression({ id: 'testId', cfg: ' testCfg' })).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getTypologyExpression(getMockTypology())).toEqual(['MOCK-QUERY']);
   });
 
   it('should create a manager with pseudonyms methods', async () => {

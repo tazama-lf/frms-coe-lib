@@ -18,6 +18,7 @@ const schema = {
   config: {
     self: 'configuration',
     typologyExpression: 'typologyExpression',
+    transactionConfiguration: 'transactionConfiguration',
   },
 };
 const { transactions, pseudonyms, networkMap, config } = schema;
