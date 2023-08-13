@@ -21,7 +21,8 @@ export async function configurationBuilder(manager: DatabaseManagerType, configu
   });
 
   try {
-    readyChecks.ConfigurationDB = (await isDatabaseReady(manager._configuration)) ? 'Ok' : 'err';
+    const dbReady = await isDatabaseReady(manager._configuration);
+    readyChecks.ConfigurationDB = dbReady ? 'Ok' : 'err';
   } catch (err) {
     readyChecks.ConfigurationDB = err;
   }
@@ -30,7 +31,7 @@ export async function configurationBuilder(manager: DatabaseManagerType, configu
   manager.nodeCache = new NodeCache();
 
   manager.queryConfigurationDB = async (collection: string, filter: string, limit?: number) => {
-    const db = manager._configuration!.collection(collection);
+    const db = manager._configuration?.collection(collection);
     const aqlFilter = aql`${filter}`;
     const aqlLimit = limit ? aql`LIMIT ${limit}` : undefined;
 
@@ -51,7 +52,7 @@ export async function configurationBuilder(manager: DatabaseManagerType, configu
       if (cacheVal) return await Promise.resolve(cacheVal);
     }
     const aqlLimit = limit ? aql`LIMIT ${limit}` : undefined;
-    const db = manager._configuration!.collection(dbConfiguration.self);
+    const db = manager._configuration?.collection(dbConfiguration.self);
     const query: AqlQuery = aql`
       FOR doc IN ${db}
       FILTER doc.id == ${ruleId}
@@ -67,7 +68,7 @@ export async function configurationBuilder(manager: DatabaseManagerType, configu
   };
 
   manager.getTransactionConfig = async () => {
-    const db = manager._configuration!.collection(dbConfiguration.transactionConfiguration);
+    const db = manager._configuration?.collection(dbConfiguration.transactionConfiguration);
     const query: AqlQuery = aql`
       FOR doc IN ${db}
       RETURN UNSET(doc, "_id", "_key", "_rev")
@@ -82,7 +83,7 @@ export async function configurationBuilder(manager: DatabaseManagerType, configu
       const cacheVal = manager.nodeCache?.get(cacheKey);
       if (cacheVal) return await Promise.resolve(cacheVal);
     }
-    const db = manager._configuration!.collection(dbConfiguration.typologyExpression);
+    const db = manager._configuration?.collection(dbConfiguration.typologyExpression);
     const query: AqlQuery = aql`
       FOR doc IN ${db}
       FILTER doc.id == ${typology.id} AND doc.cfg == ${typology.cfg}

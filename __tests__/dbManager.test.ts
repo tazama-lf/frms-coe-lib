@@ -1,9 +1,8 @@
 import { AqlLiteral, isAqlQuery } from 'arangojs/aql';
 import { ConfigurationDB, PseudonymsDB, RedisService, TransactionHistoryDB } from '../src';
+import * as isDatabaseReady from '../src/helpers/readyCheck';
 import { AccountType, NetworkMap, Pacs002, TransactionRelationship, Typology } from '../src/interfaces';
 import { CreateDatabaseManager, DatabaseManagerInstance, NetworkMapDB } from '../src/services/dbManager';
-import * as isDatabaseReady from '../src/helpers/readyCheck';
-import { Redis } from 'ioredis';
 
 // redis and aragojs are mocked
 // setup.jest.js

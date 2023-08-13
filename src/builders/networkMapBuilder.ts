@@ -19,13 +19,14 @@ export async function networkMapBuilder(manager: DatabaseManagerType, NetworkMap
   });
 
   try {
-    readyChecks.NetworkMapDB = (await isDatabaseReady(manager._networkMap)) ? 'Ok' : 'err';
+    const dbReady = await isDatabaseReady(manager._networkMap);
+    readyChecks.NetworkMapDB = dbReady ? 'Ok' : 'err';
   } catch (err) {
     readyChecks.NetworkMapDB = err;
   }
 
   manager.getNetworkMap = async () => {
-    const db = manager._networkMap!.collection(dbNetworkMap.netConfig);
+    const db = manager._networkMap?.collection(dbNetworkMap.netConfig);
     const networkConfigurationQuery: AqlQuery = aql`
         FOR doc IN ${db}
         FILTER doc.active == true

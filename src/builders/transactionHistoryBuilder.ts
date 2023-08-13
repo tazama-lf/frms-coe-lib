@@ -24,13 +24,14 @@ export async function transactionHistoryBuilder(
   });
 
   try {
-    readyChecks.TransactionHistoryDB = (await isDatabaseReady(manager._transactionHistory)) ? 'Ok' : 'err';
+    const dbReady = await isDatabaseReady(manager._transactionHistory);
+    readyChecks.TransactionHistoryDB = dbReady ? 'Ok' : 'err';
   } catch (err) {
     readyChecks.TransactionHistoryDB = err;
   }
 
   manager.queryTransactionDB = async (collection: string, filter: string, limit?: number) => {
-    const db = manager._transactionHistory!.collection(collection);
+    const db = manager._transactionHistory?.collection(collection);
     const aqlFilter = aql`${filter}`;
     const aqlLimit = limit ? aql`LIMIT ${limit}` : undefined;
 
@@ -53,7 +54,7 @@ export async function transactionHistoryBuilder(
         if (cacheVal.length > 0) return await Promise.resolve(cacheVal);
       }
 
-      const db = manager._transactionHistory!.collection(dbTransactions.pacs008);
+      const db = manager._transactionHistory?.collection(dbTransactions.pacs008);
 
       const query: AqlQuery = aql`
         FOR doc IN ${db}
@@ -65,7 +66,7 @@ export async function transactionHistoryBuilder(
     };
   } else {
     manager.getTransactionPacs008 = async (endToEndId: string) => {
-      const db = manager._transactionHistory!.collection(dbTransactions.pacs008);
+      const db = manager._transactionHistory?.collection(dbTransactions.pacs008);
 
       const query: AqlQuery = aql`
         FOR doc IN ${db}
@@ -78,7 +79,7 @@ export async function transactionHistoryBuilder(
   }
 
   manager.getTransactionPain001 = async (endToEndId: string) => {
-    const db = manager._transactionHistory!.collection(dbTransactions.pain001);
+    const db = manager._transactionHistory?.collection(dbTransactions.pain001);
 
     const query: AqlQuery = aql`
       FOR doc IN ${db}
@@ -90,7 +91,7 @@ export async function transactionHistoryBuilder(
   };
 
   manager.getDebtorPain001Msgs = async (debtorId: string) => {
-    const db = manager._transactionHistory!.collection(dbTransactions.pain001);
+    const db = manager._transactionHistory?.collection(dbTransactions.pain001);
 
     const query: AqlQuery = aql`
       FOR doc IN ${db} 
@@ -104,7 +105,7 @@ export async function transactionHistoryBuilder(
   };
 
   manager.getCreditorPain001Msgs = async (creditorId: string) => {
-    const db = manager._transactionHistory!.collection(dbTransactions.pain001);
+    const db = manager._transactionHistory?.collection(dbTransactions.pain001);
 
     const query: AqlQuery = aql`
       FOR doc IN ${db} 
@@ -118,7 +119,7 @@ export async function transactionHistoryBuilder(
   };
 
   manager.getSuccessfulPacs002Msgs = async (endToEndId: string) => {
-    const db = manager._transactionHistory!.collection(dbTransactions.pacs002);
+    const db = manager._transactionHistory?.collection(dbTransactions.pacs002);
 
     const query: AqlQuery = aql`
       FOR doc IN ${db} 
@@ -133,7 +134,7 @@ export async function transactionHistoryBuilder(
   };
 
   manager.getSuccessfulPacs002EndToEndIds = async (endToEndIds: string[]) => {
-    const db = manager._transactionHistory!.collection(dbTransactions.pacs002);
+    const db = manager._transactionHistory?.collection(dbTransactions.pacs002);
 
     const query: AqlQuery = aql`
       FOR doc IN ${db} 
@@ -146,7 +147,7 @@ export async function transactionHistoryBuilder(
   };
 
   manager.getDebtorPacs002Msgs = async (endToEndId: string) => {
-    const db = manager._transactionHistory!.collection(dbTransactions.pacs002);
+    const db = manager._transactionHistory?.collection(dbTransactions.pacs002);
 
     const query: AqlQuery = aql`
       FOR doc IN ${db} 
@@ -158,7 +159,7 @@ export async function transactionHistoryBuilder(
   };
 
   manager.getEquivalentPain001Msg = async (endToEndIds: string[]) => {
-    const db = manager._transactionHistory!.collection(dbTransactions.pain001);
+    const db = manager._transactionHistory?.collection(dbTransactions.pain001);
 
     const query: AqlQuery = aql`
       FOR doc IN ${db} 
@@ -171,7 +172,7 @@ export async function transactionHistoryBuilder(
   };
 
   manager.getAccountEndToEndIds = async (accountId: string, accountType: AccountType) => {
-    const db = manager._transactionHistory!.collection(dbTransactions.pacs008);
+    const db = manager._transactionHistory?.collection(dbTransactions.pacs008);
     const filterType =
       accountType === AccountType.CreditorAcct
         ? aql`FILTER doc.CreditorAcctId == ${accountId}`
@@ -190,7 +191,7 @@ export async function transactionHistoryBuilder(
   };
 
   manager.getAccountHistoryPacs008Msgs = async (accountId: string, accountType: AccountType) => {
-    const db = manager._transactionHistory!.collection(dbTransactions.pacs008);
+    const db = manager._transactionHistory?.collection(dbTransactions.pacs008);
     const filterType =
       accountType === AccountType.CreditorAcct
         ? aql`FILTER doc.CreditorAcctId == ${accountId}`
@@ -213,11 +214,11 @@ export async function transactionHistoryBuilder(
       report: alert,
     };
 
-    return await manager._transactionHistory!.collection(dbTransactions.transactions).save(data, { overwriteMode: 'ignore' });
+    return await manager._transactionHistory?.collection(dbTransactions.transactions).save(data, { overwriteMode: 'ignore' });
   };
 
   manager.saveTransactionHistory = async (tran: Pain001 | Pain013 | Pacs008 | Pacs002, col: string) => {
-    const db = manager._transactionHistory!.collection(col);
-    return await db.save(tran, { overwriteMode: 'ignore' });
+    const db = manager._transactionHistory?.collection(col);
+    return await db?.save(tran, { overwriteMode: 'ignore' });
   };
 }

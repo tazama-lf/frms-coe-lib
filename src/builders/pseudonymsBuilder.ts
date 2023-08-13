@@ -20,13 +20,14 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
   });
 
   try {
-    readyChecks.PseudonymsDB = (await isDatabaseReady(manager._pseudonymsDb)) ? 'Ok' : 'err';
+    const dbReady = await isDatabaseReady(manager._pseudonymsDb);
+    readyChecks.PseudonymsDB = dbReady ? 'Ok' : 'err';
   } catch (err) {
     readyChecks.PseudonymsDB = err;
   }
 
   manager.queryPseudonymDB = async (collection: string, filter: string, limit?: number) => {
-    const db = manager._pseudonymsDb!.collection(collection);
+    const db = manager._pseudonymsDb?.collection(collection);
     const aqlFilter = aql`${filter}`;
     const aqlLimit = limit ? aql`LIMIT ${limit}` : undefined;
 
@@ -41,7 +42,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
   };
 
   manager.getPseudonyms = async (hash: string) => {
-    const db = manager._pseudonymsDb!.collection(dbPseudonyms.self);
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.self);
 
     const query: AqlQuery = aql`
       FOR i IN ${db}
@@ -55,7 +56,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
   manager.addAccount = async (hash: string) => {
     const data = { _key: hash };
 
-    return await manager._pseudonymsDb!.collection(dbPseudonyms.accounts).save(data, { overwriteMode: 'ignore' });
+    return await manager._pseudonymsDb?.collection(dbPseudonyms.accounts).save(data, { overwriteMode: 'ignore' });
   };
 
   manager.saveTransactionRelationship = async (tR: TransactionRelationship) => {
@@ -73,11 +74,11 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       lat: tR.lat,
       long: tR.long,
     };
-    return await manager._pseudonymsDb!.collection(dbPseudonyms.transactionRelationship).save(data, { overwriteMode: 'ignore' });
+    return await manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship).save(data, { overwriteMode: 'ignore' });
   };
 
   manager.getPacs008Edge = async (endToEndIds: string[]) => {
-    const db = manager._pseudonymsDb!.collection(dbPseudonyms.transactionRelationship);
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship);
 
     const query = aql`
       FOR doc IN ${db} 
@@ -89,7 +90,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
   };
 
   manager.getPacs008Edges = async (accountId: string, threshold?: string, amount?: number) => {
-    const db = manager._pseudonymsDb!.collection(dbPseudonyms.transactionRelationship);
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship);
     const account = `accounts/${accountId}`;
     const filters: GeneratedAqlQuery[] = [aql`FILTER doc.TxTp == 'pacs.008.001.10' && doc._to == ${account}`];
 
@@ -106,7 +107,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
   };
 
   manager.getPacs002Edge = async (endToEndIds: string[]) => {
-    const db = manager._pseudonymsDb!.collection(dbPseudonyms.transactionRelationship);
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship);
 
     const query = aql`
       FOR doc IN ${db} 
@@ -118,7 +119,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
   };
 
   manager.getDebtorPacs002Edges = async (debtorId: string): Promise<unknown> => {
-    const db = manager._pseudonymsDb!.collection(dbPseudonyms.transactionRelationship);
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship);
     const debtorAccount = `accounts/${debtorId}`;
     const debtorAccountAql = aql`${debtorAccount}`;
 
@@ -133,7 +134,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
   };
 
   manager.getIncomingPacs002Edges = async (accountId: string, limit?: number): Promise<unknown> => {
-    const db = manager._pseudonymsDb!.collection(dbPseudonyms.transactionRelationship);
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship);
     const account = `accounts/${accountId}`;
     const accountAql = aql`${account}`;
 
@@ -151,7 +152,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
   };
 
   manager.getOutgoingPacs002Edges = async (accountId: string, limit?: number): Promise<unknown> => {
-    const db = manager._pseudonymsDb!.collection(dbPseudonyms.transactionRelationship);
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship);
     const account = `accounts/${accountId}`;
     const accountAql = aql`${account}`;
 
@@ -169,7 +170,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
   };
 
   manager.getSuccessfulPacs002Edges = async (creditorId: string[], debtorId: string, endToEndId: string[]): Promise<unknown> => {
-    const db = manager._pseudonymsDb!.collection(dbPseudonyms.transactionRelationship);
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship);
     const debtorAccount = `accounts/${debtorId}`;
     const debtorAccountAql = aql`${debtorAccount}`;
 
@@ -189,7 +190,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
   };
 
   manager.getDebtorPacs008Edges = async (debtorId: string, endToEndId = '') => {
-    const db = manager._pseudonymsDb!.collection(dbPseudonyms.transactionRelationship);
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship);
     const debtorAccount = `accounts/${debtorId}`;
     const debtorAccountAql = aql`${debtorAccount}`;
 
@@ -206,7 +207,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
   };
 
   manager.getCreditorPacs008Edges = async (creditorId: string) => {
-    const db = manager._pseudonymsDb!.collection(dbPseudonyms.transactionRelationship);
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship);
     const creditorAccount = `accounts/${creditorId}`;
     const creditorAccountAql = aql`${creditorAccount}`;
 
@@ -223,7 +224,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
   };
 
   manager.getPreviousPacs008Edges = async (accountId: string, limit?: number, to?: string[]) => {
-    const db = manager._pseudonymsDb!.collection(dbPseudonyms.transactionRelationship);
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship);
 
     const filters: GeneratedAqlQuery[] = [];
     filters.push(aql`FILTER doc.TxTp == 'pacs.008.001.10'`);
@@ -246,7 +247,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
   };
 
   manager.getCreditorPacs002Edges = async (creditorId: string, threshold: number) => {
-    const db = manager._pseudonymsDb!.collection(dbPseudonyms.transactionRelationship);
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship);
     const date: string = new Date(new Date().getTime() - threshold).toISOString();
 
     const creditorAccount = `accounts/${creditorId}`;
@@ -262,20 +263,20 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
   };
 
   manager.saveAccount = async (key: string) => {
-    const db = manager._pseudonymsDb!.collection(dbPseudonyms.accounts);
-    return await db.save({ _key: key }, { overwriteMode: 'ignore' });
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.accounts);
+    return await db?.save({ _key: key }, { overwriteMode: 'ignore' });
   };
 
   manager.saveEntity = async (entityId: string, CreDtTm: string) => {
-    const db = manager._pseudonymsDb!.collection(dbPseudonyms.entities);
-    return await db.save({ _key: entityId, Id: entityId, CreDtTm }, { overwriteMode: 'ignore' });
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.entities);
+    return await db?.save({ _key: entityId, Id: entityId, CreDtTm }, { overwriteMode: 'ignore' });
   };
 
   manager.saveAccountHolder = async (entityId: string, accountId: string, CreDtTm: string) => {
-    const db = manager._pseudonymsDb!.collection(dbPseudonyms.account_holder);
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.account_holder);
     const _from = `entities/${entityId}`;
     const _to = `accounts/${accountId}`;
 
-    return await db.save({ _from, _to, CreDtTm }, { overwriteMode: 'ignore' });
+    return await db?.save({ _from, _to, CreDtTm }, { overwriteMode: 'ignore' });
   };
 }
