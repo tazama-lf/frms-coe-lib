@@ -12,7 +12,7 @@ export interface Config {
   parameters?: Record<string | number, unknown>;
   exitConditions?: OutcomeResult[];
   bands?: Band[];
-  case?: Case[];
+  cases?: Case[];
   timeframes?: Timeframe[];
 }
 
@@ -28,7 +28,7 @@ export interface Band extends OutcomeResult {
 }
 
 export interface Case extends OutcomeResult {
-  value: number;
+  value: string;
 }
 
 export interface Timeframe {

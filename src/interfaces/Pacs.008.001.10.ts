@@ -1,6 +1,6 @@
 export interface Pacs008 {
   TxTp: string;
-  FIToFICstmrCdt: FIToFICstmrCdt;
+  FIToFICstmrCdtTrf: FIToFICstmrCdtTrf;
 
   EndToEndId: string;
   DebtorAcctId: string;
@@ -8,7 +8,7 @@ export interface Pacs008 {
   CreDtTm: string;
 }
 
-interface FIToFICstmrCdt {
+interface FIToFICstmrCdtTrf {
   GrpHdr: GrpHdr;
   CdtTrfTxInf: CdtTrfTxInf;
   RgltryRptg: RgltryRptg;
