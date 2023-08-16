@@ -5,6 +5,6 @@ import { type DataCache } from '..';
 export interface RuleRequest {
   transaction: Pacs002;
   networkMap: NetworkMap;
-  DataCache: DataCache;
+  dataCache: DataCache;
   metaData?: Record<string, unknown>;
 }
