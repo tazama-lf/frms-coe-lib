@@ -12,6 +12,7 @@ export async function redisBuilder(manager: DatabaseManagerType, redisConfig: Re
     manager.setJson = redis.setJson;
     manager.setAdd = redis.setAdd;
     manager.addOneGetAll = redis.addOneGetAll;
+    manager.addOneGetCount = redis.addOneGetCount;
     readyChecks.Redis = 'Ok';
 
     return redis;
