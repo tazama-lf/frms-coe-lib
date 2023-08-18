@@ -147,6 +147,23 @@ export class RedisService {
   }
 
   /**
+   * Add a value to a Redis set and then return number of members in the set after the addition.
+   *
+   * @param {string} key The key associated with the Redis set.
+   * @param {string} value The value to add to the Redis set.
+   * @returns {Promise<string[]>} A Promise that resolves to an array of set members as strings.
+   */
+  async addOneGetCount(key: string, value: string): Promise<number> {
+    const res = await this._redisClient.multi().sadd(key, value).scard(key).exec();
+
+    if (res && res[1] && res[1][1]) {
+      return res[1][1] as number;
+    } else {
+      throw new Error('addOneGetAll failed to return properly');
+    }
+  }
+
+  /**
    * Close the Redis connection and release associated resources.
    */
   quit(): void {
