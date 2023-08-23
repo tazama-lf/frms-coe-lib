@@ -81,7 +81,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship);
 
     const query = aql`
-      FOR doc IN ${db} 
+      FOR doc IN ${db}
       FILTER doc.EndToEndId IN ${endToEndIds} && doc.TxTp == 'pacs.008.001.10'
       RETURN doc
     `;
@@ -98,7 +98,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     if (amount !== undefined) filters.push(aql`FILTER doc.Amt == ${amount}`);
 
     const query = aql`
-      FOR doc IN ${db} 
+      FOR doc IN ${db}
       ${join(filters)}
       RETURN doc
     `;
@@ -110,7 +110,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship);
 
     const query = aql`
-      FOR doc IN ${db} 
+      FOR doc IN ${db}
       FILTER doc.EndToEndId IN ${endToEndIds} && doc.TxTp == 'pacs.002.001.12'
       RETURN doc
     `;
@@ -124,7 +124,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     const debtorAccountAql = aql`${debtorAccount}`;
 
     const query = aql`
-      FOR doc IN ${db} 
+      FOR doc IN ${db}
       FILTER doc._from == ${debtorAccountAql}
       FILTER doc.TxTp == 'pacs.002.001.12' && doc.TxSts == 'ACCC'
       RETURN doc
@@ -141,7 +141,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     const aqlLimit = limit ? aql`LIMIT ${limit}` : undefined;
 
     const query = aql`
-      FOR doc IN ${db} 
+      FOR doc IN ${db}
       FILTER doc._to == ${accountAql}
       FILTER doc.TxTp == 'pacs.002.001.12' && doc.TxSts == 'ACCC'
       ${aqlLimit}
@@ -159,7 +159,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     const aqlLimit = limit ? aql`LIMIT ${limit}` : undefined;
 
     const query = aql`
-      FOR doc IN ${db} 
+      FOR doc IN ${db}
       FILTER doc._from == ${accountAql}
       FILTER doc.TxTp == 'pacs.002.001.12' && doc.TxSts == 'ACCC'
       ${aqlLimit}
@@ -175,10 +175,10 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     const debtorAccountAql = aql`${debtorAccount}`;
 
     const query = aql`
-      FOR doc IN ${db} 
-      FILTER doc._to IN ${creditorId}  
+      FOR doc IN ${db}
+      FILTER doc._to IN ${creditorId}
       FILTER doc._from == ${debtorAccountAql}
-      FILTER doc.TxTp == 'pacs.002.001.12' 
+      FILTER doc.TxTp == 'pacs.002.001.12'
       FILTER doc.EndToEndId IN ${endToEndId}
       FILTER doc.TxSts == 'ACCC'
       SORT   doc.CreDtTm DESC
@@ -197,7 +197,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     const query = aql`
       FOR doc IN ${db}
       FILTER doc._from == ${debtorAccountAql}
-      FILTER doc.TxTp == 'pacs.008.001.10' 
+      FILTER doc.TxTp == 'pacs.008.001.10'
       SORT   doc.CreDtTm DESC
       LIMIT 2
       RETURN doc
@@ -213,8 +213,8 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
 
     const query = aql`
       FOR doc IN ${db}
-      FILTER doc._to == ${creditorAccountAql} 
-      FILTER doc.TxTp == 'pacs.008.001.10' 
+      FILTER doc._to == ${creditorAccountAql}
+      FILTER doc.TxTp == 'pacs.008.001.10'
       SORT   doc.CreDtTm DESC
       LIMIT 2
       RETURN doc
@@ -274,9 +274,10 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
 
   manager.saveAccountHolder = async (entityId: string, accountId: string, CreDtTm: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.account_holder);
+    const _key = `${entityId}`;
     const _from = `entities/${entityId}`;
     const _to = `accounts/${accountId}`;
 
-    return await db?.save({ _from, _to, CreDtTm }, { overwriteMode: 'ignore' });
+    return await db?.save({ _key, _from, _to, CreDtTm }, { overwriteMode: 'ignore' });
   };
 }
