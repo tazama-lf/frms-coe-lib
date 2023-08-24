@@ -274,7 +274,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
 
   manager.saveAccountHolder = async (entityId: string, accountId: string, CreDtTm: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.account_holder);
-    const _key = `${entityId}`;
+    const _key = `${accountId}${entityId}`;
     const _from = `entities/${entityId}`;
     const _to = `accounts/${accountId}`;
 
