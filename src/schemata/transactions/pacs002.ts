@@ -1,4 +1,4 @@
-const pacs002Schema = {
+export const pacs002Schema = {
   $id: 'pacs002Schema',
   type: 'object',
   properties: {
@@ -129,7 +129,6 @@ const pacs002Schema = {
   required: ['TxTp', 'FIToFIPmtSts'],
 };
 
-export default pacs002Schema;
 export const pacs002SchemaResponse = {
   '2xx': {
     type: 'object',

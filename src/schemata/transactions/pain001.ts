@@ -1,4 +1,4 @@
-const pain001Schema = {
+export const pain001Schema = {
   $id: 'pain001Schema',
   type: 'object',
   properties: {
@@ -602,7 +602,6 @@ const pain001Schema = {
   },
   required: ['TxTp', 'CstmrCdtTrfInitn'],
 };
-export default pain001Schema;
 export const pain001SchemaResponse = {
   '2xx': {
     type: 'object',

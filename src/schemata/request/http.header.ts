@@ -32,7 +32,3 @@ export const requestHeaderSchema = {
   },
   required: ['content-type', 'accept', 'cache-control', 'host', 'accept-encoding', 'connection', 'content-length'],
 };
-
-export const responseHeaderSchema = {
-  sas: '',
-};
