@@ -1,4 +1,4 @@
-import Pain001Schema from './pain001.json';
+import Pain001Schema from './pain001Schema.json';
 export const pain001Schema = Pain001Schema;
 export const pain001SchemaResponse = {
   '2xx': {

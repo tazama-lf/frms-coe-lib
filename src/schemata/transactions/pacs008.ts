@@ -1,4 +1,4 @@
-import Pacs008Schema from './pacs008.json';
+import Pacs008Schema from './pacs008Schema.json';
 export const pacs008Schema = Pacs008Schema;
 export const pacs008SchemaResponse = {
   '2xx': {
