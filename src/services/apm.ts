@@ -1,23 +1,14 @@
-import apm, { type TransactionOptions } from 'elastic-apm-node';
-import { type ApmConfig } from '../interfaces/apm';
+import apm, { type AgentConfigOptions, type TransactionOptions } from 'elastic-apm-node';
 
 export class Apm {
   #transaction: (name: string, options?: TransactionOptions) => apm.Transaction | null = () => null;
   #span: (name: string) => apm.Span | null = () => null;
   #traceParent: () => string | null = () => null;
 
-  constructor(apmOptions?: ApmConfig) {
+  constructor(apmOptions?: AgentConfigOptions) {
     const apmEnabled = apmOptions && apmOptions.active;
     if (apmEnabled) {
-      const { serviceName, secretToken, serverUrl, usePathAsTransactionName } = apmOptions;
-
-      apm.start({
-        serviceName,
-        secretToken,
-        serverUrl,
-        usePathAsTransactionName,
-        active: apmEnabled,
-      });
+      apm.start(apmOptions);
 
       this.#transaction = (name: string, options?: TransactionOptions): apm.Transaction | null => apm.startTransaction(name, options);
       this.#span = (name: string): apm.Span | null => apm.startSpan(name);
