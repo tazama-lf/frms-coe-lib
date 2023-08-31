@@ -93,7 +93,7 @@ export const messageSchema = {
           },
         },
       },
-      required: ['prcgTm', 'result', 'cfg', 'id', 'status', 'typologyResult'],
+      required: ['prcgTm', 'result', 'cfg', 'id', 'typologyResult'],
     },
     tadpResult: {
       type: 'object',
