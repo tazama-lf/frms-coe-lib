@@ -1,9 +1,10 @@
 import { aql, Database } from 'arangojs';
 import { type AqlQuery } from 'arangojs/aql';
 import * as fs from 'fs';
-import { dbNetworkMap } from '../interfaces/ArangoCollections';
-import { type DatabaseManagerType, type DBConfig, readyChecks } from '../services/dbManager';
+import { formatError } from '../helpers/formatter';
 import { isDatabaseReady } from '../helpers/readyCheck';
+import { dbNetworkMap } from '../interfaces/ArangoCollections';
+import { readyChecks, type DatabaseManagerType, type DBConfig } from '../services/dbManager';
 
 export async function networkMapBuilder(manager: DatabaseManagerType, NetworkMapConfig: DBConfig): Promise<void> {
   manager._networkMap = new Database({
@@ -23,7 +24,7 @@ export async function networkMapBuilder(manager: DatabaseManagerType, NetworkMap
     readyChecks.NetworkMapDB = dbReady ? 'Ok' : 'err';
   } catch (error) {
     const err = error as Error;
-    readyChecks.NetworkMapDB = `err, ${JSON.stringify({ ...err, name: err.name, message: err.message, stack: err.stack })}`;
+    readyChecks.NetworkMapDB = `err, ${formatError(err)}`;
   }
 
   manager.getNetworkMap = async () => {

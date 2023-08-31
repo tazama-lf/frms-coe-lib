@@ -1,10 +1,11 @@
 import { aql, Database } from 'arangojs';
 import { join, type AqlQuery, type GeneratedAqlQuery } from 'arangojs/aql';
 import * as fs from 'fs';
+import { formatError } from '../helpers/formatter';
+import { isDatabaseReady } from '../helpers/readyCheck';
 import { type TransactionRelationship } from '../interfaces';
 import { dbPseudonyms } from '../interfaces/ArangoCollections';
-import { type DatabaseManagerType, type DBConfig, readyChecks } from '../services/dbManager';
-import { isDatabaseReady } from '../helpers/readyCheck';
+import { readyChecks, type DatabaseManagerType, type DBConfig } from '../services/dbManager';
 
 export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig: DBConfig): Promise<void> {
   manager._pseudonymsDb = new Database({
@@ -24,7 +25,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     readyChecks.PseudonymsDB = dbReady ? 'Ok' : 'err';
   } catch (error) {
     const err = error as Error;
-    readyChecks.PseudonymsDB = `err, ${JSON.stringify({ ...err, name: err.name, message: err.message, stack: err.stack })}`;
+    readyChecks.PseudonymsDB = `err, ${formatError(err)}`;
   }
 
   manager.queryPseudonymDB = async (collection: string, filter: string, limit?: number) => {

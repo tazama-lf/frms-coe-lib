@@ -1,10 +1,11 @@
 import { aql, Database } from 'arangojs';
 import { type AqlQuery } from 'arangojs/aql';
 import * as fs from 'fs';
-import { AccountType, type Pain001, type NetworkMap, type Pain013, type Pacs008, type Pacs002 } from '../interfaces';
+import { formatError } from '../helpers/formatter';
+import { isDatabaseReady } from '../helpers/readyCheck';
+import { AccountType, type NetworkMap, type Pacs002, type Pacs008, type Pain001, type Pain013 } from '../interfaces';
 import { dbTransactions } from '../interfaces/ArangoCollections';
 import { readyChecks, type DatabaseManagerType, type DBConfig } from '../services/dbManager';
-import { isDatabaseReady } from '../helpers/readyCheck';
 
 export async function transactionHistoryBuilder(
   manager: DatabaseManagerType,
@@ -28,7 +29,7 @@ export async function transactionHistoryBuilder(
     readyChecks.TransactionHistoryDB = dbReady ? 'Ok' : 'err';
   } catch (error) {
     const err = error as Error;
-    readyChecks.TransactionHistoryD = `err, ${JSON.stringify({ ...err, name: err.name, message: err.message, stack: err.stack })}`;
+    readyChecks.TransactionHistoryD = `err, ${formatError(err)}`;
   }
 
   manager.queryTransactionDB = async (collection: string, filter: string, limit?: number) => {
