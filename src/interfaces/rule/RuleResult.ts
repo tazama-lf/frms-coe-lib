@@ -4,6 +4,6 @@ export interface RuleResult {
   result: boolean;
   subRuleRef: string;
   reason: string;
-  desc?: string;
+  desc: string;
   prcgTm?: number;
 }
