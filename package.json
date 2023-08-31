@@ -1,6 +1,6 @@
 {
   "name": "@frmscoe/frms-coe-lib",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "description": "FRMS Center of Excellence package library",
   "main": "lib/index.js",
   "repository": {
