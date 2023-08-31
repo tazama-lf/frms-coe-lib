@@ -496,8 +496,7 @@ describe('CreateDatabaseManager', () => {
 
     try {
       await CreateDatabaseManager(config);
-    }
-    catch(error){
+    } catch (error) {
       expect(error).toBeDefined();
     }
 
