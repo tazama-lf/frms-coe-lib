@@ -23,8 +23,9 @@ export async function configurationBuilder(manager: DatabaseManagerType, configu
   try {
     const dbReady = await isDatabaseReady(manager._configuration);
     readyChecks.ConfigurationDB = dbReady ? 'Ok' : 'err';
-  } catch (err) {
-    readyChecks.ConfigurationDB = err;
+  } catch (error) {
+    const err = error as Error;
+    readyChecks.ConfigurationDB = `err, ${JSON.stringify({ ...err, name: err.name, message: err.message, stack: err.stack })}`;
   }
 
   manager.setupConfig = configurationConfig;

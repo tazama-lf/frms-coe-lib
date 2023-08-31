@@ -26,8 +26,9 @@ export async function transactionHistoryBuilder(
   try {
     const dbReady = await isDatabaseReady(manager._transactionHistory);
     readyChecks.TransactionHistoryDB = dbReady ? 'Ok' : 'err';
-  } catch (err) {
-    readyChecks.TransactionHistoryDB = err;
+  } catch (error) {
+    const err = error as Error;
+    readyChecks.TransactionHistoryD = `err, ${JSON.stringify({ ...err, name: err.name, message: err.message, stack: err.stack })}`;
   }
 
   manager.queryTransactionDB = async (collection: string, filter: string, limit?: number) => {

@@ -22,8 +22,9 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
   try {
     const dbReady = await isDatabaseReady(manager._pseudonymsDb);
     readyChecks.PseudonymsDB = dbReady ? 'Ok' : 'err';
-  } catch (err) {
-    readyChecks.PseudonymsDB = err;
+  } catch (error) {
+    const err = error as Error;
+    readyChecks.PseudonymsDB = `err, ${JSON.stringify({ ...err, name: err.name, message: err.message, stack: err.stack })}`;
   }
 
   manager.queryPseudonymDB = async (collection: string, filter: string, limit?: number) => {

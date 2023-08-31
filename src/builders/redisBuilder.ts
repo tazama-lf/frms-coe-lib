@@ -17,6 +17,7 @@ export async function redisBuilder(manager: DatabaseManagerType, redisConfig: Re
 
     return redis;
   } catch (error) {
-    readyChecks.Redis = error;
+    const err = error as Error;
+    readyChecks.Redis = `err, ${JSON.stringify({ ...err, name: err.name, message: err.message, stack: err.stack })}`;
   }
 }

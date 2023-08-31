@@ -21,8 +21,9 @@ export async function networkMapBuilder(manager: DatabaseManagerType, NetworkMap
   try {
     const dbReady = await isDatabaseReady(manager._networkMap);
     readyChecks.NetworkMapDB = dbReady ? 'Ok' : 'err';
-  } catch (err) {
-    readyChecks.NetworkMapDB = err;
+  } catch (error) {
+    const err = error as Error;
+    readyChecks.NetworkMapDB = `err, ${JSON.stringify({ ...err, name: err.name, message: err.message, stack: err.stack })}`;
   }
 
   manager.getNetworkMap = async () => {
