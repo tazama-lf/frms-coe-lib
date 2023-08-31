@@ -91,6 +91,11 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
     manager._networkMap?.close();
   };
 
+  if (Object.values(readyChecks).some((status) => status !== 'Ok')) {
+    manager.quit();
+    throw new Error(JSON.stringify(readyChecks));
+  }
+
   return manager as DatabaseManagerInstance<T>;
 }
 

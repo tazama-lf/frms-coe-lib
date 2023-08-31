@@ -2,10 +2,11 @@ import { aql, Database } from 'arangojs';
 import { type AqlQuery } from 'arangojs/aql';
 import * as fs from 'fs';
 import NodeCache from 'node-cache';
-import { dbConfiguration } from '../interfaces/ArangoCollections';
-import { type DatabaseManagerType, type DBConfig, readyChecks } from '../services/dbManager';
+import { formatError } from '../helpers/formatter';
 import { isDatabaseReady } from '../helpers/readyCheck';
 import { type Typology } from '../interfaces';
+import { dbConfiguration } from '../interfaces/ArangoCollections';
+import { readyChecks, type DatabaseManagerType, type DBConfig } from '../services/dbManager';
 
 export async function configurationBuilder(manager: DatabaseManagerType, configurationConfig: DBConfig): Promise<void> {
   manager._configuration = new Database({
@@ -23,8 +24,9 @@ export async function configurationBuilder(manager: DatabaseManagerType, configu
   try {
     const dbReady = await isDatabaseReady(manager._configuration);
     readyChecks.ConfigurationDB = dbReady ? 'Ok' : 'err';
-  } catch (err) {
-    readyChecks.ConfigurationDB = err;
+  } catch (error) {
+    const err = error as Error;
+    readyChecks.ConfigurationDB = `err, ${formatError(err)}`;
   }
 
   manager.setupConfig = configurationConfig;
