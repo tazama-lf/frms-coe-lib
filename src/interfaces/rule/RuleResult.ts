@@ -1,9 +1,9 @@
-export interface RuleResult {
-  id: string;
-  cfg: string;
-  result: boolean;
-  subRuleRef: string;
-  reason: string;
-  desc: string;
-  prcgTm?: number;
+export class RuleResult {
+  id = '';
+  cfg = '';
+  subRuleRef = '';
+  result = false;
+  reason = '';
+  desc?: '';
+  prcgTm?: 0;
 }
