@@ -1,6 +1,7 @@
 import { RedisService } from '..';
+import { formatError } from '../helpers/formatter';
 import { type RedisConfig } from '../interfaces';
-import { type DatabaseManagerType, readyChecks } from '../services/dbManager';
+import { readyChecks, type DatabaseManagerType } from '../services/dbManager';
 
 export async function redisBuilder(manager: DatabaseManagerType, redisConfig: RedisConfig): Promise<RedisService | undefined> {
   try {
@@ -17,6 +18,7 @@ export async function redisBuilder(manager: DatabaseManagerType, redisConfig: Re
 
     return redis;
   } catch (error) {
-    readyChecks.Redis = error;
+    const err = error as Error;
+    readyChecks.Redis = `err, ${formatError(err)}`;
   }
 }

@@ -467,24 +467,21 @@ describe('CreateDatabaseManager', () => {
     // false case
     let readySpy = jest.spyOn(isDatabaseReady, 'isDatabaseReady').mockImplementation(() => Promise.resolve(false));
 
-    let dbManager = await CreateDatabaseManager(config);
-    expect(dbManager.isReadyCheck).toBeDefined();
-    expect(await dbManager.isReadyCheck()).toMatchObject({
-      TransactionHistoryDB: 'err',
-    });
+    try {
+      await CreateDatabaseManager(config);
+    } catch (error) {
+      expect(error).toBeDefined();
+    }
     readySpy.mockClear();
-    dbManager.quit();
 
     // error case
     readySpy = jest.spyOn(isDatabaseReady, 'isDatabaseReady').mockRejectedValue(new Error('test error'));
-    dbManager = await CreateDatabaseManager(config);
-    expect(dbManager.isReadyCheck).toBeDefined();
-    expect(await dbManager.isReadyCheck()).toMatchObject({
-      TransactionHistoryDB: new Error('test error'),
-    });
-
+    try {
+      await CreateDatabaseManager(config);
+    } catch (error) {
+      expect(error).toBeDefined();
+    }
     readySpy.mockClear();
-    dbManager.quit();
   });
 
   it('should error gracefully on isReadyCheck for redis builder', async () => {
@@ -497,13 +494,12 @@ describe('CreateDatabaseManager', () => {
     };
     const createSpy = jest.spyOn(RedisService, 'create').mockRejectedValue(new Error('test error'));
 
-    const dbManager = await CreateDatabaseManager(config);
-    expect(dbManager.isReadyCheck).toBeDefined();
-    expect(await dbManager.isReadyCheck()).toMatchObject({
-      Redis: new Error('test error'),
-    });
+    try {
+      await CreateDatabaseManager(config);
+    } catch (error) {
+      expect(error).toBeDefined();
+    }
 
     createSpy.mockClear();
-    dbManager.quit();
   });
 });

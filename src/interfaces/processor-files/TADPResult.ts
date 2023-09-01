@@ -4,4 +4,5 @@ export class TADPResult {
   id = '';
   cfg = '';
   channelResult: ChannelResult[] = [];
+  prcgTm? = 0;
 }
