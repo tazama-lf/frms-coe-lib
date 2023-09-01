@@ -10,13 +10,9 @@ export class Channel {
   typologies: Typology[] = [];
 }
 
-export class Message {
+export class TransactionConfiguration {
   id = '';
   cfg = '';
   txTp = '';
   channels: Channel[] = [];
-}
-
-export class TransactionConfiguration {
-  messages: Message[] = [];
 }
