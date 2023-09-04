@@ -6,4 +6,5 @@ export class RuleResult {
   reason = '';
   desc?: '';
   prcgTm?: 0;
+  wght?: 0;
 }
