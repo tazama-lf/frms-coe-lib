@@ -69,14 +69,25 @@ export async function configurationBuilder(manager: DatabaseManagerType, configu
     return toReturn;
   };
 
-  manager.getTransactionConfig = async () => {
+  manager.getTransactionConfig = async (transctionId: string, cfg: string) => {
+    const cacheKey = `${transctionId}_${cfg}`;
+    if (manager.setupConfig?.localCacheEnabled ?? false) {
+      const cacheVal = manager.nodeCache?.get(cacheKey);
+      if (cacheVal) return await Promise.resolve(cacheVal);
+    }
+
     const db = manager._configuration?.collection(dbConfiguration.transactionConfiguration);
     const query: AqlQuery = aql`
       FOR doc IN ${db}
-      RETURN UNSET(doc, "_id", "_key", "_rev")
+      FILTER doc.id == ${transctionId}
+      FILTER doc.cfg == ${cfg}
+      RETURN doc
     `;
 
-    return await (await manager._configuration?.query(query))?.batches.all();
+    const toReturn = await (await manager._configuration?.query(query))?.batches.all();
+    if (manager.setupConfig?.localCacheEnabled && toReturn && toReturn[0] && toReturn[0].length === 1)
+      manager.nodeCache?.set(cacheKey, toReturn, manager.setupConfig?.localCacheTTL ?? 3000);
+    return toReturn;
   };
 
   manager.getTypologyExpression = async (typology: Typology) => {

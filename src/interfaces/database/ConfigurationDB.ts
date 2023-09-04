@@ -54,7 +54,7 @@ export interface ConfigurationDB {
    * ```
    * @memberof ConfigurationDB
    */
-  getTransactionConfig: () => Promise<unknown>;
+  getTransactionConfig: (transactionId: string, cfg: string) => Promise<unknown>;
 
   /**
    * Returns typology expression
