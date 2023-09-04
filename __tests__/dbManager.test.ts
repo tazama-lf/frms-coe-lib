@@ -218,7 +218,7 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.queryConfigurationDB('testCollection', 'testFilter')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.queryConfigurationDB('testCollection', 'testFilter', 10)).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getRuleConfig('test', 'test')).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getTransactionConfig('test','test')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getTransactionConfig('test', 'test')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getTypologyExpression(getMockTypology())).toEqual(['MOCK-QUERY']);
   });
 
