@@ -116,6 +116,29 @@ export const messageSchema = {
       },
       required: ['cfg', 'channelResult', 'id', 'prcgTm'],
     },
+    metaData: {
+      type: 'object',
+      patternProperties: {
+        '^.*$': {
+          anyOf: [
+            {
+              type: 'string',
+            },
+            {
+              type: 'object',
+            },
+            {
+              type: 'number',
+            },
+            {
+              type: 'null',
+            },
+          ],
+        },
+      },
+      additionalProperties: false,
+      required: [],
+    },
   },
   properties: {
     networkMap: {
@@ -221,27 +244,7 @@ export const messageSchema = {
       required: ['cdtrId', 'dbtrId', 'cdtrAcctId', 'dbtrAcctId'],
     },
     metaData: {
-      type: 'object',
-      patternProperties: {
-        '^.*$': {
-          anyOf: [
-            {
-              type: 'string',
-            },
-            {
-              type: 'object',
-            },
-            {
-              type: 'number',
-            },
-            {
-              type: 'null',
-            },
-          ],
-        },
-      },
-      additionalProperties: false,
-      required: [],
+      $ref: '#/definitions/metaData',
     },
     ruleResult: {
       $ref: '#/definitions/ruleResult',
@@ -2113,6 +2116,27 @@ export const messageSchema = {
         },
       },
       required: [],
+    },
+    report: {
+      type: 'object',
+      properties: {
+        evaluationID: {
+          type: 'string',
+        },
+        metaData: {
+          $ref: '#/definitions/metaData',
+        },
+        status: {
+          type: 'string',
+        },
+        timestamp: {
+          type: 'string',
+        },
+        tadpResult: {
+          $ref: '#/definitions/tadpResult',
+        },
+      },
+      required: ['evaluationID', 'metaData', 'status', 'timestamp', 'tadpResult'],
     },
   },
   required: ['transaction'],
