@@ -4,7 +4,7 @@ export class RuleResult {
   subRuleRef = '';
   result = false;
   reason = '';
-  desc? = '';
+  desc = '';
   prcgTm? = 0;
   wght? = 0;
 }
