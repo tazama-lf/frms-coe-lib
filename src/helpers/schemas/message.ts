@@ -26,6 +26,9 @@ export const messageSchema = {
         reason: {
           type: 'string',
         },
+        wght: {
+          type: 'number',
+        },
         desc: {
           type: 'string',
         },
