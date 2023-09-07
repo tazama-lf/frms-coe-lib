@@ -1,15 +1,11 @@
 import { Database } from 'arangojs';
 import * as fs from 'fs';
-import { DBConfig, DatabaseManagerType, readyChecks } from '../services/dbManager';
+import { type DBConfig, type DatabaseManagerType, readyChecks } from '../services/dbManager';
 import { isDatabaseReady } from '../helpers/readyCheck';
-import { AqlQuery, aql } from 'arangojs/aql';
-import { NetworkMap } from '../interfaces';
+import { type AqlQuery, aql } from 'arangojs/aql';
+import { type NetworkMap } from '../interfaces';
 
-export async function transactionBuilder(
-  manager: DatabaseManagerType,
-  transactionHistoryConfig: DBConfig,
-  redis: boolean,
-): Promise<void> {
+export async function transactionBuilder(manager: DatabaseManagerType, transactionHistoryConfig: DBConfig, redis: boolean): Promise<void> {
   manager._transactions = new Database({
     url: transactionHistoryConfig.url,
     databaseName: transactionHistoryConfig.databaseName,
@@ -52,6 +48,6 @@ export async function transactionBuilder(
       report: alert,
     };
 
-    return await manager._transactions?.collection("transactions").save(data, { overwriteMode: 'ignore' });
+    return await manager._transactions?.collection('transactions').save(data, { overwriteMode: 'ignore' });
   };
 }

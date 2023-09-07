@@ -1,5 +1,5 @@
-import { Database } from 'arangojs';
-import { NetworkMap } from '..';
+import { type Database } from 'arangojs';
+import { type NetworkMap } from '..';
 
 export interface TransactionDB {
   _transactions: Database;

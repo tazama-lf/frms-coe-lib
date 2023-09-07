@@ -208,7 +208,7 @@ export async function transactionHistoryBuilder(
     return await (await manager._transactionHistory?.query(query))?.batches.all();
   };
 
-  if (!manager._transactions){
+  if (!manager._transactions) {
     manager.insertTransaction = async (transactionID: string, transaction: unknown, networkMap: NetworkMap, alert: unknown) => {
       const data = {
         transactionID,
@@ -216,7 +216,7 @@ export async function transactionHistoryBuilder(
         networkMap,
         report: alert,
       };
-  
+
       return await manager._transactionHistory?.collection(dbTransactions.transactions).save(data, { overwriteMode: 'ignore' });
     };
   }

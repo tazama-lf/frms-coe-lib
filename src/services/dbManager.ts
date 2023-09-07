@@ -11,7 +11,7 @@ import { pseudonymsBuilder } from '../builders/pseudonymsBuilder';
 import { transactionHistoryBuilder } from '../builders/transactionHistoryBuilder';
 import { configurationBuilder } from '../builders/configurationBuilder';
 import { networkMapBuilder } from '../builders/networkMapBuilder';
-import { TransactionDB } from '../interfaces/database/TransactionDB';
+import { type TransactionDB } from '../interfaces/database/TransactionDB';
 import { transactionBuilder } from '../builders/transactionBuilder';
 
 export let readyChecks: Record<string, unknown> = {};
@@ -77,7 +77,7 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
     await transactionHistoryBuilder(manager, config.transactionHistory, redis !== null);
   }
 
-  if (config.transaction){
+  if (config.transaction) {
     await transactionBuilder(manager, config.transaction, redis !== null);
   }
 
@@ -108,4 +108,4 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
   return manager as DatabaseManagerInstance<T>;
 }
 
-export type { ManagerConfig, TransactionHistoryDB, TransactionDB , ConfigurationDB, PseudonymsDB, DatabaseManagerInstance, NetworkMapDB };
+export type { ManagerConfig, TransactionHistoryDB, TransactionDB, ConfigurationDB, PseudonymsDB, DatabaseManagerInstance, NetworkMapDB };
