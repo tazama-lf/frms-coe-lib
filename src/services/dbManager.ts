@@ -11,6 +11,8 @@ import { pseudonymsBuilder } from '../builders/pseudonymsBuilder';
 import { transactionHistoryBuilder } from '../builders/transactionHistoryBuilder';
 import { configurationBuilder } from '../builders/configurationBuilder';
 import { networkMapBuilder } from '../builders/networkMapBuilder';
+import { TransactionDB } from '../interfaces/database/TransactionDB';
+import { transactionBuilder } from '../builders/transactionBuilder';
 
 export let readyChecks: Record<string, unknown> = {};
 
@@ -27,6 +29,7 @@ export interface DBConfig {
 interface ManagerConfig {
   pseudonyms?: DBConfig;
   transactionHistory?: DBConfig;
+  transaction?: DBConfig;
   configuration?: DBConfig;
   networkMap?: DBConfig;
   redisConfig?: RedisConfig;
@@ -42,12 +45,13 @@ interface ManagerStatus {
 }
 
 export type DatabaseManagerType = Partial<
-  ManagerStatus & PseudonymsDB & TransactionHistoryDB & ConfigurationDB & NetworkMapDB & RedisService
+  ManagerStatus & PseudonymsDB & TransactionHistoryDB & TransactionDB & ConfigurationDB & NetworkMapDB & RedisService
 >;
 
 type DatabaseManagerInstance<T extends ManagerConfig> = ManagerStatus &
   (T extends { pseudonyms: DBConfig } ? PseudonymsDB : Record<string, any>) &
   (T extends { transactionHistory: DBConfig } ? TransactionHistoryDB : Record<string, any>) &
+  (T extends { transactions: DBConfig } ? TransactionDB : Record<string, any>) &
   (T extends { configuration: DBConfig } ? ConfigurationDB : Record<string, any>) &
   (T extends { networkMap: DBConfig } ? NetworkMapDB : Record<string, any>) &
   (T extends { redisConfig: RedisConfig } ? RedisService : Record<string, any>);
@@ -73,6 +77,10 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
     await transactionHistoryBuilder(manager, config.transactionHistory, redis !== null);
   }
 
+  if (config.transaction){
+    await transactionBuilder(manager, config.transaction, redis !== null);
+  }
+
   if (config.configuration) {
     await configurationBuilder(manager, config.configuration);
   }
@@ -89,6 +97,7 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
     manager._transactionHistory?.close();
     manager._configuration?.close();
     manager._networkMap?.close();
+    manager._transactions?.close();
   };
 
   if (Object.values(readyChecks).some((status) => status !== 'Ok')) {
@@ -99,4 +108,4 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
   return manager as DatabaseManagerInstance<T>;
 }
 
-export type { ManagerConfig, TransactionHistoryDB, ConfigurationDB, PseudonymsDB, DatabaseManagerInstance, NetworkMapDB };
+export type { ManagerConfig, TransactionHistoryDB, TransactionDB , ConfigurationDB, PseudonymsDB, DatabaseManagerInstance, NetworkMapDB };
