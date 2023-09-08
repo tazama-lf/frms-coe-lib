@@ -38,36 +38,34 @@ export class LoggerService {
   #warn: (message: string, serviceOperation?: string) => void = () => null;
   #error: (message: string | Error, innerError?: unknown, serviceOperation?: string) => void = () => null;
   constructor() {
-    if (config.apmLogging) {
-      switch (config.logger.logstashLevel) {
-        case 'trace':
-          this.#trace = this.#createLogCallback('trace');
-          this.#debug = this.#createLogCallback('debug');
-          this.#info = this.#createLogCallback('info');
-          this.#warn = this.#createLogCallback('warn');
-          this.#error = this.#createErrorFn();
-          break;
-        case 'debug':
-          this.#debug = this.#createLogCallback('debug');
-          this.#info = this.#createLogCallback('info');
-          this.#warn = this.#createLogCallback('warn');
-          this.#error = this.#createErrorFn();
-          break;
-        case 'info':
-          this.#info = this.#createLogCallback('info');
-          this.#warn = this.#createLogCallback('warn');
-          this.#error = this.#createErrorFn();
-          break;
-        case 'warn':
-          this.#warn = this.#createLogCallback('warn');
-          this.#error = this.#createErrorFn();
-          break;
-        case 'error':
-          this.#error = this.#createErrorFn();
-          break;
-        default:
-          break;
-      }
+    switch (config.logger.logstashLevel) {
+      case 'trace':
+        this.#trace = this.#createLogCallback('trace');
+        this.#debug = this.#createLogCallback('debug');
+        this.#info = this.#createLogCallback('info');
+        this.#warn = this.#createLogCallback('warn');
+        this.#error = this.#createErrorFn();
+        break;
+      case 'debug':
+        this.#debug = this.#createLogCallback('debug');
+        this.#info = this.#createLogCallback('info');
+        this.#warn = this.#createLogCallback('warn');
+        this.#error = this.#createErrorFn();
+        break;
+      case 'info':
+        this.#info = this.#createLogCallback('info');
+        this.#warn = this.#createLogCallback('warn');
+        this.#error = this.#createErrorFn();
+        break;
+      case 'warn':
+        this.#warn = this.#createLogCallback('warn');
+        this.#error = this.#createErrorFn();
+        break;
+      case 'error':
+        this.#error = this.#createErrorFn();
+        break;
+      default:
+        break;
     }
   }
 
