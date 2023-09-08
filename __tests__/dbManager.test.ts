@@ -542,6 +542,4 @@ describe('CreateDatabaseManager', () => {
 
     createSpy.mockClear();
   });
-
-
 });
