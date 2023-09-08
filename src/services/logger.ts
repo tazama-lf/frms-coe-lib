@@ -92,20 +92,19 @@ export class LoggerService {
     switch (level) {
       case 'trace':
         return (message: string, serviceOperation?: string): void => {
-          logger.trace(`${this.messageStamp(serviceOperation)}[${level.toUpperCase()}] - ${message}`);
+          logger.trace(`${this.messageStamp(serviceOperation)}[TRACE] - ${message}`);
         };
       case 'debug':
         return (message: string, serviceOperation?: string): void => {
-          logger.debug(`${this.messageStamp(serviceOperation)}[${level.toUpperCase()}] - ${message}`);
+          logger.debug(`${this.messageStamp(serviceOperation)}[DEBUG] - ${message}`);
         };
       case 'warn':
         return (message: string, serviceOperation?: string): void => {
-          logger.warn(`${this.messageStamp(serviceOperation)}[${level.toUpperCase()}] - ${message}`);
+          logger.warn(`${this.messageStamp(serviceOperation)}[WARN] - ${message}`);
         };
-
       default:
         return (message: string, serviceOperation?: string): void => {
-          logger.info(`${this.messageStamp(serviceOperation)}[${level.toUpperCase()}] - ${message}`);
+          logger.info(`${this.messageStamp(serviceOperation)}[INFO] - ${message}`);
         };
     }
   }
