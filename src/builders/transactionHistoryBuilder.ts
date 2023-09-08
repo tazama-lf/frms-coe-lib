@@ -208,7 +208,7 @@ export async function transactionHistoryBuilder(
     return await (await manager._transactionHistory?.query(query))?.batches.all();
   };
 
-  if (!manager._transactions) {
+  if (!manager._transaction) {
     manager.insertTransaction = async (transactionID: string, transaction: unknown, networkMap: NetworkMap, alert: unknown) => {
       const data = {
         transactionID,

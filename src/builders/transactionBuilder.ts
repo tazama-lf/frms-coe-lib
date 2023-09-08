@@ -6,7 +6,7 @@ import { type AqlQuery, aql } from 'arangojs/aql';
 import { type NetworkMap } from '../interfaces';
 
 export async function transactionBuilder(manager: DatabaseManagerType, transactionHistoryConfig: DBConfig, redis: boolean): Promise<void> {
-  manager._transactions = new Database({
+  manager._transaction = new Database({
     url: transactionHistoryConfig.url,
     databaseName: transactionHistoryConfig.databaseName,
     auth: {
@@ -19,14 +19,14 @@ export async function transactionBuilder(manager: DatabaseManagerType, transacti
   });
 
   try {
-    const dbReady = await isDatabaseReady(manager._transactions);
-    readyChecks.TransactionHistoryDB = dbReady ? 'Ok' : 'err';
+    const dbReady = await isDatabaseReady(manager._transaction);
+    readyChecks.TransactionDB = dbReady ? 'Ok' : 'err';
   } catch (err) {
-    readyChecks.TransactionHistoryDB = err;
+    readyChecks.TransactionDB = err;
   }
 
   manager.queryTransactionDB = async (collection: string, filter: string, limit?: number) => {
-    const db = manager._transactions?.collection(collection);
+    const db = manager._transaction?.collection(collection);
     const aqlFilter = aql`${filter}`;
     const aqlLimit = limit ? aql`LIMIT ${limit}` : undefined;
 
@@ -37,7 +37,7 @@ export async function transactionBuilder(manager: DatabaseManagerType, transacti
       RETURN doc
     `;
 
-    return await (await manager._transactions?.query(query))?.batches.all();
+    return await (await manager._transaction?.query(query))?.batches.all();
   };
 
   manager.insertTransaction = async (transactionID: string, transaction: unknown, networkMap: NetworkMap, alert: unknown) => {
@@ -48,6 +48,6 @@ export async function transactionBuilder(manager: DatabaseManagerType, transacti
       report: alert,
     };
 
-    return await manager._transactions?.collection('transactions').save(data, { overwriteMode: 'ignore' });
+    return await manager._transaction?.collection('transactions').save(data, { overwriteMode: 'ignore' });
   };
 }

@@ -97,7 +97,7 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
     manager._transactionHistory?.close();
     manager._configuration?.close();
     manager._networkMap?.close();
-    manager._transactions?.close();
+    manager._transaction?.close();
   };
 
   if (Object.values(readyChecks).some((status) => status !== 'Ok')) {
