@@ -18,19 +18,7 @@ if (config.nodeEnv !== 'dev' && config.nodeEnv !== 'test') {
   });
 }
 
-const devEnv = config.nodeEnv === 'dev' || config.nodeEnv === 'test';
-const logger = devEnv ? console : log4js.getLogger();
-
-const createTimeStamp = (): string => {
-  const dateObj = new Date();
-
-  let date = dateObj.toISOString();
-  date = date.substring(0, date.indexOf('T'));
-
-  const time = dateObj.toLocaleTimeString([], { hour12: false });
-
-  return `${date} ${time}`;
-};
+const logger = config.nodeEnv === 'dev' || config.nodeEnv === 'test' ? console : log4js.getLogger();
 
 export class LoggerService {
   /*
@@ -76,7 +64,14 @@ export class LoggerService {
   }
 
   timeStamp(): string {
-    return createTimeStamp();
+    const dateObj = new Date();
+
+    let date = dateObj.toISOString();
+    date = date.substring(0, date.indexOf('T'));
+
+    const time = dateObj.toLocaleTimeString([], { hour12: false });
+
+    return `${date} ${time}`;
   }
 
   #createErrorFn(): (message: string | Error, innerError?: unknown, serviceOperation?: string) => void {
