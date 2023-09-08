@@ -43,7 +43,7 @@ export class LoggerService {
   #warn: (message: string, serviceOperation?: string) => void = () => null;
   #error: (message: string | Error, innerError?: unknown, serviceOperation?: string) => void = () => null;
   constructor() {
-    // enable logging only if we're on a dev environment and apm logging is activated
+    // enable logging only if we're on a dev environment or apm logging is activated
     if (config.apmLogging || devEnv) {
       switch (config.logger.logstashLevel) {
         // error > warn > info > debug > trace
