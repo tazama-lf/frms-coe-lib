@@ -464,6 +464,38 @@ describe('CreateDatabaseManager', () => {
     dbManager.quit();
   });
 
+  it('should create inserTransaction function when transaction db is defined', async () => {
+    const localConfig = {
+      transaction: transactionConfig,
+    };
+    let localManager: DatabaseManagerInstance<typeof localConfig>;
+    localManager = await CreateDatabaseManager(localConfig);
+
+    jest.spyOn(localManager._transaction, 'query').mockImplementation((query: string | AqlLiteral): Promise<any> => {
+      return new Promise((resolve, reject) => {
+        isAqlQuery(query)
+          ? resolve({
+              batches: {
+                all: jest.fn().mockImplementation(() => ['MOCK-QUERY']),
+              },
+            })
+          : reject(new Error('Not AQL Query'));
+      });
+    });
+
+    const testPacs002: Pacs002 = getMockRequest();
+    const testNetworkMap: NetworkMap = getMockNetworkMap();
+
+    const testTypes = <TransactionDB>{};
+    const dbManager: typeof testTypes = localManager as any;
+
+    expect(dbManager.insertTransaction).toBeDefined();
+
+    expect(await dbManager.queryTransactionDB('testCollection', 'testFilter')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.queryTransactionDB('testCollection', 'testFilter', 10)).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.insertTransaction('testID', testPacs002, testNetworkMap, {})).toEqual('MOCK-SAVE');
+  });
+
   it('should error gracefully on isReadyCheck for database builders', async () => {
     const config = {
       redisConfig: redisConfig,
@@ -511,35 +543,5 @@ describe('CreateDatabaseManager', () => {
     createSpy.mockClear();
   });
 
-  fit('should create inserTransaction function when transaction db is defined', async () => {
-    const localConfig = {
-      transaction: transactionConfig,
-    };
-    let localManager: DatabaseManagerInstance<typeof localConfig>;
-    localManager = await CreateDatabaseManager(localConfig);
 
-    jest.spyOn(localManager._transaction, 'query').mockImplementation((query: string | AqlLiteral): Promise<any> => {
-      return new Promise((resolve, reject) => {
-        isAqlQuery(query)
-          ? resolve({
-              batches: {
-                all: jest.fn().mockImplementation(() => ['MOCK-QUERY']),
-              },
-            })
-          : reject(new Error('Not AQL Query'));
-      });
-    });
-
-    const testPacs002: Pacs002 = getMockRequest();
-    const testNetworkMap: NetworkMap = getMockNetworkMap();
-
-    const testTypes = <TransactionDB>{};
-    const dbManager: typeof testTypes = localManager as any;
-
-    expect(dbManager.insertTransaction).toBeDefined();
-
-    expect(await dbManager.queryTransactionDB('testCollection', 'testFilter')).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.queryTransactionDB('testCollection', 'testFilter', 10)).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.insertTransaction('testID', testPacs002, testNetworkMap, {})).toEqual('MOCK-SAVE');
-  });
 });

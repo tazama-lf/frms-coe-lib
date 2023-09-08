@@ -51,7 +51,7 @@ export type DatabaseManagerType = Partial<
 type DatabaseManagerInstance<T extends ManagerConfig> = ManagerStatus &
   (T extends { pseudonyms: DBConfig } ? PseudonymsDB : Record<string, any>) &
   (T extends { transactionHistory: DBConfig } ? TransactionHistoryDB : Record<string, any>) &
-  (T extends { transactions: DBConfig } ? TransactionDB : Record<string, any>) &
+  (T extends { transaction: DBConfig } ? TransactionDB : Record<string, any>) &
   (T extends { configuration: DBConfig } ? ConfigurationDB : Record<string, any>) &
   (T extends { networkMap: DBConfig } ? NetworkMapDB : Record<string, any>) &
   (T extends { redisConfig: RedisConfig } ? RedisService : Record<string, any>);
