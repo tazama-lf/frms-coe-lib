@@ -32,6 +32,10 @@ const createTimeStamp = (): string => {
 };
 
 export class LoggerService {
+  /*
+   * Internal fields are called by the class when each respective method is called
+   *
+   * Each field is by default `null`, see `constructor()` for how each log level is set */
   #info: (message: string, serviceOperation?: string) => void = () => null;
   #debug: (message: string, serviceOperation?: string) => void = () => null;
   #trace: (message: string, serviceOperation?: string) => void = () => null;
@@ -39,6 +43,7 @@ export class LoggerService {
   #error: (message: string | Error, innerError?: unknown, serviceOperation?: string) => void = () => null;
   constructor() {
     switch (config.logger.logstashLevel) {
+      // error > warn > info > debug > trace
       case 'trace':
         this.#trace = this.#createLogCallback('trace');
         this.#debug = this.#createLogCallback('debug');
