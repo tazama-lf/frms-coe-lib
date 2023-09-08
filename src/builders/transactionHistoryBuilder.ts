@@ -208,16 +208,18 @@ export async function transactionHistoryBuilder(
     return await (await manager._transactionHistory?.query(query))?.batches.all();
   };
 
-  manager.insertTransaction = async (transactionID: string, transaction: unknown, networkMap: NetworkMap, alert: unknown) => {
-    const data = {
-      transactionID,
-      transaction,
-      networkMap,
-      report: alert,
-    };
+  if (!manager._transaction) {
+    manager.insertTransaction = async (transactionID: string, transaction: unknown, networkMap: NetworkMap, alert: unknown) => {
+      const data = {
+        transactionID,
+        transaction,
+        networkMap,
+        report: alert,
+      };
 
-    return await manager._transactionHistory?.collection(dbTransactions.transactions).save(data, { overwriteMode: 'ignore' });
-  };
+      return await manager._transactionHistory?.collection(dbTransactions.transactions).save(data, { overwriteMode: 'ignore' });
+    };
+  }
 
   manager.saveTransactionHistory = async (tran: Pain001 | Pain013 | Pacs008 | Pacs002, col: string) => {
     const db = manager._transactionHistory?.collection(col);

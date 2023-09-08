@@ -1,5 +1,5 @@
 import { AqlLiteral, isAqlQuery } from 'arangojs/aql';
-import { ConfigurationDB, PseudonymsDB, RedisService, TransactionHistoryDB } from '../src';
+import { ConfigurationDB, PseudonymsDB, RedisService, TransactionHistoryDB, TransactionDB } from '../src';
 import * as isDatabaseReady from '../src/helpers/readyCheck';
 import { AccountType, NetworkMap, Pacs002, TransactionRelationship, Typology } from '../src/interfaces';
 import { CreateDatabaseManager, DatabaseManagerInstance, NetworkMapDB } from '../src/services/dbManager';
@@ -51,6 +51,14 @@ const pseudonymsConfig = {
   user: 'TestPseudonym',
   password: 'TestPseudonym',
   url: 'TestPseudonym',
+};
+
+const transactionConfig = {
+  certPath: 'TestTransaction',
+  databaseName: 'TestTransaction',
+  user: 'TestTransaction',
+  password: 'TestTransaction',
+  url: 'TestTransaction',
 };
 
 const networkMapConfig = {
@@ -456,6 +464,38 @@ describe('CreateDatabaseManager', () => {
     dbManager.quit();
   });
 
+  it('should create inserTransaction function when transaction db is defined', async () => {
+    const localConfig = {
+      transaction: transactionConfig,
+    };
+    let localManager: DatabaseManagerInstance<typeof localConfig>;
+    localManager = await CreateDatabaseManager(localConfig);
+
+    jest.spyOn(localManager._transaction, 'query').mockImplementation((query: string | AqlLiteral): Promise<any> => {
+      return new Promise((resolve, reject) => {
+        isAqlQuery(query)
+          ? resolve({
+              batches: {
+                all: jest.fn().mockImplementation(() => ['MOCK-QUERY']),
+              },
+            })
+          : reject(new Error('Not AQL Query'));
+      });
+    });
+
+    const testPacs002: Pacs002 = getMockRequest();
+    const testNetworkMap: NetworkMap = getMockNetworkMap();
+
+    const testTypes = <TransactionDB>{};
+    const dbManager: typeof testTypes = localManager as any;
+
+    expect(dbManager.insertTransaction).toBeDefined();
+
+    expect(await dbManager.queryTransactionDB('testCollection', 'testFilter')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.queryTransactionDB('testCollection', 'testFilter', 10)).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.insertTransaction('testID', testPacs002, testNetworkMap, {})).toEqual('MOCK-SAVE');
+  });
+
   it('should error gracefully on isReadyCheck for database builders', async () => {
     const config = {
       redisConfig: redisConfig,
@@ -465,7 +505,7 @@ describe('CreateDatabaseManager', () => {
       networkMap: networkMapConfig,
     };
     // false case
-    let readySpy = jest.spyOn(isDatabaseReady, 'isDatabaseReady').mockImplementation(() => Promise.resolve(false));
+    let readySpy = jest.spyOn(isDatabaseReady, 'isDatabaseReady').mockImplementationOnce(() => Promise.resolve(false));
 
     try {
       await CreateDatabaseManager(config);
@@ -475,7 +515,7 @@ describe('CreateDatabaseManager', () => {
     readySpy.mockClear();
 
     // error case
-    readySpy = jest.spyOn(isDatabaseReady, 'isDatabaseReady').mockRejectedValue(new Error('test error'));
+    readySpy = jest.spyOn(isDatabaseReady, 'isDatabaseReady').mockRejectedValueOnce(new Error('test error'));
     try {
       await CreateDatabaseManager(config);
     } catch (error) {
@@ -492,7 +532,7 @@ describe('CreateDatabaseManager', () => {
       pseudonyms: pseudonymsConfig,
       networkMap: networkMapConfig,
     };
-    const createSpy = jest.spyOn(RedisService, 'create').mockRejectedValue(new Error('test error'));
+    const createSpy = jest.spyOn(RedisService, 'create').mockRejectedValueOnce(new Error('test error'));
 
     try {
       await CreateDatabaseManager(config);
