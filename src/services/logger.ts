@@ -18,7 +18,8 @@ if (config.nodeEnv !== 'dev' && config.nodeEnv !== 'test') {
   });
 }
 
-const logger = config.nodeEnv === 'dev' || config.nodeEnv === 'test' ? console : log4js.getLogger();
+const devEnv = config.nodeEnv === 'dev' || config.nodeEnv === 'test';
+const logger = devEnv ? console : log4js.getLogger();
 
 const createTimeStamp = (): string => {
   const dateObj = new Date();
@@ -42,35 +43,38 @@ export class LoggerService {
   #warn: (message: string, serviceOperation?: string) => void = () => null;
   #error: (message: string | Error, innerError?: unknown, serviceOperation?: string) => void = () => null;
   constructor() {
-    switch (config.logger.logstashLevel) {
-      // error > warn > info > debug > trace
-      case 'trace':
-        this.#trace = this.#createLogCallback('trace');
-        this.#debug = this.#createLogCallback('debug');
-        this.#info = this.#createLogCallback('info');
-        this.#warn = this.#createLogCallback('warn');
-        this.#error = this.#createErrorFn();
-        break;
-      case 'debug':
-        this.#debug = this.#createLogCallback('debug');
-        this.#info = this.#createLogCallback('info');
-        this.#warn = this.#createLogCallback('warn');
-        this.#error = this.#createErrorFn();
-        break;
-      case 'info':
-        this.#info = this.#createLogCallback('info');
-        this.#warn = this.#createLogCallback('warn');
-        this.#error = this.#createErrorFn();
-        break;
-      case 'warn':
-        this.#warn = this.#createLogCallback('warn');
-        this.#error = this.#createErrorFn();
-        break;
-      case 'error':
-        this.#error = this.#createErrorFn();
-        break;
-      default:
-        break;
+    // enable logging only if we're on a dev environment and apm logging is activated
+    if (config.apmLogging || devEnv) {
+      switch (config.logger.logstashLevel) {
+        // error > warn > info > debug > trace
+        case 'trace':
+          this.#trace = this.#createLogCallback('trace');
+          this.#debug = this.#createLogCallback('debug');
+          this.#info = this.#createLogCallback('info');
+          this.#warn = this.#createLogCallback('warn');
+          this.#error = this.#createErrorFn();
+          break;
+        case 'debug':
+          this.#debug = this.#createLogCallback('debug');
+          this.#info = this.#createLogCallback('info');
+          this.#warn = this.#createLogCallback('warn');
+          this.#error = this.#createErrorFn();
+          break;
+        case 'info':
+          this.#info = this.#createLogCallback('info');
+          this.#warn = this.#createLogCallback('warn');
+          this.#error = this.#createErrorFn();
+          break;
+        case 'warn':
+          this.#warn = this.#createLogCallback('warn');
+          this.#error = this.#createErrorFn();
+          break;
+        case 'error':
+          this.#error = this.#createErrorFn();
+          break;
+        default:
+          break;
+      }
     }
   }
 
