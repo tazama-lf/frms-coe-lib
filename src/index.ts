@@ -1,6 +1,6 @@
 import { aql } from 'arangojs';
 import { type GeneratedAqlQuery } from 'arangojs/aql';
-import { CreateDatabaseManager, TransactionDB, type DatabaseManagerInstance, type ManagerConfig } from './services/dbManager';
+import { CreateDatabaseManager, type TransactionDB, type DatabaseManagerInstance, type ManagerConfig } from './services/dbManager';
 import { type ConfigurationDB } from './interfaces/database/ConfigurationDB';
 import { type TransactionHistoryDB } from './interfaces/database/TransactionHistoryDB';
 import { type PseudonymsDB } from './interfaces/database/PseudonymsDB';

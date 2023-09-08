@@ -513,7 +513,7 @@ describe('CreateDatabaseManager', () => {
 
   fit('should create inserTransaction function when transaction db is defined', async () => {
     const localConfig = {
-      transaction: transactionConfig
+      transaction: transactionConfig,
     };
     let localManager: DatabaseManagerInstance<typeof localConfig>;
     localManager = await CreateDatabaseManager(localConfig);
