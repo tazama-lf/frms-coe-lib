@@ -422,10 +422,10 @@ message FRMSMessage {
     message Report {
         string evaluationID = 1;
         Metadata metaData = 2;
-        string status = 3;
+        string status = 4
         // google.protobuf.Timestamp timestamp = 4;
-        string timestamp = 4;
-        Tadpresult tadpResult = 5;
+        string timestamp = 5;
+        Tadpresult tadpResult = 6;
     }
     // Pacs008
     message Sttlminf {
@@ -487,6 +487,14 @@ message FRMSMessage {
         Splmtrydata SplmtryData = 5;
     }
 
+    message dataCache {
+      string dbtrId = 1;
+      string cdtrId = 2;
+      string cdtrAcctId = 3;
+      string dbtrAcctId = 4;
+
+    }
+
     // Report
     string transactionID = 1;
     Transaction transaction = 2;
@@ -501,6 +509,9 @@ message FRMSMessage {
     Cstmrcdttrfinitn CstmrCdtTrfInitn = 8;
     // Pain013
     Cdtrpmtactvtnreq CdtrPmtActvtnReq = 9;
+
+    // Processor based result
+    optional dataCache DataCache = 10;
 }
 
 
