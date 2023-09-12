@@ -21,6 +21,48 @@ if (config.nodeEnv !== 'dev' && config.nodeEnv !== 'test') {
 const logger = config.nodeEnv === 'dev' || config.nodeEnv === 'test' ? console : log4js.getLogger();
 
 export class LoggerService {
+  /*
+   * Internal fields are called by the class when each respective method is called
+   *
+   * Each field is by default `null`, see `constructor()` for how each log level is set */
+  #info: (message: string, serviceOperation?: string) => void = () => null;
+  #debug: (message: string, serviceOperation?: string) => void = () => null;
+  #trace: (message: string, serviceOperation?: string) => void = () => null;
+  #warn: (message: string, serviceOperation?: string) => void = () => null;
+  #error: (message: string | Error, innerError?: unknown, serviceOperation?: string) => void = () => null;
+  constructor() {
+    switch (config.logger.logstashLevel.toLowerCase()) {
+      // error > warn > info > debug > trace
+      case 'trace':
+        this.#trace = this.#createLogCallback('trace');
+        this.#debug = this.#createLogCallback('debug');
+        this.#info = this.#createLogCallback('info');
+        this.#warn = this.#createLogCallback('warn');
+        this.#error = this.#createErrorFn();
+        break;
+      case 'debug':
+        this.#debug = this.#createLogCallback('debug');
+        this.#info = this.#createLogCallback('info');
+        this.#warn = this.#createLogCallback('warn');
+        this.#error = this.#createErrorFn();
+        break;
+      case 'info':
+        this.#info = this.#createLogCallback('info');
+        this.#warn = this.#createLogCallback('warn');
+        this.#error = this.#createErrorFn();
+        break;
+      case 'warn':
+        this.#warn = this.#createLogCallback('warn');
+        this.#error = this.#createErrorFn();
+        break;
+      case 'error':
+        this.#error = this.#createErrorFn();
+        break;
+      default:
+        break;
+    }
+  }
+
   timeStamp(): string {
     const dateObj = new Date();
 
@@ -32,35 +74,62 @@ export class LoggerService {
     return `${date} ${time}`;
   }
 
+  #createErrorFn(): (message: string | Error, innerError?: unknown, serviceOperation?: string) => void {
+    return (message: string | Error, innerError?: unknown, serviceOperation?: string): void => {
+      let errMessage = typeof message === 'string' ? message : message.stack ?? message.message;
+
+      if (innerError) {
+        if (innerError instanceof Error) {
+          errMessage = `${errMessage}\r\n${innerError.stack ?? innerError.message}`;
+        }
+      }
+
+      logger.error(`${this.messageStamp(serviceOperation)}[ERROR] - ${errMessage}`);
+    };
+  }
+
+  #createLogCallback(level: 'trace' | 'info' | 'warn' | 'debug'): (message: string, serviceOperation?: string) => void {
+    switch (level) {
+      case 'trace':
+        return (message: string, serviceOperation?: string): void => {
+          logger.trace(`${this.messageStamp(serviceOperation)}[TRACE] - ${message}`);
+        };
+      case 'debug':
+        return (message: string, serviceOperation?: string): void => {
+          logger.debug(`${this.messageStamp(serviceOperation)}[DEBUG] - ${message}`);
+        };
+      case 'warn':
+        return (message: string, serviceOperation?: string): void => {
+          logger.warn(`${this.messageStamp(serviceOperation)}[WARN] - ${message}`);
+        };
+      default:
+        return (message: string, serviceOperation?: string): void => {
+          logger.info(`${this.messageStamp(serviceOperation)}[INFO] - ${message}`);
+        };
+    }
+  }
+
   messageStamp(serviceOperation?: string): string {
     return `[${this.timeStamp()}][${config.functionName}${serviceOperation ? ' - ' + serviceOperation : ''}]`;
   }
 
   trace(message: string, serviceOperation?: string): void {
-    logger.trace(`${this.messageStamp(serviceOperation)}[TRACE] - ${message}`);
+    this.#trace(message, serviceOperation);
   }
 
   log(message: string, serviceOperation?: string): void {
-    logger.info(`${this.messageStamp(serviceOperation)}[INFO] - ${message}`);
+    this.#info(message, serviceOperation);
   }
 
   warn(message: string, serviceOperation?: string): void {
-    logger.warn(`${this.messageStamp(serviceOperation)}[WARN] - ${message}`);
+    this.#warn(message, serviceOperation);
   }
 
   error(message: string | Error, innerError?: unknown, serviceOperation?: string): void {
-    let errMessage = typeof message === 'string' ? message : message.stack ?? message.message;
-
-    if (innerError) {
-      if (innerError instanceof Error) {
-        errMessage = `${errMessage}\r\n${innerError.stack ?? innerError.message}`;
-      }
-    }
-
-    logger.error(`${this.messageStamp(serviceOperation)}[ERROR] - ${errMessage}`);
+    this.#error(message, innerError, serviceOperation);
   }
 
   debug(message: string, serviceOperation?: string): void {
-    logger.debug(`${this.messageStamp(serviceOperation)}[DEBUG] - ${message}`);
+    this.#debug(message, serviceOperation);
   }
 }
