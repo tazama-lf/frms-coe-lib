@@ -516,7 +516,9 @@ message FRMSMessage {
 
     // Processor based result
     Typologyresult typologyResult = 12;
-    Ruleresults ruleResult = 13
+    Ruleresults ruleResult = 13;
+    Channelresult channelResult = 14;
+
 }
 
 
