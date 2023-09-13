@@ -390,6 +390,7 @@ message FRMSMessage {
         string reason = 5;
         string desc = 6;
         uint32 prcgTm = 7;
+        uint32 wght = 8;
     }
 
     message Typologyresult {
@@ -422,7 +423,7 @@ message FRMSMessage {
     message Report {
         string evaluationID = 1;
         Metadata metaData = 2;
-        string status = 4
+        string status = 4;
         // google.protobuf.Timestamp timestamp = 4;
         string timestamp = 5;
         Tadpresult tadpResult = 6;
@@ -495,23 +496,27 @@ message FRMSMessage {
 
     }
 
-    // Report
+
     string transactionID = 1;
     Transaction transaction = 2;
     Networkmap networkMap = 3;
-    Report report = 4;
+    dataCache DataCache = 4;
+    metaData Metadata = 5;
+    // Report
+    Report report = 6;
     // Pacs002
-    string TxTp = 5;
-    Fitofipmtsts FIToFIPmtSts = 6;
+    string TxTp = 7;
+    Fitofipmtsts FIToFIPmtSts = 8;
     // Pacs008
-    Fitoficstmrcdt FIToFICstmrCdt = 7;
+    Fitoficstmrcdt FIToFICstmrCdt = 9;
     // Pain001
-    Cstmrcdttrfinitn CstmrCdtTrfInitn = 8;
+    Cstmrcdttrfinitn CstmrCdtTrfInitn = 10;
     // Pain013
-    Cdtrpmtactvtnreq CdtrPmtActvtnReq = 9;
+    Cdtrpmtactvtnreq CdtrPmtActvtnReq = 11;
 
     // Processor based result
-    optional dataCache DataCache = 10;
+    Typologyresult typologyResult = 12;
+    Ruleresults ruleResult = 13
 }
 
 

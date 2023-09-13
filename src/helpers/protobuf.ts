@@ -1,4 +1,5 @@
 import protobuf from 'protobufjs';
-const root = protobuf.loadSync('./proto/Full.proto');
+import path from 'node:path';
+const root = protobuf.loadSync(path.join(__dirname, '/proto/Full.proto'));
 const FRMSMessage = root.lookupType('FRMSMessage');
 export default FRMSMessage;

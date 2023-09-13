@@ -11,7 +11,7 @@
     "@frmscoe:registry": "https://npm.pkg.github.com/"
   },
   "scripts": {
-    "build": "tsc --project tsconfig.json",
+    "build": "tsc --project tsconfig.json && copyfiles -f src/helpers/proto/*.proto lib/helpers/proto",
     "test": "jest --config=jest.config.ts --passWithNoTests",
     "lint": "eslint \"**/*.ts\"",
     "lint:prettier": "prettier --check \"**/*.ts\"",
@@ -38,6 +38,9 @@
   "devDependencies": {
     "@types/jest": "^29.5.3",
     "@typescript-eslint/parser": "^5.62.0",
+    "copyfiles": "^2.4.1",
+    "cpx": "^1.5.0",
+    "cpy": "^10.1.0",
     "eslint": "^8.46.0",
     "eslint-config-prettier": "^8.10.0",
     "eslint-config-standard": "^17.1.0",
