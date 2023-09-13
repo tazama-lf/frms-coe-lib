@@ -501,7 +501,7 @@ message FRMSMessage {
     Transaction transaction = 2;
     Networkmap networkMap = 3;
     dataCache DataCache = 4;
-    metaData Metadata = 5;
+    Metadata metaData = 5;
     // Report
     Report report = 6;
     // Pacs002
