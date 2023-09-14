@@ -11,6 +11,7 @@ export async function redisBuilder(manager: DatabaseManagerType, redisConfig: Re
     manager.getMembers = redis.getMembers;
     manager.deleteKey = redis.deleteKey;
     manager.setJson = redis.setJson;
+    manager.set = redis.set;
     manager.setAdd = redis.setAdd;
     manager.addOneGetAll = redis.addOneGetAll;
     manager.addOneGetCount = redis.addOneGetCount;
