@@ -88,12 +88,12 @@ export class RedisService {
    * @param {string} key The key associated with the Redis set.
    * @returns {Promise<string[]>} A Promise that resolves to an array of set members as strings.
    */
-  async getMembers(key: string): Promise<RuleResult[]> {
+  async getMembers(key: string): Promise<string[]> {
     try {
       const res = (await this._redisClient.smembersBuffer(key)) as Uint8Array[];
       const membersBuffer = res.map((member) => {
         const decodedMember = FRMSMessage.decode(member);
-        return FRMSMessage.toObject(decodedMember).ruleResult as RuleResult;
+        return JSON.stringify(FRMSMessage.toObject(decodedMember));
       });
 
       if (!res || membersBuffer.length === 0) {
@@ -188,8 +188,8 @@ export class RedisService {
    * @param {string} value The value to add to the Redis set.
    * @returns {Promise<string[]>} A Promise that resolves to an array of set members as strings.
    */
-  async addOneGetCount(key: string, value: RuleResult): Promise<number> {
-    const valueMessage = FRMSMessage.create({ ruleResult: value });
+  async addOneGetCount(key: string, value: string): Promise<number> {
+    const valueMessage = FRMSMessage.create(JSON.parse(value));
     const valueBuffer = FRMSMessage.encode(valueMessage).finish() as Buffer;
     const res = await this._redisClient.multi().sadd(key, valueBuffer).scard(key).exec();
 
