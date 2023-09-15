@@ -1,7 +1,7 @@
 import Redis, { type Cluster } from 'ioredis';
 import { type RedisConfig } from '../interfaces/RedisConfig';
 import FRMSMessage from '../helpers/protobuf';
-import { RuleResult } from '../interfaces';
+import { type RuleResult } from '../interfaces';
 type RedisData = string | number | Buffer;
 export class RedisService {
   public _redisClient: Redis | Cluster;
