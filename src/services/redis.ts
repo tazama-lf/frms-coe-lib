@@ -1,5 +1,7 @@
 import Redis, { type Cluster } from 'ioredis';
 import { type RedisConfig } from '../interfaces/RedisConfig';
+import FRMSMessage from '../helpers/protobuf';
+type RedisData = string | number | Buffer;
 export class RedisService {
   public _redisClient: Redis | Cluster;
 
@@ -66,6 +68,19 @@ export class RedisService {
     }
   }
 
+  async getBuffer(key: string): Promise<Record<string, unknown>> {
+    try {
+      const res = await this._redisClient.getBuffer(key);
+      if (res === null) {
+        return {};
+      }
+      const decodedReport = FRMSMessage.decode(res);
+      return FRMSMessage.toObject(decodedReport);
+    } catch (err) {
+      throw new Error(`Error while getting ${key} from Redis`);
+    }
+  }
+
   /**
    * Get the members of a Redis set stored under the given key.
    *
@@ -116,13 +131,27 @@ export class RedisService {
   }
 
   /**
+   * Store a value in Redis under the given key with an optional expiration time.
+   *
+   * Much like `setJson()`, but without the JSON restriction,
+   * This version accepts `Buffer` and `number` times in addition
+   */
+  async set(key: string, value: RedisData, expire: number): Promise<void> {
+    const res = await this._redisClient.set(key, value, 'EX', expire);
+
+    if (res !== 'OK') {
+      throw new Error(`Error while setting key in redis`);
+    }
+  }
+
+  /**
    * Add a value to a Redis set under the given key.
    *
    * @param {string} key The key associated with the Redis set.
    * @param {string} value The value to add to the Redis set.
    * @returns {Promise<void>} A Promise that resolves when the value is successfully added to the set.
    */
-  async setAdd(key: string, value: string): Promise<void> {
+  async setAdd(key: string, value: RedisData): Promise<void> {
     const res = await this._redisClient.sadd(key, value);
     if (res === 0) {
       throw new Error(`Member already exists for key ${key}`);
@@ -153,7 +182,7 @@ export class RedisService {
    * @param {string} value The value to add to the Redis set.
    * @returns {Promise<string[]>} A Promise that resolves to an array of set members as strings.
    */
-  async addOneGetCount(key: string, value: string): Promise<number> {
+  async addOneGetCount(key: string, value: RedisData): Promise<number> {
     const res = await this._redisClient.multi().sadd(key, value).scard(key).exec();
 
     if (res && res[1] && res[1][1]) {
