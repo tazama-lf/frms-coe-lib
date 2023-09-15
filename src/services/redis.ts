@@ -1,6 +1,7 @@
 import Redis, { type Cluster } from 'ioredis';
 import { type RedisConfig } from '../interfaces/RedisConfig';
 import FRMSMessage from '../helpers/protobuf';
+import { RuleResult } from '../interfaces';
 type RedisData = string | number | Buffer;
 export class RedisService {
   public _redisClient: Redis | Cluster;
@@ -87,14 +88,19 @@ export class RedisService {
    * @param {string} key The key associated with the Redis set.
    * @returns {Promise<string[]>} A Promise that resolves to an array of set members as strings.
    */
-  async getMembers(key: string): Promise<string[]> {
+  async getMembers(key: string): Promise<RuleResult[]> {
     try {
-      const res = await this._redisClient.smembers(key);
-      if (!res || res.length === 0) {
+      const res = (await this._redisClient.smembersBuffer(key)) as Uint8Array[];
+      const membersBuffer = res.map((member) => {
+        const decodedMember = FRMSMessage.decode(member);
+        return FRMSMessage.toObject(decodedMember).ruleResult as RuleResult;
+      });
+
+      if (!res || membersBuffer.length === 0) {
         return [];
       }
 
-      return res;
+      return membersBuffer;
     } catch (err) {
       throw new Error(`Error while getting members on ${key} from Redis`);
     }
@@ -182,8 +188,10 @@ export class RedisService {
    * @param {string} value The value to add to the Redis set.
    * @returns {Promise<string[]>} A Promise that resolves to an array of set members as strings.
    */
-  async addOneGetCount(key: string, value: RedisData): Promise<number> {
-    const res = await this._redisClient.multi().sadd(key, value).scard(key).exec();
+  async addOneGetCount(key: string, value: RuleResult): Promise<number> {
+    const valueMessage = FRMSMessage.create({ ruleResult: value });
+    const valueBuffer = FRMSMessage.encode(valueMessage).finish() as Buffer;
+    const res = await this._redisClient.multi().sadd(key, valueBuffer).scard(key).exec();
 
     if (res && res[1] && res[1][1]) {
       return res[1][1] as number;

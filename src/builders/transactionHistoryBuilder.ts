@@ -52,7 +52,7 @@ export async function transactionHistoryBuilder(
       let cacheVal: string[] = [];
 
       if (cacheKey !== '') {
-        cacheVal = await manager.getMembers!(cacheKey);
+        cacheVal = (await manager.getMembers!(cacheKey)) as unknown as string[];
         if (cacheVal.length > 0) return await Promise.resolve(cacheVal);
       }
 
@@ -96,10 +96,10 @@ export async function transactionHistoryBuilder(
     const db = manager._transactionHistory?.collection(dbTransactions.pain001);
 
     const query: AqlQuery = aql`
-      FOR doc IN ${db} 
+      FOR doc IN ${db}
       FILTER doc.DebtorAcctId == ${debtorId}
-      SORT doc.CreDtTm 
-      LIMIT 1 
+      SORT doc.CreDtTm
+      LIMIT 1
       RETURN doc
     `;
 
@@ -110,9 +110,9 @@ export async function transactionHistoryBuilder(
     const db = manager._transactionHistory?.collection(dbTransactions.pain001);
 
     const query: AqlQuery = aql`
-      FOR doc IN ${db} 
+      FOR doc IN ${db}
       FILTER doc.CreditorAcctId == ${creditorId}
-      SORT doc.CreDtTm 
+      SORT doc.CreDtTm
       LIMIT 1
       RETURN doc
     `;
@@ -124,7 +124,7 @@ export async function transactionHistoryBuilder(
     const db = manager._transactionHistory?.collection(dbTransactions.pacs002);
 
     const query: AqlQuery = aql`
-      FOR doc IN ${db} 
+      FOR doc IN ${db}
       FILTER doc.EndToEndId == ${endToEndId}
       && doc.TxSts == 'ACCC'
       SORT doc.CreDtTm DESC
@@ -139,7 +139,7 @@ export async function transactionHistoryBuilder(
     const db = manager._transactionHistory?.collection(dbTransactions.pacs002);
 
     const query: AqlQuery = aql`
-      FOR doc IN ${db} 
+      FOR doc IN ${db}
       FILTER doc.EndToEndId IN ${endToEndIds}
       FILTER doc.TxSts == 'ACCC'
       RETURN doc.EndToEndId
@@ -152,7 +152,7 @@ export async function transactionHistoryBuilder(
     const db = manager._transactionHistory?.collection(dbTransactions.pacs002);
 
     const query: AqlQuery = aql`
-      FOR doc IN ${db} 
+      FOR doc IN ${db}
       FILTER doc.EndToEndId == ${endToEndId}
       RETURN doc
     `;
@@ -164,10 +164,10 @@ export async function transactionHistoryBuilder(
     const db = manager._transactionHistory?.collection(dbTransactions.pain001);
 
     const query: AqlQuery = aql`
-      FOR doc IN ${db} 
+      FOR doc IN ${db}
       FILTER doc.EndToEndId IN ${endToEndIds}
-      SORT  doc.EndToEndId DESC 
-      RETURN doc.CstmrCdtTrfInitn.PmtInf.CdtTrfTxInf.RmtInf.Ustrd 
+      SORT  doc.EndToEndId DESC
+      RETURN doc.CstmrCdtTrfInitn.PmtInf.CdtTrfTxInf.RmtInf.Ustrd
     `;
 
     return await (await manager._transactionHistory?.query(query))?.batches.all();
@@ -181,11 +181,11 @@ export async function transactionHistoryBuilder(
         : aql`FILTER doc.DebtorAcctId == ${accountId}`;
 
     const query: AqlQuery = aql`
-      FOR doc IN ${db} 
+      FOR doc IN ${db}
       ${filterType}
-      RETURN { 
+      RETURN {
         e2eId: doc.EndToEndId,
-        timestamp: DATE_TIMESTAMP(doc.CreDtTm) 
+        timestamp: DATE_TIMESTAMP(doc.CreDtTm)
       }
     `;
 
@@ -200,7 +200,7 @@ export async function transactionHistoryBuilder(
         : aql`FILTER doc.DebtorAcctId == ${accountId}`;
 
     const query: AqlQuery = aql`
-      FOR doc IN ${db} 
+      FOR doc IN ${db}
       ${filterType}
       RETURN doc
     `;
