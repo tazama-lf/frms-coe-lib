@@ -424,8 +424,7 @@ message FRMSMessage {
         string evaluationID = 1;
         Metadata metaData = 2;
         string status = 4;
-        // google.protobuf.Timestamp timestamp = 4;
-        string timestamp = 5;
+        Timestamp timestamp = 5;
         Tadpresult tadpResult = 6;
     }
     // Pacs008
