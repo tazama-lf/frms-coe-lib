@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import Redis, { type Cluster } from 'ioredis';
 import { type RedisConfig } from '../interfaces/RedisConfig';
 import FRMSMessage from '../helpers/protobuf';
-import fastJson from 'fast-json-stringify';
-import { messageSchema, messageSchemaInstant } from '../helpers/schemas/message';
+import { messageSchemaInstant } from '../helpers/schemas/message';
 type RedisData = string | number | Buffer;
 export class RedisService {
   public _redisClient: Redis | Cluster;
