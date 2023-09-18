@@ -91,8 +91,8 @@ export class RedisService {
    * @returns {Promise<string[]>} A Promise that resolves to an array of set members as strings.
    */
   async getMembers(key: string): Promise<string[]> {
-    const _serialiseRuleResult = fastJson({
-      title: 'FastJson Schema',
+    const _serialiseMessage = fastJson({
+      title: 'MessageSchema',
       ...messageSchema.definitions,
     });
 
@@ -100,7 +100,7 @@ export class RedisService {
       const res = (await this._redisClient.smembersBuffer(key)) as Uint8Array[];
       const membersBuffer = res.map((member) => {
         const decodedMember = FRMSMessage.decode(member);
-        return _serialiseRuleResult(FRMSMessage.toObject(decodedMember));
+        return _serialiseMessage(decodedMember.toJSON());
       });
 
       if (!res || membersBuffer.length === 0) {
