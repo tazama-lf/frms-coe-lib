@@ -2,7 +2,9 @@ import Redis, { type Cluster } from 'ioredis';
 import { type RedisConfig } from '../interfaces/RedisConfig';
 import FRMSMessage from '../helpers/protobuf';
 import { messageSchemaInstant } from '../helpers/schemas/message';
+
 type RedisData = string | number | Buffer;
+
 export class RedisService {
   public _redisClient: Redis | Cluster;
 
@@ -34,6 +36,10 @@ export class RedisService {
 
       this._redisClient.on('error', (err) => {
         reject(new Error(`❌ Redis connection could not be established\n${JSON.stringify(err)}`));
+      });
+
+      this._redisClient.on('end', () => {
+        throw new Error('❓ Redis connection lost');
       });
     });
   }
