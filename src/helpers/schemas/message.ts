@@ -2149,5 +2149,3 @@ export const messageSchemaInstant = fastJson({
   title: 'MessageSchema',
   ...messageSchema.definitions,
 });
-
-//  export const stringifyTransaction = fastJson(messageSchema as Record<string, unknown>);
