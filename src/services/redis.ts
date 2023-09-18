@@ -3,7 +3,7 @@ import Redis, { type Cluster } from 'ioredis';
 import { type RedisConfig } from '../interfaces/RedisConfig';
 import FRMSMessage from '../helpers/protobuf';
 import fastJson from 'fast-json-stringify';
-import { messageSchema } from '../helpers/schemas/message';
+import { messageSchema, messageSchemaInstant } from '../helpers/schemas/message';
 type RedisData = string | number | Buffer;
 export class RedisService {
   public _redisClient: Redis | Cluster;
@@ -91,16 +91,11 @@ export class RedisService {
    * @returns {Promise<string[]>} A Promise that resolves to an array of set members as strings.
    */
   async getMembers(key: string): Promise<string[]> {
-    const _serialiseMessage = fastJson({
-      title: 'MessageSchema',
-      ...messageSchema.definitions,
-    });
-
     try {
       const res = (await this._redisClient.smembersBuffer(key)) as Uint8Array[];
       const membersBuffer = res.map((member) => {
         const decodedMember = FRMSMessage.decode(member);
-        return _serialiseMessage(decodedMember.toJSON());
+        return messageSchemaInstant(decodedMember.toJSON());
       });
 
       if (!res || membersBuffer.length === 0) {
