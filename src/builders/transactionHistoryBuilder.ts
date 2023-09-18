@@ -52,7 +52,7 @@ export async function transactionHistoryBuilder(
       let cacheVal: string[] = [];
 
       if (cacheKey !== '') {
-        cacheVal = (await manager.getMembers!(cacheKey)) as unknown as string[];
+        cacheVal = await manager.getMembers!(cacheKey);
         if (cacheVal.length > 0) return await Promise.resolve(cacheVal);
       }
 
