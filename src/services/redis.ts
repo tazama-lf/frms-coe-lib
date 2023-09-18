@@ -2,7 +2,11 @@ import Redis, { type Cluster } from 'ioredis';
 import { type RedisConfig } from '../interfaces/RedisConfig';
 import FRMSMessage from '../helpers/protobuf';
 import { messageSchemaInstant } from '../helpers/schemas/message';
+
 type RedisData = string | number | Buffer;
+const MAX_RETRIES = 10;
+const RECONNECT_DELAY_MS = 500;
+
 export class RedisService {
   public _redisClient: Redis | Cluster;
 
@@ -15,6 +19,12 @@ export class RedisService {
           password: config?.password,
           enableAutoPipelining: true,
         },
+        clusterRetryStrategy(times) {
+          if (times >= MAX_RETRIES) {
+            return null;
+          }
+          return RECONNECT_DELAY_MS;
+        },
       });
     } else {
       this._redisClient = new Redis({
@@ -22,6 +32,12 @@ export class RedisService {
         host: config?.servers[0].host,
         port: config?.servers[0].port,
         password: config?.password,
+        retryStrategy(times) {
+          if (times >= MAX_RETRIES) {
+            return null;
+          }
+          return RECONNECT_DELAY_MS;
+        },
       });
     }
   }
@@ -34,6 +50,10 @@ export class RedisService {
 
       this._redisClient.on('error', (err) => {
         reject(new Error(`❌ Redis connection could not be established\n${JSON.stringify(err)}`));
+      });
+
+      this._redisClient.on('end', () => {
+        throw new Error('❓ Redis connection lost, no more reconnections will be made');
       });
     });
   }
