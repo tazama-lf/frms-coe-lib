@@ -1,6 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Redis, { type Cluster } from 'ioredis';
 import { type RedisConfig } from '../interfaces/RedisConfig';
 import FRMSMessage from '../helpers/protobuf';
+import fastJson from 'fast-json-stringify';
+import { messageSchema, messageSchemaInstant } from '../helpers/schemas/message';
 type RedisData = string | number | Buffer;
 export class RedisService {
   public _redisClient: Redis | Cluster;
@@ -89,12 +92,17 @@ export class RedisService {
    */
   async getMembers(key: string): Promise<string[]> {
     try {
-      const res = await this._redisClient.smembers(key);
-      if (!res || res.length === 0) {
+      const res = (await this._redisClient.smembersBuffer(key)) as Uint8Array[];
+      const membersBuffer = res.map((member) => {
+        const decodedMember = FRMSMessage.decode(member);
+        return messageSchemaInstant(decodedMember.toJSON());
+      });
+
+      if (!res || membersBuffer.length === 0) {
         return [];
       }
 
-      return res;
+      return membersBuffer;
     } catch (err) {
       throw new Error(`Error while getting members on ${key} from Redis`);
     }
@@ -182,8 +190,10 @@ export class RedisService {
    * @param {string} value The value to add to the Redis set.
    * @returns {Promise<string[]>} A Promise that resolves to an array of set members as strings.
    */
-  async addOneGetCount(key: string, value: RedisData): Promise<number> {
-    const res = await this._redisClient.multi().sadd(key, value).scard(key).exec();
+  async addOneGetCount(key: string, value: string): Promise<number> {
+    const valueMessage = FRMSMessage.create(JSON.parse(value));
+    const valueBuffer = FRMSMessage.encode(valueMessage).finish() as Buffer;
+    const res = await this._redisClient.multi().sadd(key, valueBuffer).scard(key).exec();
 
     if (res && res[1] && res[1][1]) {
       return res[1][1] as number;

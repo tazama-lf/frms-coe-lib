@@ -1,4 +1,4 @@
-// import fastJson from 'fast-json-stringify';
+import fastJson from 'fast-json-stringify';
 
 const pain001 = 'pain.001.001.11';
 const pacs008 = 'pacs.008.001.10';
@@ -2144,5 +2144,10 @@ export const messageSchema = {
   },
   required: ['transaction'],
 };
+
+export const messageSchemaInstant = fastJson({
+  title: 'MessageSchema',
+  ...messageSchema.definitions,
+});
 
 //  export const stringifyTransaction = fastJson(messageSchema as Record<string, unknown>);
