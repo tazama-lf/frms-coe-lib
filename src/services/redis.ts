@@ -53,7 +53,7 @@ export class RedisService {
       });
 
       this._redisClient.on('end', () => {
-        throw new Error('❓ Redis connection lost');
+        throw new Error('❓ Redis connection lost, no more reconnections will be made');
       });
     });
   }
