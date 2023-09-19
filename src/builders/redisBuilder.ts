@@ -9,6 +9,7 @@ export async function redisBuilder(manager: DatabaseManagerType, redisConfig: Re
     manager._redisClient = redis._redisClient;
     manager.getJson = redis.getJson;
     manager.getMembers = redis.getMembers;
+    manager.getMemberValues = redis.getMemberValues;
     manager.deleteKey = redis.deleteKey;
     manager.setJson = redis.setJson;
     manager.set = redis.set;

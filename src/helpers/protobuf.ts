@@ -12,8 +12,8 @@ const FRMSMessage = root.lookupType('FRMSMessage');
 export const createMessageBuffer = (data: Record<string, unknown>): Buffer | undefined => {
   try {
     const msg = FRMSMessage.create(data);
-    const enc = FRMSMessage.encode(msg).finish();
-    return Buffer.from(enc);
+    const enc = FRMSMessage.encode(msg).finish() as Buffer;
+    return enc;
   } catch (error) {
     return undefined;
   }
