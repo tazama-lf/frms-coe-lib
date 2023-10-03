@@ -150,6 +150,9 @@ export const messageSchema = {
         active: {
           type: 'boolean',
         },
+        cfg: {
+          type: 'string',
+        },
         messages: {
           type: 'array',
           items: {

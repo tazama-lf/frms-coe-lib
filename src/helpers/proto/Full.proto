@@ -373,7 +373,8 @@ message FRMSMessage {
 
     message Networkmap {
         bool active = 1;
-        repeated Messages messages = 2;
+        string cfg = 2;
+        repeated Messages messages = 3;
     }
 
     message Metadata {
