@@ -141,7 +141,7 @@ export async function transactionHistoryBuilder(
     const query: AqlQuery = aql`
       FOR doc IN ${db}
       FILTER doc.FIToFIPmtSts.TxInfAndSts.OrgnlEndToEndId IN ${endToEndIds}
-      FILTER doc.TxSts == 'ACCC'
+      FILTER doc.FIToFIPmtSts.TxInfAndSts.TxSts == 'ACCC'
       RETURN doc.FIToFIPmtSts.TxInfAndSts.OrgnlEndToEndId
     `;
 
