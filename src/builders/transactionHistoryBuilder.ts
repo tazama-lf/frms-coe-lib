@@ -60,7 +60,7 @@ export async function transactionHistoryBuilder(
 
       const query: AqlQuery = aql`
         FOR doc IN ${db}
-        FILTER doc.EndToEndId == ${endToEndId}
+        FILTER doc.FIToFICstmrCdt.CdtTrfTxInf.PmtId.EndToEndId == ${endToEndId}
         RETURN doc
       `;
 
@@ -72,7 +72,7 @@ export async function transactionHistoryBuilder(
 
       const query: AqlQuery = aql`
         FOR doc IN ${db}
-        FILTER doc.EndToEndId == ${endToEndId}
+        FILTER doc.FIToFICstmrCdt.CdtTrfTxInf.PmtId.EndToEndId == ${endToEndId}
         RETURN doc
       `;
 
@@ -85,7 +85,7 @@ export async function transactionHistoryBuilder(
 
     const query: AqlQuery = aql`
       FOR doc IN ${db}
-      FILTER doc.EndToEndId == ${endToEndId}
+      FILTER doc.CstmrCdtTrfInitn.PmtInf.CdtTrfTxInf.PmtId.EndToEndId == ${endToEndId}
       RETURN doc
     `;
 
@@ -97,8 +97,8 @@ export async function transactionHistoryBuilder(
 
     const query: AqlQuery = aql`
       FOR doc IN ${db}
-      FILTER doc.DebtorAcctId == ${debtorId}
-      SORT doc.CreDtTm
+      FILTER doc.CstmrCdtTrfInitn.PmtInf.DbtrAcct.Id.Othr.Id == ${debtorId}
+      SORT doc.CstmrCdtTrfInitn.GrpHdr.CreDtTm
       LIMIT 1
       RETURN doc
     `;
@@ -111,8 +111,8 @@ export async function transactionHistoryBuilder(
 
     const query: AqlQuery = aql`
       FOR doc IN ${db}
-      FILTER doc.CreditorAcctId == ${creditorId}
-      SORT doc.CreDtTm
+      FILTER doc.CstmrCdtTrfInitn.PmtInf.CdtTrfTxInf.CdtrAcct.Id.Othr.Id == ${creditorId}
+      SORT doc.CstmrCdtTrfInitn.GrpHdr.CreDtTm
       LIMIT 1
       RETURN doc
     `;
@@ -125,8 +125,8 @@ export async function transactionHistoryBuilder(
 
     const query: AqlQuery = aql`
       FOR doc IN ${db}
-      FILTER doc.EndToEndId == ${endToEndId}
-      && doc.TxSts == 'ACCC'
+      FILTER doc.FIToFIPmtSts.TxInfAndSts.OrgnlEndToEndId == ${endToEndId}
+      && doc.FIToFIPmtSts.TxInfAndSts.TxSts == 'ACCC'
       SORT doc.CreDtTm DESC
       LIMIT 1
       RETURN doc
@@ -140,9 +140,9 @@ export async function transactionHistoryBuilder(
 
     const query: AqlQuery = aql`
       FOR doc IN ${db}
-      FILTER doc.EndToEndId IN ${endToEndIds}
+      FILTER doc.FIToFIPmtSts.TxInfAndSts.OrgnlEndToEndId IN ${endToEndIds}
       FILTER doc.TxSts == 'ACCC'
-      RETURN doc.EndToEndId
+      RETURN doc.FIToFIPmtSts.TxInfAndSts.OrgnlEndToEndId
     `;
 
     return await (await manager._transactionHistory?.query(query))?.batches.all();
@@ -153,7 +153,7 @@ export async function transactionHistoryBuilder(
 
     const query: AqlQuery = aql`
       FOR doc IN ${db}
-      FILTER doc.EndToEndId == ${endToEndId}
+      FILTER doc.FIToFIPmtSts.TxInfAndSts.OrgnlEndToEndId == ${endToEndId}
       RETURN doc
     `;
 
@@ -165,8 +165,8 @@ export async function transactionHistoryBuilder(
 
     const query: AqlQuery = aql`
       FOR doc IN ${db}
-      FILTER doc.EndToEndId IN ${endToEndIds}
-      SORT  doc.EndToEndId DESC
+      FILTER doc.CstmrCdtTrfInitn.PmtInf.CdtTrfTxInf.PmtId.EndToEndId IN ${endToEndIds}
+      SORT  doc.CstmrCdtTrfInitn.PmtInf.CdtTrfTxInf.PmtId.EndToEndId DESC
       RETURN doc.CstmrCdtTrfInitn.PmtInf.CdtTrfTxInf.RmtInf.Ustrd
     `;
 
@@ -177,14 +177,14 @@ export async function transactionHistoryBuilder(
     const db = manager._transactionHistory?.collection(dbTransactions.pacs008);
     const filterType =
       accountType === AccountType.CreditorAcct
-        ? aql`FILTER doc.CreditorAcctId == ${accountId}`
-        : aql`FILTER doc.DebtorAcctId == ${accountId}`;
+        ? aql`FILTER doc.FIToFICstmrCdt.CdtTrfTxInf.CdtrAcct.Id.Othr.Id == ${accountId}`
+        : aql`FILTER doc.FIToFICstmrCdt.CdtTrfTxInf.DbtrAcct.Id.Othr.Id == ${accountId}`;
 
     const query: AqlQuery = aql`
       FOR doc IN ${db}
       ${filterType}
       RETURN {
-        e2eId: doc.EndToEndId,
+        e2eId: doc.FIToFICstmrCdt.CdtTrfTxInf.PmtId.EndToEndId,
         timestamp: DATE_TIMESTAMP(doc.CreDtTm)
       }
     `;
@@ -196,8 +196,8 @@ export async function transactionHistoryBuilder(
     const db = manager._transactionHistory?.collection(dbTransactions.pacs008);
     const filterType =
       accountType === AccountType.CreditorAcct
-        ? aql`FILTER doc.CreditorAcctId == ${accountId}`
-        : aql`FILTER doc.DebtorAcctId == ${accountId}`;
+        ? aql`FILTER doc.FIToFICstmrCdt.CdtTrfTxInf.CdtrAcct.Id.Othr.Id == ${accountId}`
+        : aql`FILTER doc.FIToFICstmrCdt.CdtTrfTxInf.DbtrAcct.Id.Othr.Id == ${accountId}`;
 
     const query: AqlQuery = aql`
       FOR doc IN ${db}
