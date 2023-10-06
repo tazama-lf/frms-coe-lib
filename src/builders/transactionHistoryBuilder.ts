@@ -127,7 +127,7 @@ export async function transactionHistoryBuilder(
       FOR doc IN ${db}
       FILTER doc.FIToFIPmtSts.TxInfAndSts.OrgnlEndToEndId == ${endToEndId}
       && doc.FIToFIPmtSts.TxInfAndSts.TxSts == 'ACCC'
-      SORT doc.CreDtTm DESC
+      SORT doc.FIToFIPmtSts.GrpHdr.CreDtTm DESC
       LIMIT 1
       RETURN doc
     `;
