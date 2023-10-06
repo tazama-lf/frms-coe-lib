@@ -185,7 +185,7 @@ export async function transactionHistoryBuilder(
       ${filterType}
       RETURN {
         e2eId: doc.FIToFICstmrCdt.CdtTrfTxInf.PmtId.EndToEndId,
-        timestamp: DATE_TIMESTAMP(doc.CreDtTm)
+        timestamp: DATE_TIMESTAMP(doc.FIToFICstmrCdt.GrpHdr.CreDtTm)
       }
     `;
 
