@@ -1,6 +1,5 @@
 export interface Pain013 {
   TxTp: string;
-  EndToEndId: string;
   CdtrPmtActvtnReq: CdtrPmtActvtnReq;
   _key?: string;
 }

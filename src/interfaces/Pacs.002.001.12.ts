@@ -1,9 +1,6 @@
 export interface Pacs002 {
   TxTp: string;
   FIToFIPmtSts: FIToFIPmtSts;
-
-  EndToEndId: string;
-  TxSts: string;
   _key?: string;
 }
 
