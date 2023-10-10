@@ -8,6 +8,7 @@ export async function redisBuilder(manager: DatabaseManagerType, redisConfig: Re
     const redis = await RedisService.create(redisConfig);
     manager._redisClient = redis._redisClient;
     manager.getJson = redis.getJson;
+    manager.getBuffer = redis.getBuffer;
     manager.getMembers = redis.getMembers;
     manager.getMemberValues = redis.getMemberValues;
     manager.deleteKey = redis.deleteKey;
