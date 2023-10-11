@@ -3,8 +3,7 @@ export class RuleResult {
   cfg = '';
   subRuleRef = '';
   result = false;
-  reason = '';
-  desc = '';
+  reason? = '';
   prcgTm? = 0;
   wght? = 0;
 }
