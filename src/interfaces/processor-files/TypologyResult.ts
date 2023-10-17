@@ -8,7 +8,7 @@ export class TypologyResult {
   threshold = 0.0;
   review? = false;
   ruleResults: RuleResult[] = [];
-  workflow : WorkFlow = new WorkFlow();
+  workflow: WorkFlow = new WorkFlow();
 }
 
 export class WorkFlow {
