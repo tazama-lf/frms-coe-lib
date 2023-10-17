@@ -133,7 +133,7 @@ export class RedisService {
    * @param {string} key The key associated with the Redis set.
    * @returns {Promise<Record<string, unknown>[]>} A Promise that resolves to an array of set members as objects.
    */
-  async getMemberValues(key: string): Promise<Record<string, unknown>[]> {
+  async getMemberValues(key: string): Promise<Array<Record<string, unknown>>> {
     try {
       const res = (await this._redisClient.smembersBuffer(key)) as Uint8Array[];
       const membersBuffer = res.map((member) => {
@@ -210,9 +210,9 @@ export class RedisService {
   }
 
   /**
-   * 
+   *
    * @deprecated Since version 1.2.4 Will be deleted in version 1.2.5. Use addOneGetCount instead
-   * 
+   *
    * Add a value to a Redis set and then return all members from that set.
    *
    * @param {string} key The key associated with the Redis set.
