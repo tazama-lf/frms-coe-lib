@@ -11,6 +11,6 @@ export class TypologyResult {
 }
 
 export class WorkFlow {
-  alertThreshold = '';
-  interdictionThreshold = '';
+  alertThreshold = 0;
+  interdictionThreshold = 0;
 }

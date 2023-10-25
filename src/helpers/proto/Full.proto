@@ -403,6 +403,7 @@ message FRMSMessage {
         repeated Ruleresults ruleResults = 6;
         uint32 prcgTm = 7;
         bool review = 8;
+        workflow workflow = 9
     }
 
     message Channelresult {
@@ -412,6 +413,11 @@ message FRMSMessage {
         string status = 4;
         uint32 result = 5;
         repeated Typologyresult typologyResult = 6;
+    }
+
+    message workflow {
+        uint32 alertThreshold = 1;
+        uint32 interdictionThreshold = 2;
     }
 
     message Tadpresult {
