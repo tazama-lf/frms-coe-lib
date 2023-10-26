@@ -403,7 +403,7 @@ message FRMSMessage {
         repeated Ruleresults ruleResults = 6;
         uint32 prcgTm = 7;
         bool review = 8;
-        workflow workflow = 9
+        workflow workflow = 9;
     }
 
     message Channelresult {
