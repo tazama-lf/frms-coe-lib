@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+message LogMessage {
+
+    message Context {
+    }
+
+    message Extra {
+    }
+
+    string message = 1;
+    Context context = 2;
+    uint32 level = 3;
+    string level_name = 4;
+    string channel = 5;
+    // google.protobuf.Timestamp datetime = 6;
+    string datetime = 6;
+    Extra extra = 7;
+}
