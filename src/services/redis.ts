@@ -199,7 +199,7 @@ export class RedisService {
    * Add a value to a Redis set under the given key.
    *
    * @param {string} key The key associated with the Redis set.
-   * @param {string} value The value to add to the Redis set.
+   * @param {RedisData} value The value to add to the Redis set.
    * @returns {Promise<void>} A Promise that resolves when the value is successfully added to the set.
    */
   async setAdd(key: string, value: RedisData): Promise<void> {
@@ -210,30 +210,45 @@ export class RedisService {
   }
 
   /**
-   *
-   * @deprecated Since version 1.2.4 Will be deleted in version 1.2.5. Use addOneGetCount instead
-   *
    * Add a value to a Redis set and then return all members from that set.
    *
    * @param {string} key The key associated with the Redis set.
-   * @param {string} value The value to add to the Redis set.
+   * @param {Record<string, unknown>} value The value to add to the Redis set.
    * @returns {Promise<string[]>} A Promise that resolves to an array of set members as strings.
    */
-  async addOneGetAll(key: string, value: string): Promise<string[]> {
-    const res = await this._redisClient.multi().sadd(key, value).smembers(key).exec();
+  async addOneGetAll(key: string, value: Record<string, unknown>): Promise<Array<Record<string, unknown>>> {
+    try {
+      const valueMessage = FRMSMessage.create(value);
+      const valueBuffer = FRMSMessage.encode(valueMessage).finish() as Buffer;
+      const res = await this._redisClient.multi().sadd(key, valueBuffer).smembersBuffer(key).exec();
+      const result = res ? (res[1][1] as Uint8Array[]) : undefined;
 
-    if (res && res[1] && res[1][1]) {
-      return res[1][1] as string[];
-    } else {
-      throw new Error('addOneGetAll failed to return properly');
+      const membersBuffer = result?.map((member) => {
+        const decodedMember = FRMSMessage.decode(member);
+        return FRMSMessage.toObject(decodedMember);
+      });
+
+      if (!res || membersBuffer?.length === 0) {
+        return [];
+      }
+
+      return membersBuffer as Array<Record<string, unknown>>;
+    } catch (err) {
+      throw new Error(`Error while getting members on ${key} from Redis`);
     }
+
+    // if (res && res[1] && res[1][1]) {
+    //   return res[1][1] as string[];
+    // } else {
+    //   throw new Error('addOneGetAll failed to return properly');
+    // }
   }
 
   /**
    * Add a value to a Redis set and then return number of members in the set after the addition.
    *
    * @param {string} key The key associated with the Redis set.
-   * @param {string} value The value to add to the Redis set.
+   * @param {Record<string, unknown>} value The value to add to the Redis set.
    * @returns {Promise<string[]>} A Promise that resolves to an array of set members as strings.
    */
   async addOneGetCount(key: string, value: Record<string, unknown>): Promise<number> {
