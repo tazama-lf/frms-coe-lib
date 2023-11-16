@@ -236,12 +236,6 @@ export class RedisService {
     } catch (err) {
       throw new Error(`Error while getting members on ${key} from Redis`);
     }
-
-    // if (res && res[1] && res[1][1]) {
-    //   return res[1][1] as string[];
-    // } else {
-    //   throw new Error('addOneGetAll failed to return properly');
-    // }
   }
 
   /**
