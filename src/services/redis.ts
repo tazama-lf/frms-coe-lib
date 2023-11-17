@@ -202,8 +202,10 @@ export class RedisService {
    * @param {RedisData} value The value to add to the Redis set.
    * @returns {Promise<void>} A Promise that resolves when the value is successfully added to the set.
    */
-  async setAdd(key: string, value: RedisData): Promise<void> {
-    const res = await this._redisClient.sadd(key, value);
+  async setAdd(key: string, value: Record<string, unknown>): Promise<void> {
+    const valueMessage = FRMSMessage.create(value);
+    const valueBuffer = FRMSMessage.encode(valueMessage).finish() as Buffer;
+    const res = await this._redisClient.sadd(key, valueBuffer);
     if (res === 0) {
       throw new Error(`Member already exists for key ${key}`);
     }

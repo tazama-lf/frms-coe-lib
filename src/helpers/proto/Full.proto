@@ -525,6 +525,8 @@ message FRMSMessage {
     Ruleresults ruleResult = 13;
     Channelresult channelResult = 14;
 
+    string alreadySent = 15;
+
 }
 
 
