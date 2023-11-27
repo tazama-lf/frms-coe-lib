@@ -1,5 +1,6 @@
 import { config } from '../config';
 import log4js from 'log4js';
+import { LumberjackService } from './lumberjack';
 
 if (config.nodeEnv !== 'dev' && config.nodeEnv !== 'test') {
   log4js.configure({
@@ -30,7 +31,15 @@ export class LoggerService {
   #trace: (message: string, serviceOperation?: string) => void = () => null;
   #warn: (message: string, serviceOperation?: string) => void = () => null;
   #error: (message: string | Error, innerError?: unknown, serviceOperation?: string) => void = () => null;
-  constructor() {
+
+  /* for enabling logging through the sidecar */
+
+  #lumberjackService: LumberjackService | undefined = undefined;
+
+  constructor(sidecar?: { channelName: string; host: string; callback: (...args: unknown[]) => unknown }) {
+    if (sidecar) {
+      this.#lumberjackService = new LumberjackService(sidecar.host, sidecar.channelName);
+    }
     switch (config.logger.logstashLevel.toLowerCase()) {
       // error > warn > info > debug > trace
       case 'trace':
@@ -92,19 +101,35 @@ export class LoggerService {
     switch (level) {
       case 'trace':
         return (message: string, serviceOperation?: string): void => {
-          logger.trace(`${this.messageStamp(serviceOperation)}[TRACE] - ${message}`);
+          if (this.#lumberjackService) {
+            this.#lumberjackService.log(message, level);
+          } else {
+            logger.trace(`${this.messageStamp(serviceOperation)}[TRACE] - ${message}`);
+          }
         };
       case 'debug':
         return (message: string, serviceOperation?: string): void => {
-          logger.debug(`${this.messageStamp(serviceOperation)}[DEBUG] - ${message}`);
+          if (this.#lumberjackService) {
+            this.#lumberjackService.log(message, level);
+          } else {
+            logger.debug(`${this.messageStamp(serviceOperation)}[DEBUG] - ${message}`);
+          }
         };
       case 'warn':
         return (message: string, serviceOperation?: string): void => {
-          logger.warn(`${this.messageStamp(serviceOperation)}[WARN] - ${message}`);
+          if (this.#lumberjackService) {
+            this.#lumberjackService.log(message, level);
+          } else {
+            logger.warn(`${this.messageStamp(serviceOperation)}[WARN] - ${message}`);
+          }
         };
       default:
         return (message: string, serviceOperation?: string): void => {
-          logger.info(`${this.messageStamp(serviceOperation)}[INFO] - ${message}`);
+          if (this.#lumberjackService) {
+            this.#lumberjackService.log(message, 'info');
+          } else {
+            logger.info(`${this.messageStamp(serviceOperation)}[INFO] - ${message}`);
+          }
         };
     }
   }

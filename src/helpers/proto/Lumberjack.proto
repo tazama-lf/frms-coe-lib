@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+// import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+package message;
+
+service Lumberjack {
+  rpc SendLog (LogMessage) returns (google.protobuf.Empty);
+}
+
+enum LogLevel {
+  trace = 0;
+  debug = 1;
+  info = 2;
+  warn = 3;
+  error = 4;
+  fatal = 5;
+}
+
+message LogMessage {
+    string message = 0;
+    LogLevel level = 1;
+    string channel = 2;
+}
