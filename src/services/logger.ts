@@ -36,7 +36,7 @@ export class LoggerService {
 
   #lumberjackService: LumberjackService | undefined = undefined;
 
-  constructor(sidecar?: { channelName: string; host: string; callback: (...args: unknown[]) => unknown }) {
+  constructor(sidecar?: { channelName: string; host: string }) {
     if (sidecar) {
       this.#lumberjackService = new LumberjackService(sidecar.host, sidecar.channelName);
     }
