@@ -3,6 +3,7 @@ import * as protoLoader from '@grpc/proto-loader';
 import { type LogMessage } from '../helpers/proto/message/LogMessage';
 import path from 'node:path';
 import type { LogLevel } from '../helpers/proto/message/LogLevel';
+import type { LumberjackClient } from '../helpers/proto/message/Lumberjack';
 
 const PROTO_PATH = path.join(__dirname, '../helpers/proto/Lumberjack.proto');
 
@@ -18,8 +19,7 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 const logProto: any = grpc.loadPackageDefinition(packageDefinition).message;
 
 export class LumberjackService {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  #client: any;
+  #client: LumberjackClient;
   #channel: string;
   constructor(host: string, channel: string) {
     this.#client = new logProto.Lumberjack(host, grpc.credentials.createInsecure());
