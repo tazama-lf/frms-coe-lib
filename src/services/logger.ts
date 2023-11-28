@@ -36,9 +36,9 @@ export class LoggerService {
 
   #lumberjackService: LumberjackService | undefined = undefined;
 
-  constructor(sidecar?: { channelName: string; host: string }) {
-    if (sidecar) {
-      this.#lumberjackService = new LumberjackService(sidecar.host, config.functionName);
+  constructor(sidecarHost?: string) {
+    if (sidecarHost) {
+      this.#lumberjackService = new LumberjackService(sidecarHost, config.functionName);
     }
     switch (config.logger.logstashLevel.toLowerCase()) {
       // error > warn > info > debug > trace
