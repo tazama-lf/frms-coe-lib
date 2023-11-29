@@ -16,7 +16,7 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const logProto: any = grpc.loadPackageDefinition(packageDefinition).message;
+const logProto: any = grpc.loadPackageDefinition(packageDefinition).lumberjack;
 
 export class LumberjackService {
   #client: LumberjackClient;
