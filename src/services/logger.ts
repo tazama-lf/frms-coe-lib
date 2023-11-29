@@ -1,7 +1,51 @@
 import { config } from '../config';
 import log4js from 'log4js';
+import { pino, type LoggerOptions } from 'pino';
+import pinoElastic, { type DestinationStream } from 'pino-elasticsearch';
 import { LumberjackService } from './lumberjack';
+import { ecsFormat } from '@elastic/ecs-pino-format';
 
+interface ElasticLogger {
+  stream: DestinationStream;
+  ecsOpts: LoggerOptions;
+}
+
+const { stream } = createElasticStream(
+  config.logger.pinoElasticOpts.elasticHost,
+  config.logger.pinoElasticOpts.elasticVersion,
+  config.logger.pinoElasticOpts.elasticUsername,
+  config.logger.pinoElasticOpts.elasticPassword,
+  config.logger.pinoElasticOpts.flushBytes,
+  config.logger.pinoElasticOpts.elasticIndex,
+);
+
+export function createElasticStream(
+  node: string,
+  esVersion: number,
+  username: string,
+  password: string,
+  flushBytes: number,
+  index?: string,
+): ElasticLogger {
+  const streamToElastic = pinoElastic({
+    index,
+    node,
+    esVersion,
+    auth: {
+      username,
+      password,
+    },
+    flushBytes,
+  });
+
+  const elasticOpts = ecsFormat();
+  return {
+    stream: streamToElastic,
+    ecsOpts: elasticOpts,
+  };
+}
+
+// unused
 if (config.nodeEnv !== 'dev' && config.nodeEnv !== 'test') {
   log4js.configure({
     appenders: {
@@ -19,7 +63,8 @@ if (config.nodeEnv !== 'dev' && config.nodeEnv !== 'test') {
   });
 }
 
-const logger = config.nodeEnv === 'dev' || config.nodeEnv === 'test' ? console : log4js.getLogger();
+const logger =
+  config.nodeEnv === 'dev' || config.nodeEnv === 'test' ? console : pino({ level: config.logger.logstashLevel.toLowerCase(), stream });
 
 export class LoggerService {
   /*
