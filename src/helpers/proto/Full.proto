@@ -410,9 +410,8 @@ message FRMSMessage {
         string id = 1;
         string cfg = 2;
         uint32 prcgTm = 3;
-        string status = 4;
-        uint32 result = 5;
-        repeated Typologyresult typologyResult = 6;
+        uint32 result = 4;
+        repeated Typologyresult typologyResult = 5;
     }
 
     message workflow {
