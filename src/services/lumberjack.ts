@@ -1,9 +1,9 @@
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
-import { type LogMessage } from '../helpers/proto/message/LogMessage';
 import path from 'node:path';
-import type { LogLevel } from '../helpers/proto/message/LogLevel';
-import type { LumberjackClient } from '../helpers/proto/message/Lumberjack';
+import { type LumberjackClient } from '../helpers/proto/lumberjack/Lumberjack';
+import { type LogLevel } from '../helpers/proto/lumberjack/LogLevel';
+import { type LogMessage } from '../helpers/proto/lumberjack/LogMessage';
 
 const PROTO_PATH = path.join(__dirname, '../helpers/proto/Lumberjack.proto');
 
@@ -26,16 +26,17 @@ export class LumberjackService {
     this.#channel = channel;
   }
 
-  #makeMessage(message: string, level?: LogLevel): LogMessage {
+  #makeMessage(message: string, level?: LogLevel, serviceOperation?: string): LogMessage {
     return {
       message,
       level,
       channel: this.#channel,
+      serviceOperation,
     };
   }
 
-  log(message: string, level?: LogLevel, callback?: (...args: unknown[]) => unknown): void {
-    const object = this.#makeMessage(message, level);
+  log(message: string, level?: LogLevel, serviceOperation?: string, callback?: (...args: unknown[]) => unknown): void {
+    const object = this.#makeMessage(message, level, serviceOperation);
     if (callback) {
       this.#client.sendLog(object, callback);
     } else {

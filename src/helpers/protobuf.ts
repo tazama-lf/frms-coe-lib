@@ -1,6 +1,6 @@
 import protobuf from 'protobufjs';
 import path from 'node:path';
-import { type LogMessage as LogMessageType } from './proto/message/LogMessage';
+import { type LogMessage as LogMessageType } from './proto/lumberjack/LogMessage';
 const root = protobuf.loadSync(path.join(__dirname, '/proto/Full.proto'));
 const FRMSMessage = root.lookupType('FRMSMessage');
 

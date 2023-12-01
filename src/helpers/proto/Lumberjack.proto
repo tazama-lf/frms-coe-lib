@@ -18,7 +18,8 @@ enum LogLevel {
 }
 
 message LogMessage {
-    string message = 1;
-    LogLevel level = 2;
-    string channel = 3;
+  string message = 1;
+  LogLevel level = 2;
+  string channel = 3;
+  string serviceOperation = 4;
 }

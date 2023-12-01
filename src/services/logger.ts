@@ -1,5 +1,4 @@
 import { config } from '../config';
-import log4js from 'log4js';
 import { pino, type LoggerOptions } from 'pino';
 import pinoElastic, { type DestinationStream } from 'pino-elasticsearch';
 import { LumberjackService } from './lumberjack';
@@ -45,37 +44,22 @@ export function createElasticStream(
   };
 }
 
-// unused
-if (config.nodeEnv !== 'dev' && config.nodeEnv !== 'test') {
-  log4js.configure({
-    appenders: {
-      logstash: {
-        type: '@log4js-node/logstash-http',
-        url: `http://${config.logger.logstashHost}:${config.logger.logstashPort}/_bulk`,
-        application: 'logstash-log4js',
-        logType: 'application',
-        logChannel: config.functionName,
-      },
-    },
-    categories: {
-      default: { appenders: ['logstash'], level: config.logger.logstashLevel },
-    },
-  });
-}
-
 const logger =
   config.nodeEnv === 'dev' || config.nodeEnv === 'test' ? console : pino({ level: config.logger.logstashLevel.toLowerCase(), stream });
+
+type GenericFunction = (...args: unknown[]) => unknown;
+type LogFunc = (message: string, serviceOperation?: string, callback?: GenericFunction) => void;
 
 export class LoggerService {
   /*
    * Internal fields are called by the class when each respective method is called
    *
    * Each field is by default `null`, see `constructor()` for how each log level is set */
-  #info: (message: string, serviceOperation?: string) => void = () => null;
-  #debug: (message: string, serviceOperation?: string) => void = () => null;
-  #trace: (message: string, serviceOperation?: string) => void = () => null;
-  #warn: (message: string, serviceOperation?: string) => void = () => null;
-  #error: (message: string | Error, innerError?: unknown, serviceOperation?: string) => void = () => null;
+  #info: LogFunc = () => null;
+  #debug: LogFunc = () => null;
+  #trace: LogFunc = () => null;
+  #warn: LogFunc = () => null;
+  #error: (message: string | Error, innerError?: unknown, serviceOperation?: string, callback?: GenericFunction) => void = () => null;
 
   /* for enabling logging through the sidecar */
 
@@ -117,17 +101,6 @@ export class LoggerService {
     }
   }
 
-  timeStamp(): string {
-    const dateObj = new Date();
-
-    let date = dateObj.toISOString();
-    date = date.substring(0, date.indexOf('T'));
-
-    const time = dateObj.toLocaleTimeString([], { hour12: false });
-
-    return `${date} ${time}`;
-  }
-
   #createErrorFn(): (message: string | Error, innerError?: unknown, serviceOperation?: string) => void {
     return (message: string | Error, innerError?: unknown, serviceOperation?: string): void => {
       let errMessage = typeof message === 'string' ? message : message.stack ?? message.message;
@@ -137,69 +110,64 @@ export class LoggerService {
           errMessage = `${errMessage}\r\n${innerError.stack ?? innerError.message}`;
         }
       }
-
-      logger.error(`${this.messageStamp(serviceOperation)}[ERROR] - ${errMessage}`);
+      logger.error({ message: errMessage, serviceOperation });
     };
   }
 
-  #createLogCallback(level: 'trace' | 'info' | 'warn' | 'debug'): (message: string, serviceOperation?: string) => void {
+  #createLogCallback(level: 'trace' | 'info' | 'warn' | 'debug'): LogFunc {
     switch (level) {
       case 'trace':
-        return (message: string, serviceOperation?: string): void => {
+        return (message: string, serviceOperation?: string, callback?: GenericFunction): void => {
           if (this.#lumberjackService) {
-            this.#lumberjackService.log(message, level);
+            this.#lumberjackService.log(message, level, serviceOperation, callback);
           } else {
-            logger.trace(`${this.messageStamp(serviceOperation)}[TRACE] - ${message}`);
+            logger.trace({ message, serviceOperation });
           }
         };
       case 'debug':
-        return (message: string, serviceOperation?: string): void => {
+        return (message: string, serviceOperation?: string, callback?: GenericFunction): void => {
           if (this.#lumberjackService) {
-            this.#lumberjackService.log(message, level);
+            this.#lumberjackService.log(message, level, serviceOperation, callback);
           } else {
-            logger.debug(`${this.messageStamp(serviceOperation)}[DEBUG] - ${message}`);
+            logger.debug({ message, serviceOperation });
           }
         };
       case 'warn':
-        return (message: string, serviceOperation?: string): void => {
+        return (message: string, serviceOperation?: string, callback?: GenericFunction): void => {
           if (this.#lumberjackService) {
-            this.#lumberjackService.log(message, level);
+            this.#lumberjackService.log(message, level, serviceOperation, callback);
           } else {
-            logger.warn(`${this.messageStamp(serviceOperation)}[WARN] - ${message}`);
+            logger.warn({ message, serviceOperation });
           }
         };
       default:
-        return (message: string, serviceOperation?: string): void => {
+        return (message: string, serviceOperation?: string, callback?: GenericFunction): void => {
           if (this.#lumberjackService) {
-            this.#lumberjackService.log(message, 'info');
+            this.#lumberjackService.log(message, 'info', serviceOperation, callback);
           } else {
-            logger.info(`${this.messageStamp(serviceOperation)}[INFO] - ${message}`);
+            logger.info({ message, serviceOperation });
           }
         };
     }
   }
 
-  messageStamp(serviceOperation?: string): string {
-    return `[${this.timeStamp()}][${config.functionName}${serviceOperation ? ' - ' + serviceOperation : ''}]`;
+  trace(message: string, serviceOperation?: string, callback?: GenericFunction): void {
+    this.#trace(message, serviceOperation, callback);
   }
 
-  trace(message: string, serviceOperation?: string): void {
-    this.#trace(message, serviceOperation);
+  log(message: string, serviceOperation?: string, callback?: GenericFunction): void {
+    this.#info(message, serviceOperation, callback);
   }
 
-  log(message: string, serviceOperation?: string): void {
-    this.#info(message, serviceOperation);
+  warn(message: string, serviceOperation?: string, callback?: GenericFunction): void {
+    this.#warn(message, serviceOperation, callback);
   }
 
-  warn(message: string, serviceOperation?: string): void {
-    this.#warn(message, serviceOperation);
+  error(message: string | Error, innerError?: unknown, serviceOperation?: string, callback?: GenericFunction): void {
+    this.#error(message, innerError, serviceOperation, callback);
   }
 
-  error(message: string | Error, innerError?: unknown, serviceOperation?: string): void {
-    this.#error(message, innerError, serviceOperation);
-  }
-
-  debug(message: string, serviceOperation?: string): void {
-    this.#debug(message, serviceOperation);
+  debug(message: string, serviceOperation?: string, callback?: GenericFunction): void {
+    this.#debug(message, serviceOperation, callback);
   }
 }
