@@ -7,6 +7,7 @@ export interface LogMessage {
   level?: _lumberjack_LogLevel;
   channel?: string;
   serviceOperation?: string;
+  id?: string;
 }
 
 export interface LogMessage__Output {
@@ -14,4 +15,5 @@ export interface LogMessage__Output {
   level: _lumberjack_LogLevel__Output;
   channel: string;
   serviceOperation: string;
+  id: string;
 }

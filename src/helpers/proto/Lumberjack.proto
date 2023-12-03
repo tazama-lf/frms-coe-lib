@@ -22,4 +22,5 @@ message LogMessage {
   LogLevel level = 2;
   string channel = 3;
   string serviceOperation = 4;
+  string id = 5;
 }
