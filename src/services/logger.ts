@@ -88,7 +88,7 @@ export class LoggerService {
   /* Fields representing methods for different log levels
    *
    * Each field is by default `null`, see `constructor()` for how each log level is set */
-  info: LogFunc = () => null;
+  log: LogFunc = () => null;
   debug: LogFunc = () => null;
   trace: LogFunc = () => null;
   warn: LogFunc = () => null;
@@ -108,18 +108,18 @@ export class LoggerService {
       case 'trace':
         this.trace = createLogCallback('trace');
         this.debug = createLogCallback('debug');
-        this.info = createLogCallback('info');
+        this.log = createLogCallback('info');
         this.warn = createLogCallback('warn');
         this.error = createErrorFn();
         break;
       case 'debug':
         this.debug = createLogCallback('debug');
-        this.info = createLogCallback('info');
+        this.log = createLogCallback('info');
         this.warn = createLogCallback('warn');
         this.error = createErrorFn();
         break;
       case 'info':
-        this.info = createLogCallback('info');
+        this.log = createLogCallback('info');
         this.warn = createLogCallback('warn');
         this.error = createErrorFn();
         break;
