@@ -7,6 +7,14 @@ export interface IConfig {
     logstashHost: string;
     logstashPort: number;
     logstashLevel: string;
+    pinoElasticOpts: {
+      elasticUsername: string;
+      elasticPassword: string;
+      elasticHost: string;
+      elasticIndex?: string;
+      elasticVersion: number;
+      flushBytes: number;
+    };
   };
   apmLogging: boolean;
   apmSecretToken: string;
@@ -25,6 +33,14 @@ export const config: IConfig = {
     logstashHost: process.env.LOGSTASH_HOST as string,
     logstashPort: parseInt(process.env.LOGSTASH_PORT ?? '0', 10),
     logstashLevel: (process.env.LOGSTASH_LEVEL as string) || 'info',
+    pinoElasticOpts: {
+      flushBytes: 1000,
+      elasticUsername: process.env.ELASTIC_USERNAME ?? '',
+      elasticPassword: process.env.ELASTIC_PASSWORD ?? '',
+      elasticHost: process.env.ELASTIC_HOST ?? 'http://localhost:9200',
+      elasticIndex: process.env.ELASTIC_INDEX,
+      elasticVersion: Number(process.env.ELASTIC_SEARCH_VERSION ?? '8.11'),
+    },
   },
   apmLogging: process.env.APM_LOGGING === 'true',
   apmSecretToken: process.env.APM_SECRET_TOKEN as string,
