@@ -407,10 +407,11 @@ message FRMSMessage {
     }
 
     message Channelresult {
+        reserved 4;
+        reserved "status";
         string id = 1;
         string cfg = 2;
         uint32 prcgTm = 3;
-        string status = 4;
         uint32 result = 5;
         repeated Typologyresult typologyResult = 6;
     }
