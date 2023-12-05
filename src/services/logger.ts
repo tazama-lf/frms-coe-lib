@@ -106,32 +106,32 @@ export class LoggerService {
     switch (config.logger.logstashLevel.toLowerCase()) {
       // error > warn > info > debug > trace
       case 'trace':
-        this.trace = createLogCallback('trace');
-        this.debug = createLogCallback('debug');
-        this.log = createLogCallback('info');
-        this.warn = createLogCallback('warn');
-        this.error = createErrorFn();
+        this.trace = createLogCallback('trace', this.lumberjackService);
+        this.debug = createLogCallback('debug', this.lumberjackService);
+        this.log = createLogCallback('info', this.lumberjackService);
+        this.warn = createLogCallback('warn', this.lumberjackService);
+        this.error = createErrorFn(this.lumberjackService);
         break;
       case 'debug':
-        this.debug = createLogCallback('debug');
-        this.log = createLogCallback('info');
-        this.warn = createLogCallback('warn');
-        this.error = createErrorFn();
+        this.debug = createLogCallback('debug', this.lumberjackService);
+        this.log = createLogCallback('info', this.lumberjackService);
+        this.warn = createLogCallback('warn', this.lumberjackService);
+        this.error = createErrorFn(this.lumberjackService);
         break;
       case 'info':
-        this.log = createLogCallback('info');
-        this.warn = createLogCallback('warn');
-        this.error = createErrorFn();
+        this.log = createLogCallback('info', this.lumberjackService);
+        this.warn = createLogCallback('warn', this.lumberjackService);
+        this.error = createErrorFn(this.lumberjackService);
         break;
       case 'warn':
-        this.warn = createLogCallback('warn');
-        this.error = createErrorFn();
+        this.warn = createLogCallback('warn', this.lumberjackService);
+        this.error = createErrorFn(this.lumberjackService);
         break;
       case 'error':
-        this.error = createErrorFn();
+        this.error = createErrorFn(this.lumberjackService);
         break;
       case 'fatal':
-        this.error = createErrorFn();
+        this.error = createErrorFn(this.lumberjackService);
         break;
       default:
         break;
