@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { type DatabaseManagerInstance, type ManagerConfig } from '..';
 import { type NetworkMap } from '../interfaces';
 import { unwrap } from './unwrap';
 
@@ -23,7 +24,9 @@ function getRuleMap(networkMap: NetworkMap | undefined): { rulesIds: string[]; t
   return { rulesIds, typologyCfg };
 }
 
-export const getIdsFromNetworkMap = async (databaseManager: any): Promise<{ rulesIds: string[]; typologyCfg: string[] }> => {
+export const getIdsFromNetworkMap = async (
+  databaseManager: DatabaseManagerInstance<ManagerConfig>,
+): Promise<{ rulesIds: string[]; typologyCfg: string[] }> => {
   const networkConfigurationList = await databaseManager.getNetworkMap();
   const unwrappedNetworkMap = unwrap<NetworkMap>(networkConfigurationList as NetworkMap[][]);
   const networkMap = getRuleMap(unwrappedNetworkMap);
@@ -33,11 +36,14 @@ export const getIdsFromNetworkMap = async (databaseManager: any): Promise<{ rule
   };
 };
 
-export const getRoutesFromNetworkMap = async (databaseManager: any, processor: string): Promise<{ consumers: string[] }> => {
+export const getRoutesFromNetworkMap = async (
+  databaseManager: DatabaseManagerInstance<ManagerConfig>,
+  processor: string,
+): Promise<{ consumers: string[] }> => {
   const { typologyCfg, rulesIds } = await getIdsFromNetworkMap(databaseManager);
 
   switch (processor) {
-    case 'TP':
+    case 'typology-processor':
       return {
         consumers: rulesIds.map((eachRuleId) => 'pub-rule-' + eachRuleId),
       };
