@@ -500,7 +500,8 @@ message FRMSMessage {
       string cdtrId = 2;
       string cdtrAcctId = 3;
       string dbtrAcctId = 4;
-
+      Amt amt = 5;
+      string CreDtTm = 6;
     }
 
 
