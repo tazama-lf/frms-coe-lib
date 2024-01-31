@@ -29,7 +29,7 @@ export async function transactionHistoryBuilder(
     readyChecks.TransactionHistoryDB = dbReady ? 'Ok' : 'err';
   } catch (error) {
     const err = error as Error;
-    readyChecks.TransactionHistoryD = `err, ${formatError(err)}`;
+    readyChecks.TransactionHistoryDB = `err, ${formatError(err)}`;
   }
 
   manager.queryTransactionDB = async (collection: string, filter: string, limit?: number) => {
