@@ -5,8 +5,8 @@ export interface DataCache {
   cdtrAcctId?: string;
   evtId?: string;
   amt?: {
-    Amt: number;
-    Ccy: string;
+    amt: number;
+    ccy: string;
   };
-  CreDtTm?: string;
+  creDtTm?: string;
 }

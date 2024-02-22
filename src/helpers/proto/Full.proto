@@ -12,8 +12,10 @@ message FRMSMessage {
     }
 
     message Amt {
-        double Amt = 1;
-        string Ccy = 2;
+      reserved 1, 2;
+      reserved "Amt", "Ccy";
+      double amt = 3;
+      string ccy = 4;
     }
 
     message Schmenm {
@@ -501,7 +503,9 @@ message FRMSMessage {
       string cdtrAcctId = 3;
       string dbtrAcctId = 4;
       Amt amt = 5;
-      string CreDtTm = 6;
+      reserved 6;
+      reserved "CreDtTm";
+      string creDtTm = 7;
     }
 
 
