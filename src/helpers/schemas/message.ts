@@ -246,6 +246,18 @@ export const messageSchema = {
         dbtrAcctId: {
           type: 'string',
         },
+        amt: {
+          type: 'object',
+          properties: {
+            amt: {
+              type: 'number',
+            },
+            ccy: {
+              type: 'string',
+            },
+          },
+          required: ['amt', 'ccy'],
+        },
       },
       required: ['cdtrId', 'dbtrId', 'cdtrAcctId', 'dbtrAcctId'],
     },
