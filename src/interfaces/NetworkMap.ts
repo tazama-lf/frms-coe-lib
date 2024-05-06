@@ -24,19 +24,12 @@ export class Typology {
   }
 }
 
-export class Channel {
-  id = '';
-  host = '';
-  cfg = '';
-  typologies: Array<Typology> = [];
-}
-
 export class Message {
   id = '';
   host = '';
   cfg = '';
   txTp = '';
-  channels: Array<Channel> = [];
+  typologies: Array<Typology> = []
 }
 
 export class NetworkMap {

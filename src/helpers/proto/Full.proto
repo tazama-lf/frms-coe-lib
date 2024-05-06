@@ -358,19 +358,12 @@ message FRMSMessage {
         repeated Rules rules = 4;
     }
 
-    message Channels {
-        string id = 1;
-        string host = 2;
-        string cfg = 3;
-        repeated Typologies typologies = 4;
-    }
-
     message Messages {
         string id = 1;
         string host = 2;
         string cfg = 3;
         string txTp = 4;
-        repeated Channels channels = 5;
+        repeated Typologies typologies = 5;
     }
 
     message Networkmap {
@@ -408,16 +401,6 @@ message FRMSMessage {
         workflow workflow = 9;
     }
 
-    message Channelresult {
-        reserved 4;
-        reserved "status";
-        string id = 1;
-        string cfg = 2;
-        uint32 prcgTm = 3;
-        uint32 result = 5;
-        repeated Typologyresult typologyResult = 6;
-    }
-
     message workflow {
         uint32 alertThreshold = 1;
         uint32 interdictionThreshold = 2;
@@ -426,8 +409,8 @@ message FRMSMessage {
     message Tadpresult {
         string id = 1;
         string cfg = 2;
-        repeated Channelresult channelResult = 3;
-        uint32 prcgTm = 4;
+        uint32 prcgTm = 3;
+        repeated Typologyresult typologyResult = 4;
     }
 
     message Report {
@@ -536,9 +519,8 @@ message FRMSMessage {
     // Processor based result
     Typologyresult typologyResult = 12;
     Ruleresults ruleResult = 13;
-    Channelresult channelResult = 14;
 
-    string alreadySent = 15;
+    string alreadySent = 14;
 
 }
 

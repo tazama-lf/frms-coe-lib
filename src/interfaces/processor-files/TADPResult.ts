@@ -1,8 +1,8 @@
-import { type ChannelResult } from './ChannelResult';
+import { type TypologyResult } from './TypologyResult';
 
 export class TADPResult {
   id = '';
   cfg = '';
-  channelResult: ChannelResult[] = [];
+  typologyResult: TypologyResult[] = [];
   prcgTm? = 0;
 }
