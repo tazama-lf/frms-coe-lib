@@ -30,7 +30,7 @@ export async function configurationBuilder(manager: DatabaseManagerType, configu
   }
 
   manager.setupConfig = configurationConfig;
-  manager.nodeCache = new NodeCache();
+  manager.nodeCache = manager.setupConfig?.localCacheEnabled ? new NodeCache() : undefined;
 
   manager.queryConfigurationDB = async (collection: string, filter: string, limit?: number) => {
     const db = manager._configuration?.collection(collection);
