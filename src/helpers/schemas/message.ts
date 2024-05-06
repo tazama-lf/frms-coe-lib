@@ -71,22 +71,10 @@ export const messageSchema = {
       },
       required: ['id', 'cfg', 'desc', 'result', 'threshold', 'ruleResults', 'prcgTm'],
     },
-    channelResult: {
+    tadpResult: {
       type: 'object',
       properties: {
-        prcgTm: {
-          type: 'number',
-        },
-        result: {
-          type: 'number',
-        },
         cfg: {
-          type: 'string',
-        },
-        id: {
-          type: 'string',
-        },
-        status: {
           type: 'string',
         },
         typologyResult: {
@@ -95,21 +83,6 @@ export const messageSchema = {
             $ref: '#/definitions/typologyResult',
           },
         },
-      },
-      required: ['prcgTm', 'result', 'cfg', 'id', 'typologyResult'],
-    },
-    tadpResult: {
-      type: 'object',
-      properties: {
-        cfg: {
-          type: 'string',
-        },
-        channelResult: {
-          type: 'array',
-          items: {
-            $ref: '#/definitions/channelResult',
-          },
-        },
         id: {
           type: 'string',
         },
@@ -117,7 +90,7 @@ export const messageSchema = {
           type: 'number',
         },
       },
-      required: ['cfg', 'channelResult', 'id', 'prcgTm'],
+      required: ['cfg', 'typologyResult', 'id', 'prcgTm'],
     },
     metaData: {
       type: 'object',
@@ -170,7 +143,7 @@ export const messageSchema = {
               txTp: {
                 type: 'string',
               },
-              channels: {
+              typologies: {
                 type: 'array',
                 items: {
                   type: 'object',
@@ -184,7 +157,7 @@ export const messageSchema = {
                     cfg: {
                       type: 'string',
                     },
-                    typologies: {
+                    rules: {
                       type: 'array',
                       items: {
                         type: 'object',
@@ -198,34 +171,16 @@ export const messageSchema = {
                           cfg: {
                             type: 'string',
                           },
-                          rules: {
-                            type: 'array',
-                            items: {
-                              type: 'object',
-                              properties: {
-                                id: {
-                                  type: 'string',
-                                },
-                                host: {
-                                  type: 'string',
-                                },
-                                cfg: {
-                                  type: 'string',
-                                },
-                              },
-                              required: ['id', 'host', 'cfg'],
-                            },
-                          },
                         },
-                        required: ['id', 'host', 'cfg', 'rules'],
+                        required: ['id', 'host', 'cfg'],
                       },
                     },
                   },
-                  required: ['id', 'host', 'cfg', 'typologies'],
+                  required: ['id', 'host', 'cfg', 'rules'],
                 },
               },
             },
-            required: ['id', 'host', 'cfg', 'txTp', 'channels'],
+            required: ['id', 'host', 'cfg', 'typologies'],
           },
         },
       },
@@ -269,9 +224,6 @@ export const messageSchema = {
     },
     typologyResult: {
       $ref: '#/definitions/typologyResult',
-    },
-    channelResult: {
-      $ref: '#/definitions/channelResult',
     },
     tadpResult: {
       $ref: '#/definitions/tadpResult',
