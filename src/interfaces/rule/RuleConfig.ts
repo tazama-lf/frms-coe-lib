@@ -18,6 +18,9 @@ export interface Config {
 
 export interface OutcomeResult {
   subRuleRef: string;
+  /**
+   * @deprecated
+   */
   outcome: boolean;
   reason: string;
 }

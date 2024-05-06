@@ -382,11 +382,10 @@ message FRMSMessage {
         string id = 1;
         string cfg = 2;
         string subRuleRef = 3;
-        bool result = 4;
-        string reason = 5;
-        string desc = 6;
-        uint32 prcgTm = 7;
-        uint32 wght = 8;
+        string reason = 4;
+        string desc = 5;
+        uint32 prcgTm = 6;
+        uint32 wght = 7;
     }
 
     message Typologyresult {
