@@ -29,7 +29,7 @@ export class Message {
   host = '';
   cfg = '';
   txTp = '';
-  typologies: Array<Typology> = []
+  typologies: Array<Typology> = [];
 }
 
 export class NetworkMap {
