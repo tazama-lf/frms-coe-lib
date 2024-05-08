@@ -86,6 +86,41 @@ const dbManager: DatabaseManagerInstance<ManagerConfig> = await CreateDatabaseMa
   await databaseManager.getTransactionPacs008('1234567890-4e48-8f50-fc52942b3425')
 ```
 
+## Interfaces, Classes and Data Types
+```js
+
+// Database interfaces are found under 
+import { ConfigurationDB } from '@frmscoe/frms-coe-lib/lib/interfaces/database/ConfigurationDB';
+import { NetworkMapDB } from '@frmscoe/frms-coe-lib/lib/interfaces/database/NetworkMapDB';
+import { PseudonymsDB } from '@frmscoe/frms-coe-lib/lib/interfaces/database/PseudonymsDB';
+import { TransactionDB } from '@frmscoe/frms-coe-lib/lib/interfaces/database/TransactionDB';
+import { TransactionHistoryDB } from '@frmscoe/frms-coe-lib/lib/interfaces/database/TransactionHistoryDB';
+
+// Some simple method-less classes can be found under
+import * as frms from '@frmscoe/frms-coe-lib/lib/interfaces';
+/*
+  // frms will give access to 
+  frms.Message
+  frms.NetworkMap
+  frms.Rule
+  frms.RuleResult
+  frms.Typology
+*/
+
+// Pain and Pacs interfaces are also here
+import { Pacs002 } from '@frmscoe/frms-coe-lib/lib/interfaces';
+
+// Other data types are nested deeper under interfaces
+// eg. Data cache can be found
+import { DataCache } from '@frmscoe/frms-coe-lib/lib/interfaces/rule/DataCache';
+// Also RuleConfig, RuleRequest and RuleResult
+
+// Some processor classes for Request/Results
+import { TADPResult } from '@frmscoe/frms-coe-lib/lib/interfaces/processor-files/TADPResult';
+import { TypologyResult } from '@frmscoe/frms-coe-lib/lib/interfaces/processor-files/TypologyResult';
+
+```
+
 ## Troubleshooting
 #### npm install
 Ensure generated token has read package rights
