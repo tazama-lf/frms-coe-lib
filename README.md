@@ -15,18 +15,18 @@ While this library doesn't require environmental variables to function. When usi
 
 | Variable | Required | Purpose | Example
 | ------ | ------ | ------ | ------ |
-| `FUNCTION_NAME` | Yes | Identifier of the application which will show up in the logs as the originator of the log. (Usually application name)
+| `FUNCTION_NAME` | Yes | Identifier of the application which will show up in the logs as the originator of the log. (Usually application name) | `my-app`
 | `NODE_ENV` | No | Represents the environment the application is currently running in | `test`, `dev`
-| `LOGSTASH_HOST` | No | 
-| `LOGSTASH_PORT` | No | 
+| `LOGSTASH_HOST` | No | The endpoint at where logstash is served | `http://0.0.0.0`
+| `LOGSTASH_PORT` | No | The port of where logstash is served | `9700`
 | `LOGSTASH_LEVEL` | No | Level of log granularity | `log`, `debug`, `trace` `warn` `error`
-| `ELASTIC_HOST` | No | 
-| `ELASTIC_INDEX` | No |
-| `ELASTIC_USERNAME` | No |
-| `ELASTIC_PASSWORD` | No |
-| `ELASTIC_SEARCH_VERSION` | No |
-| `APM_LOGGING` | No |
-| `APM_SECRET_TOKEN` | No |
+| `ELASTIC_HOST` | No | The endpoint at where Elastic Search is served (including the **port**) | `http://0.0.0.0:9200`
+| `ELASTIC_INDEX` | No | The name of the index to be used by Elastic | `my-index`
+| `ELASTIC_USERNAME` | No | Your Elastic Search username | `elastic`
+| `ELASTIC_PASSWORD` | No | Your Elastic Search password | `password`
+| `ELASTIC_SEARCH_VERSION` | No | Your Elastic Search Version | `8.11`
+| `APM_LOGGING` | No | A flag configuring whether Application Performance Monitoring is enabled | `true`
+| `APM_SECRET_TOKEN` | No | To authorize requests to the APM Server | `eXaMPLEBsZWNvZGU=`
 | `RULE_VERSION` | No |
 
 ## Installation
