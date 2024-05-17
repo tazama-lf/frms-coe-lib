@@ -37,6 +37,15 @@ const configurationConfig = {
   localCacheTTL: 10,
 };
 
+const configurationConfigNoTTL = {
+  certPath: 'TestConfiguration',
+  databaseName: 'TestConfiguration',
+  user: 'TestConfiguration',
+  password: 'TestConfiguration',
+  url: 'TestConfiguration',
+  localCacheEnabled: true,
+};
+
 const configurationConfigNoCache = {
   certPath: 'TestConfiguration',
   databaseName: 'TestConfiguration',
@@ -115,7 +124,7 @@ const getMockRequest = (): Pacs002 => {
 
 const getMockNetworkMap = (): NetworkMap => {
   return JSON.parse(
-    '{"messages":[{"id":"001@1.0.0","host":"http://openfaas:8080","cfg":"1.0.0","txTp":"pain.001.001.11","channels":[{"id":"001@1.0.0","host":"http://openfaas:8080","cfg":"1.0.0","typologies":[{"id":"028@1.0.0","host":"https://example.com/off-frm-typology-processor","cfg":"1.0.0","rules":[{"id":"003@1.0.0","host":"http://openfaas:8080","cfg":"1.0.0"}]},{"id":"029@1.0.0","host":"https://example.com/function/off-frm-typology-processor","cfg":"1.0.0","rules":[{"id":"003@1.0.0","host":"http://openfaas:8080","cfg":"1.0.0"},{"id":"004@1.0.0","host":"http://openfaas:8080","cfg":"1.0.0"}]}]}]}]}',
+    '{"messages":[{"id":"001@1.0.0","host":"http://openfaas:8080","cfg":"1.0.0","txTp":"pain.001.001.11","typologies":[{"id":"028@1.0.0","host":"https://example.com/off-frm-typology-processor","cfg":"1.0.0","rules":[{"id":"003@1.0.0","host":"http://openfaas:8080","cfg":"1.0.0"}]},{"id":"029@1.0.0","host":"https://example.com/function/off-frm-typology-processor","cfg":"1.0.0","rules":[{"id":"003@1.0.0","host":"http://openfaas:8080","cfg":"1.0.0"},{"id":"004@1.0.0","host":"http://openfaas:8080","cfg":"1.0.0"}]}]}]}',
   );
 };
 
@@ -228,6 +237,52 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.getRuleConfig('test', 'test')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getTransactionConfig('test', 'test')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getTypologyExpression(getMockTypology())).toEqual(['MOCK-QUERY']);
+
+    // Rerun for now set cache values
+    dbManager.nodeCache.set('test_test', ['MOCK-QUERY']);
+    dbManager.nodeCache.set('testId_testCfg', ['MOCK-QUERY']);
+    expect(await dbManager.getRuleConfig('test', 'test')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getTransactionConfig('test', 'test')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getTypologyExpression(getMockTypology())).toEqual(['MOCK-QUERY']);
+
+    // Cleanup
+    dbManager.nodeCache.del('test_test'); // getRuleConfig && getTransactionConfig
+    dbManager.nodeCache.del('testId_testCfg'); // getTypologyExpression
+  });
+
+  it('should create a manager with configuration methods - No TTL', async () => {
+    const confConfig = {
+      configuration: {
+        ...configurationConfigNoTTL,
+      },
+    };
+
+    const dbManager = await CreateDatabaseManager(confConfig);
+
+    jest.spyOn(dbManager._configuration, 'query').mockImplementation((query: string | AqlLiteral): Promise<any> => {
+      return new Promise((resolve, reject) => {
+        isAqlQuery(query)
+          ? resolve({
+              batches: {
+                all: jest.fn().mockImplementation(() => ['MOCK-QUERY']),
+              },
+            })
+          : reject(new Error('Not AQL Query'));
+      });
+    });
+
+    expect(dbManager.queryConfigurationDB).toBeDefined();
+    expect(dbManager.getRuleConfig).toBeDefined();
+    expect(dbManager.getTransactionConfig).toBeDefined();
+    expect(dbManager.getTypologyExpression).toBeDefined();
+
+    expect(await dbManager.queryConfigurationDB('testCollection', 'testFilter')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.queryConfigurationDB('testCollection', 'testFilter', 10)).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getRuleConfig('test', 'test')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getTransactionConfig('test', 'test')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getTypologyExpression(getMockTypology())).toEqual(['MOCK-QUERY']);
+
+    dbManager.quit();
   });
 
   it('should create a manager with pseudonyms methods', async () => {
@@ -359,11 +414,67 @@ describe('CreateDatabaseManager', () => {
     dbManager.quit();
   });
 
+  it('should not try use cache for getTransactionConfig when cached not enabled', async () => {
+    const confConfig = {
+      configuration: {
+        ...configurationConfigNoCache,
+      },
+    };
+
+    const dbManager = await CreateDatabaseManager(confConfig);
+
+    jest.spyOn(dbManager._configuration, 'query').mockImplementation((query: string | AqlLiteral): Promise<any> => {
+      return new Promise((resolve, reject) => {
+        isAqlQuery(query)
+          ? resolve({
+              batches: {
+                all: jest.fn().mockImplementation(() => ['MOCK-QUERY']),
+              },
+            })
+          : reject(new Error('Not AQL Query'));
+      });
+    });
+
+    expect(await dbManager.getTransactionConfig('test-ruleid', 'test-cfg')).toEqual(['MOCK-QUERY']);
+
+    dbManager.quit();
+  });
+
+  it('should not try use cache for getTypologyExpression when cached not enabled', async () => {
+    const confConfig = {
+      configuration: {
+        ...configurationConfigNoCache,
+      },
+    };
+
+    const dbManager = await CreateDatabaseManager(confConfig);
+
+    jest.spyOn(dbManager._configuration, 'query').mockImplementation((query: string | AqlLiteral): Promise<any> => {
+      return new Promise((resolve, reject) => {
+        isAqlQuery(query)
+          ? resolve({
+              batches: {
+                all: jest.fn().mockImplementation(() => ['MOCK-QUERY']),
+              },
+            })
+          : reject(new Error('Not AQL Query'));
+      });
+    });
+
+    expect(await dbManager.getTypologyExpression(getMockTypology())).toEqual(['MOCK-QUERY']);
+
+    dbManager.quit();
+  });
+
   it('should use cert if path valid', async () => {
     const cert_config = {
       redisConfig: redisConfig,
       transactionHistory: {
         ...transactionHistoryConfig,
+        certPath: './__tests__/fake-cert.crt',
+      },
+      transaction: {
+        ...transactionConfig,
         certPath: './__tests__/fake-cert.crt',
       },
       configuration: {
@@ -500,6 +611,7 @@ describe('CreateDatabaseManager', () => {
     const config = {
       redisConfig: redisConfig,
       transactionHistory: transactionHistoryConfig,
+      transaction: transactionConfig,
       configuration: configurationConfig,
       pseudonyms: pseudonymsConfig,
       networkMap: networkMapConfig,
@@ -515,7 +627,7 @@ describe('CreateDatabaseManager', () => {
     readySpy.mockClear();
 
     // error case
-    readySpy = jest.spyOn(isDatabaseReady, 'isDatabaseReady').mockRejectedValueOnce(new Error('test error'));
+    readySpy = jest.spyOn(isDatabaseReady, 'isDatabaseReady').mockRejectedValue(new Error('test error'));
     try {
       await CreateDatabaseManager(config);
     } catch (error) {
@@ -528,6 +640,7 @@ describe('CreateDatabaseManager', () => {
     const config = {
       redisConfig: redisConfig,
       transactionHistory: transactionHistoryConfig,
+      transaction: transactionConfig,
       configuration: configurationConfig,
       pseudonyms: pseudonymsConfig,
       networkMap: networkMapConfig,

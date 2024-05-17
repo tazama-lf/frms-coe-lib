@@ -18,7 +18,6 @@ export interface Config {
 
 export interface OutcomeResult {
   subRuleRef: string;
-  outcome: boolean;
   reason: string;
 }
 
