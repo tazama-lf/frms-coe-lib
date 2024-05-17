@@ -375,7 +375,7 @@ message FRMSMessage {
     message Metadata {
         uint32 prcgTmDP = 1;
         string traceParent = 2;
-        uint32 prcgTmCRSP = 3;
+        uint32 prcgTmED = 3;
     }
 
     message Ruleresults {

@@ -4,7 +4,7 @@ import { type DataCache } from '..';
 
 interface MetaData {
   prcgTmDp: number;
-  prcgTmCRSP: number;
+  prcgTmED: number;
 }
 
 export interface RuleRequest {
