@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const formatError = (error: Error, additionalInfo?: Record<string, any>): string => {
   const { name, message, stack } = error;

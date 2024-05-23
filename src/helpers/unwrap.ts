@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 /**
  * Takes a generic 2D array and returns the item at index `[0][0]` if it's not loosely equal to `null`
  *

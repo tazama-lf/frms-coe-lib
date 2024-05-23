@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import type * as grpc from '@grpc/grpc-js';
 import type { EnumTypeDefinition, MessageTypeDefinition } from '@grpc/proto-loader';
 

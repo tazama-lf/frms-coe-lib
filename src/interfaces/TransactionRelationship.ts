@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 export interface TransactionRelationship {
   from: string;
   to: string;

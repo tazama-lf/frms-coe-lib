@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import { Database } from 'arangojs';
 import * as fs from 'fs';
 import { type DBConfig, type DatabaseManagerType, readyChecks } from '../services/dbManager';

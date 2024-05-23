@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import apm, { type AgentConfigOptions, type TransactionOptions } from 'elastic-apm-node';
 
 export class Apm {

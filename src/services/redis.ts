@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import Redis, { type Cluster } from 'ioredis';
 import { type RedisConfig } from '../interfaces/RedisConfig';
 import FRMSMessage from '../helpers/protobuf';

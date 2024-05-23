@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import { type Database } from 'arangojs';
 
 export async function isDatabaseReady(db: Database | undefined): Promise<boolean> {
