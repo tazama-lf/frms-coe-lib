@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import { AqlLiteral, isAqlQuery } from 'arangojs/aql';
 import { ConfigurationDB, PseudonymsDB, RedisService, TransactionHistoryDB, TransactionDB } from '../src';
 import * as isDatabaseReady from '../src/helpers/readyCheck';

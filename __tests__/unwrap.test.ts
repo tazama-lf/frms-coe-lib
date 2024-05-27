@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import { unwrap } from '../src/helpers/unwrap';
 
 let stringSample = [['foo']];

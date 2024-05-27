@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 export interface Pain013 {
   TxTp: string;
   CdtrPmtActvtnReq: CdtrPmtActvtnReq;

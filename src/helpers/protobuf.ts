@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import protobuf from 'protobufjs';
 import path from 'node:path';
 import { type LogMessage as LogMessageType } from './proto/lumberjack/LogMessage';

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import fastJson from 'fast-json-stringify';
 
 const pain001 = 'pain.001.001.11';
