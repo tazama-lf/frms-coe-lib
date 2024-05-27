@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 // Original file: src/helpers/proto/Lumberjack.proto
 
 export const LogLevel = {

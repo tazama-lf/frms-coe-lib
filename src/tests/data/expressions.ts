@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 export const expression028 = {
   cfg: '1.0.0',
   id: '028@1.0.0',

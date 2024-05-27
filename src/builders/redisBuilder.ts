@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import { RedisService } from '..';
 import { formatError } from '../helpers/formatter';
 import { type RedisConfig } from '../interfaces';

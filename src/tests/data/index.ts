@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import { Pacs002Sample } from './pacs002';
 import { Pacs008Sample } from './pacs008';
 import { Pain001Sample } from './pain001';

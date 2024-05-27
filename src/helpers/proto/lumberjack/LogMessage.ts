@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 // Original file: src/helpers/proto/Lumberjack.proto
 
 import type { LogLevel as _lumberjack_LogLevel, LogLevel__Output as _lumberjack_LogLevel__Output } from '../lumberjack/LogLevel';

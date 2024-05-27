@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import { messageSchema } from '../src/helpers/schemas/message';
 import fastJson from 'fast-json-stringify';
 

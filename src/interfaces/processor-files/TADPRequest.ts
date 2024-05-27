@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import { type NetworkMap, type Pacs002 } from '..';
 import { type TypologyResult } from './TypologyResult';
 

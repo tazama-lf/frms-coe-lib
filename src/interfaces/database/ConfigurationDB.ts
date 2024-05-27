@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import { type Database } from 'arangojs';
 import type NodeCache from 'node-cache';
 import { type DBConfig } from '../../services/dbManager';

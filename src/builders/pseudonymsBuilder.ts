@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import { aql, Database } from 'arangojs';
 import { join, type AqlQuery, type GeneratedAqlQuery } from 'arangojs/aql';
 import * as fs from 'fs';

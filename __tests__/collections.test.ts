@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import { dbConfiguration, dbNetworkMap, dbPseudonyms, dbTransactions } from '../src/interfaces/ArangoCollections';
 
 describe('Should point to correct collections in transactionHistory', () => {

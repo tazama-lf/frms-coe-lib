@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import { type Pain013 } from '../../interfaces';
 
 export const Pain013Sample: Pain013 = {
