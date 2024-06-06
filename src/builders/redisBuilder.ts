@@ -9,16 +9,24 @@ export async function redisBuilder(manager: DatabaseManagerType, redisConfig: Re
   try {
     const redis = await RedisService.create(redisConfig);
     manager._redisClient = redis._redisClient;
-    manager.getJson = redis.getJson;
-    manager.getBuffer = redis.getBuffer;
-    manager.getMembers = redis.getMembers;
-    manager.getMemberValues = redis.getMemberValues;
-    manager.deleteKey = redis.deleteKey;
-    manager.setJson = redis.setJson;
-    manager.set = redis.set;
-    manager.setAdd = redis.setAdd;
-    manager.addOneGetAll = redis.addOneGetAll;
-    manager.addOneGetCount = redis.addOneGetCount;
+    manager.getJson = async (...args) => await redis.getJson(...args);
+    manager.getBuffer = async (...args) => await redis.getBuffer(...args);
+    manager.getMembers = async (...args) => await redis.getMembers(...args);
+    manager.getMemberValues = async (...args) => await redis.getMemberValues(...args);
+    manager.deleteKey = async (...args) => {
+      await redis.deleteKey(...args);
+    };
+    manager.setJson = async (...args) => {
+      await redis.setJson(...args);
+    };
+    manager.set = async (...args) => {
+      await redis.set(...args);
+    };
+    manager.setAdd = async (...args) => {
+      await redis.setAdd(...args);
+    };
+    manager.addOneGetAll = async (...args) => await redis.addOneGetAll(...args);
+    manager.addOneGetCount = async (...args) => await redis.addOneGetCount(...args);
     readyChecks.Redis = 'Ok';
 
     return redis;

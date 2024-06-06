@@ -179,7 +179,7 @@ export class RedisService {
     const res = await this._redisClient.set(key, value, 'EX', expire);
 
     if (res !== 'OK') {
-      throw new Error(`Error while setting key in redis`);
+      throw new Error('Error while setting key in redis');
     }
   }
 
@@ -193,7 +193,7 @@ export class RedisService {
     const res = await this._redisClient.set(key, value, 'EX', expire);
 
     if (res !== 'OK') {
-      throw new Error(`Error while setting key in redis`);
+      throw new Error('Error while setting key in redis');
     }
   }
 

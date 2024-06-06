@@ -5,7 +5,7 @@ export const formatError = (error: Error, additionalInfo?: Record<string, any>):
   const { name, message, stack } = error;
   const timestamp = new Date().toISOString();
 
-  let formattedError = `\n--- Error Details ---\n`;
+  let formattedError = '\n--- Error Details ---\n';
   formattedError += `Name: ${name}\n`;
   formattedError += `Message: ${message}\n`;
   formattedError += `Timestamp: ${timestamp}\n`;
