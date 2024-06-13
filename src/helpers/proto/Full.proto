@@ -343,6 +343,9 @@ message FRMSMessage {
     message Transaction {
         string TxTp = 1;
         Fitofipmtsts FIToFIPmtSts = 2;
+        Fitoficstmrcdt FIToFICstmrCdt = 3;
+        Cstmrcdttrfinitn CstmrCdtTrfInitn = 4;
+        Cdtrpmtactvtnreq CdtrPmtActvtnReq = 5;
     }
 
     message Rules {
@@ -436,7 +439,6 @@ message FRMSMessage {
         optional string InstrId = 1;
         string EndToEndId = 2;
     }
-
     message Intrbksttlmamt {
         Amt Amt = 1;
     }
