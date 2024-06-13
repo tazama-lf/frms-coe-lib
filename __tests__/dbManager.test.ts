@@ -343,6 +343,33 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.getNetworkMap()).toEqual(['MOCK-QUERY']);
   });
 
+  it('should create a manager with redis methods', async () => {
+    const testTypes = <RedisService>{};
+    const dbManager: typeof testTypes = globalManager;
+
+    expect(dbManager.set).toBeDefined();
+    expect(dbManager.getJson).toBeDefined();
+    expect(dbManager.getBuffer).toBeDefined();
+    expect(dbManager.getMembers).toBeDefined();
+    expect(dbManager.getMemberValues).toBeDefined();
+    expect(dbManager.deleteKey).toBeDefined();
+    expect(dbManager.setJson).toBeDefined();
+    expect(dbManager.setAdd).toBeDefined();
+    expect(dbManager.addOneGetAll).toBeDefined();
+    expect(dbManager.addOneGetCount).toBeDefined();
+
+    // Future TODO: Requires rework to accurately test FRMSMessage standards
+    expect(await dbManager.set('testKey', 'testValue', 10000)).toEqual(undefined);
+    expect(await dbManager.getJson('testKey')).toEqual('testValue');
+    expect(await dbManager.getBuffer('testKey')).toBeDefined();
+    expect(await dbManager.setAdd('testSetKey', { key: 'testValue' })).toBeUndefined();
+    expect(await dbManager.getMemberValues('testSetKey')).toBeDefined();
+    expect(await dbManager.setJson('testKey', 'testValue', 10000)).toBeUndefined();
+    expect(await dbManager.addOneGetAll('testSetKey', { key: { innerKey: 'innerValue' } })).toBeDefined();
+    expect(await dbManager.addOneGetCount('testSetKey', { key: { innerKey: 'innerValue' } })).toBeDefined();
+    expect(await dbManager.deleteKey('testKey')).toBeUndefined();
+  });
+
   it('should create a manager with all methods', async () => {
     const testTypes = <RedisService & TransactionHistoryDB & ConfigurationDB & PseudonymsDB & NetworkMapDB>{};
     const dbManager: typeof testTypes = globalManager;
@@ -381,6 +408,18 @@ describe('CreateDatabaseManager', () => {
 
     // networkMap
     expect(dbManager.getNetworkMap).toBeDefined();
+
+    // redisService
+    expect(dbManager.getJson).toBeDefined();
+    expect(dbManager.getBuffer).toBeDefined();
+    expect(dbManager.getMembers).toBeDefined();
+    expect(dbManager.getMemberValues).toBeDefined();
+    expect(dbManager.deleteKey).toBeDefined();
+    expect(dbManager.setJson).toBeDefined();
+    expect(dbManager.set).toBeDefined();
+    expect(dbManager.setAdd).toBeDefined();
+    expect(dbManager.addOneGetAll).toBeDefined();
+    expect(dbManager.addOneGetCount).toBeDefined();
   });
 
   it('should use cache for pacs008 when provided cacheKey', async () => {
