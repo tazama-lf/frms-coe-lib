@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
-/* eslint-disable */
-
 import { NetworkMap } from '..';
 import { Alert } from './Alert';
 
 export class CMSRequest {
   message = '';
   report: Alert = new Alert();
-  transaction: any;
+  transaction: unknown;
   networkMap: NetworkMap = new NetworkMap();
 }
