@@ -42,6 +42,19 @@ export async function transactionBuilder(manager: DatabaseManagerType, transacti
     return await (await manager._transaction?.query(query))?.batches.all();
   };
 
+  manager.getReportByMessageId = async (collection: string, messageid: string) => {
+    const db = manager._transaction?.collection(collection);
+    const messageidAql = aql`${messageid}`;
+
+    const query: AqlQuery = aql`
+      FOR doc IN ${db}
+      FILTER doc.transaction.FIToFIPmtSts.GrpHdr.MsgId == ${messageidAql}
+      RETURN doc
+    `;
+
+    return await (await manager._transaction?.query(query))?.batches.all();
+  };
+
   manager.insertTransaction = async (transactionID: string, transaction: unknown, networkMap: NetworkMap, alert: unknown) => {
     const data = {
       transactionID,
