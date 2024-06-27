@@ -3,7 +3,6 @@
 import Redis, { type Cluster } from 'ioredis';
 import { type RedisConfig } from '../interfaces/RedisConfig';
 import FRMSMessage from '../helpers/protobuf';
-import { messageSchemaInstant } from '../helpers/schemas/message';
 
 type RedisData = string | number | Buffer;
 const MAX_RETRIES = 10;
@@ -101,31 +100,6 @@ export class RedisService {
       return FRMSMessage.toObject(decodedReport);
     } catch (err) {
       throw new Error(`Error while getting ${key} from Redis`);
-    }
-  }
-
-  /**
-   * @deprecated Since version 1.2.4 Will be deleted in version 1.2.5. Use getMemberValues instead
-   * Get the members of a Redis set stored under the given key.
-   *
-   * @param {string} key The key associated with the Redis set.
-   * @returns {Promise<string[]>} A Promise that resolves to an array of set members as strings.
-   */
-  async getMembers(key: string): Promise<string[]> {
-    try {
-      const res = (await this._redisClient.smembersBuffer(key)) as Uint8Array[];
-      const membersBuffer = res.map((member) => {
-        const decodedMember = FRMSMessage.decode(member);
-        return messageSchemaInstant(decodedMember.toJSON());
-      });
-
-      if (!res || membersBuffer.length === 0) {
-        return [];
-      }
-
-      return membersBuffer;
-    } catch (err) {
-      throw new Error(`Error while getting members on ${key} from Redis`);
     }
   }
 
