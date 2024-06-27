@@ -648,6 +648,32 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.insertTransaction('testID', testPacs002, testNetworkMap, {})).toEqual('MOCK-SAVE');
   });
 
+  it('should create getReportByMessageId function when transaction db is defined', async () => {
+    const localConfig = {
+      transaction: transactionConfig,
+    };
+    let localManager: DatabaseManagerInstance<typeof localConfig>;
+    localManager = await CreateDatabaseManager(localConfig);
+
+    jest.spyOn(localManager._transaction, 'query').mockImplementation((query: string | AqlLiteral): Promise<any> => {
+      return new Promise((resolve, reject) => {
+        isAqlQuery(query)
+          ? resolve({
+              batches: {
+                all: jest.fn().mockImplementation(() => ['MOCK-QUERY']),
+              },
+            })
+          : reject(new Error('Not AQL Query'));
+      });
+    });
+
+    const testTypes = <TransactionDB>{};
+    const dbManager: typeof testTypes = localManager as any;
+
+    expect(dbManager.getReportByMessageId).toBeDefined();
+    expect(await dbManager.getReportByMessageId('testCollection', 'MSGID')).toEqual(['MOCK-QUERY']);
+  });
+
   it('should error gracefully on isReadyCheck for database builders', async () => {
     const config = {
       redisConfig: redisConfig,
