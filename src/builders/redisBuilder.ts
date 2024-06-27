@@ -11,7 +11,6 @@ export async function redisBuilder(manager: DatabaseManagerType, redisConfig: Re
     manager._redisClient = redis._redisClient;
     manager.getJson = async (...args) => await redis.getJson(...args);
     manager.getBuffer = async (...args) => await redis.getBuffer(...args);
-    manager.getMembers = async (...args) => await redis.getMembers(...args);
     manager.getMemberValues = async (...args) => await redis.getMemberValues(...args);
     manager.deleteKey = async (...args) => {
       await redis.deleteKey(...args);

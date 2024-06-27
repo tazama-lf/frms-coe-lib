@@ -182,10 +182,6 @@ describe('CreateDatabaseManager', () => {
           : reject(new Error('Not AQL Query'));
       });
     });
-
-    jest.spyOn(globalManager, 'getMembers').mockImplementation((key: string): Promise<any> => {
-      return Promise.resolve(['MOCK-CACHE-QUERY']);
-    });
   });
   it('should create a manager with transactionHistory methods', async () => {
     const testTypes = <RedisService & TransactionHistoryDB>{};
@@ -350,7 +346,6 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.set).toBeDefined();
     expect(dbManager.getJson).toBeDefined();
     expect(dbManager.getBuffer).toBeDefined();
-    expect(dbManager.getMembers).toBeDefined();
     expect(dbManager.getMemberValues).toBeDefined();
     expect(dbManager.deleteKey).toBeDefined();
     expect(dbManager.setJson).toBeDefined();
@@ -412,7 +407,6 @@ describe('CreateDatabaseManager', () => {
     // redisService
     expect(dbManager.getJson).toBeDefined();
     expect(dbManager.getBuffer).toBeDefined();
-    expect(dbManager.getMembers).toBeDefined();
     expect(dbManager.getMemberValues).toBeDefined();
     expect(dbManager.deleteKey).toBeDefined();
     expect(dbManager.setJson).toBeDefined();
@@ -420,13 +414,6 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.setAdd).toBeDefined();
     expect(dbManager.addOneGetAll).toBeDefined();
     expect(dbManager.addOneGetCount).toBeDefined();
-  });
-
-  it('should use cache for pacs008 when provided cacheKey', async () => {
-    const testTypes = <RedisService & TransactionHistoryDB>{};
-    const dbManager: typeof testTypes = globalManager;
-
-    expect(await dbManager.getTransactionPacs008('test', 'test-cache')).toEqual(['MOCK-CACHE-QUERY']);
   });
 
   it('should not try use cache for getRuleConfig when cached not enabled', async () => {
