@@ -49,38 +49,17 @@ export async function transactionHistoryBuilder(
     return await (await manager._transactionHistory?.query(query))?.batches.all();
   };
 
-  if (redis) {
-    manager.getTransactionPacs008 = async (endToEndId: string, cacheKey = '') => {
-      let cacheVal: string[] = [];
+  manager.getTransactionPacs008 = async (endToEndId: string) => {
+    const db = manager._transactionHistory?.collection(dbTransactions.pacs008);
 
-      if (cacheKey !== '') {
-        cacheVal = await manager.getMembers!(cacheKey);
-        if (cacheVal.length > 0) return await Promise.resolve(cacheVal);
-      }
-
-      const db = manager._transactionHistory?.collection(dbTransactions.pacs008);
-
-      const query: AqlQuery = aql`
+    const query: AqlQuery = aql`
         FOR doc IN ${db}
         FILTER doc.FIToFICstmrCdtTrf.CdtTrfTxInf.PmtId.EndToEndId == ${endToEndId}
         RETURN doc
       `;
 
-      return await (await manager._transactionHistory?.query(query))?.batches.all();
-    };
-  } else {
-    manager.getTransactionPacs008 = async (endToEndId: string) => {
-      const db = manager._transactionHistory?.collection(dbTransactions.pacs008);
-
-      const query: AqlQuery = aql`
-        FOR doc IN ${db}
-        FILTER doc.FIToFICstmrCdtTrf.CdtTrfTxInf.PmtId.EndToEndId == ${endToEndId}
-        RETURN doc
-      `;
-
-      return await (await manager._transactionHistory?.query(query))?.batches.all();
-    };
-  }
+    return await (await manager._transactionHistory?.query(query))?.batches.all();
+  };
 
   manager.getTransactionPain001 = async (endToEndId: string) => {
     const db = manager._transactionHistory?.collection(dbTransactions.pain001);
