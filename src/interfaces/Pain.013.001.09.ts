@@ -35,7 +35,7 @@ interface InitgPtyID {
 
 interface PrvtID {
   DtAndPlcOfBirth: DtAndPLCOfBirth;
-  Othr: PrvtIDOthr;
+  Othr: PrvtIDOthr[];
 }
 
 interface DtAndPLCOfBirth {
@@ -104,7 +104,7 @@ interface CdtrAcct {
 }
 
 interface CdtrAcctID {
-  Othr: PrvtIDOthr;
+  Othr: PrvtIDOthr[];
 }
 
 interface TrAgt {
@@ -163,7 +163,7 @@ interface DbtrAcct {
 }
 
 interface DbtrAcctID {
-  Othr: PurpleOthr;
+  Othr: PurpleOthr[];
 }
 
 interface PurpleOthr {

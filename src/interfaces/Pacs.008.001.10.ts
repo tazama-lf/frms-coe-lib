@@ -2,11 +2,11 @@
 
 export interface Pacs008 {
   TxTp: string;
-  FIToFICstmrCdt: FIToFICstmrCdt;
+  FIToFICstmrCdtTrf: FIToFICstmrCdtTrf;
   _key?: string;
 }
 
-interface FIToFICstmrCdt {
+interface FIToFICstmrCdtTrf {
   GrpHdr: GrpHdr;
   CdtTrfTxInf: CdtTrfTxInf;
   RgltryRptg: RgltryRptg;
@@ -46,7 +46,7 @@ interface CdtrID {
 
 interface PrvtID {
   DtAndPlcOfBirth: DtAndPLCOfBirth;
-  Othr: Othr;
+  Othr: Othr[];
 }
 
 interface DtAndPLCOfBirth {
@@ -70,7 +70,7 @@ interface TrAcct {
 }
 
 interface CdtrAcctID {
-  Othr: Othr;
+  Othr: Othr[];
 }
 
 interface Agt {

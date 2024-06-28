@@ -990,7 +990,7 @@ export const messageSchema = {
             properties: {
               // pacs008
               TxTp: { type: 'string', enum: [pacs008] },
-              FIToFICstmrCdt: {
+              FIToFICstmrCdtTrf: {
                 type: 'object',
                 properties: {
                   GrpHdr: {

@@ -471,7 +471,7 @@ const pain013 = {
 
 const pacs008 = {
   TxTp: 'pacs.008.001.10',
-  FIToFICstmrCdt: {
+  FIToFICstmrCdtTrf: {
     GrpHdr: {
       MsgId: '72151857aaaf4146a806d01dbe110916',
       CreDtTm: '2023-07-04T14:36:56.431Z',

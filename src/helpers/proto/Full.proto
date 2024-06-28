@@ -29,7 +29,7 @@ message FRMSMessage {
 
     message Prvtid {
         Dtandplcofbirth DtAndPlcOfBirth = 1;
-        Othr Othr = 2;
+        repeated Othr Othr = 2;
     }
 
     message Id {
@@ -76,7 +76,7 @@ message FRMSMessage {
     }
 
     message Id2 {
-        Othr Othr = 1;
+        repeated Othr Othr = 1;
     }
 
     message Dbtracct {
@@ -343,7 +343,7 @@ message FRMSMessage {
     message Transaction {
         string TxTp = 1;
         Fitofipmtsts FIToFIPmtSts = 2;
-        Fitoficstmrcdt FIToFICstmrCdt = 3;
+        FIToFICstmrCdtTrf FIToFICstmrCdtTrf = 3;
         Cstmrcdttrfinitn CstmrCdtTrfInitn = 4;
         Cdtrpmtactvtnreq CdtrPmtActvtnReq = 5;
     }
@@ -473,7 +473,7 @@ message FRMSMessage {
         Envlp Envlp = 1;
     }
 
-    message Fitoficstmrcdt {
+    message FIToFICstmrCdtTrf {
         GrphdrPacs008 GrpHdr = 1;
         CdttrftxinfPacs008 CdtTrfTxInf = 2;
         Rgltryrptg RgltryRptg = 3;
@@ -511,7 +511,7 @@ message FRMSMessage {
     string TxTp = 7;
     Fitofipmtsts FIToFIPmtSts = 8;
     // Pacs008
-    Fitoficstmrcdt FIToFICstmrCdt = 9;
+    FIToFICstmrCdtTrf FIToFICstmrCdtTrf = 9;
     // Pain001
     Cstmrcdttrfinitn CstmrCdtTrfInitn = 10;
     // Pain013
