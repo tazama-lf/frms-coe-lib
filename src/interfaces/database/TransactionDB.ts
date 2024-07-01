@@ -22,7 +22,7 @@ export interface TransactionDB {
    */
   queryTransactionDB: (collection: string, filter: string, limit?: number) => Promise<unknown>;
 
-    /**
+  /**
    * @param collection: Collection name against which this query will be run
    * @param messageid: A String value that will be used to compare with Msgid from reports stored
    *
@@ -35,7 +35,7 @@ export interface TransactionDB {
    *
    * @memberof TransactionHistoryDB
    */
-    getReportByMessageId: (collection: string, messageid: string) => Promise<unknown>;
+  getReportByMessageId: (collection: string, messageid: string) => Promise<unknown>;
 
   /* ```
    * const query = aql`

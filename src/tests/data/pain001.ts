@@ -18,12 +18,14 @@ export const Pain001Sample: Pain001 = {
               CityOfBirth: 'Unknown',
               CtryOfBirth: 'ZZ',
             },
-            Othr: {
-              Id: '+36-432226947',
-              SchmeNm: {
-                Prtry: 'MSISDN',
+            Othr: [
+              {
+                Id: '+36-432226947',
+                SchmeNm: {
+                  Prtry: 'MSISDN',
+                },
               },
-            },
+            ],
           },
         },
         CtctDtls: {
@@ -53,12 +55,14 @@ export const Pain001Sample: Pain001 = {
               CityOfBirth: 'Unknown',
               CtryOfBirth: 'ZZ',
             },
-            Othr: {
-              Id: '+36-432226947',
-              SchmeNm: {
-                Prtry: 'typolog028',
+            Othr: [
+              {
+                Id: '+36-432226947',
+                SchmeNm: {
+                  Prtry: 'typolog028',
+                },
               },
-            },
+            ],
           },
         },
         CtctDtls: {
@@ -67,12 +71,14 @@ export const Pain001Sample: Pain001 = {
       },
       DbtrAcct: {
         Id: {
-          Othr: {
-            Id: '+36-432226947',
-            SchmeNm: {
-              Prtry: 'MSISDN',
+          Othr: [
+            {
+              Id: '+36-432226947',
+              SchmeNm: {
+                Prtry: 'MSISDN',
+              },
             },
-          },
+          ],
         },
         Nm: 'April Grant',
       },
@@ -124,12 +130,14 @@ export const Pain001Sample: Pain001 = {
                 CityOfBirth: 'Unknown',
                 CtryOfBirth: 'ZZ',
               },
-              Othr: {
-                Id: '+42-966969344',
-                SchmeNm: {
-                  Prtry: 'MSISDN',
+              Othr: [
+                {
+                  Id: '+42-966969344',
+                  SchmeNm: {
+                    Prtry: 'MSISDN',
+                  },
                 },
-              },
+              ],
             },
           },
           CtctDtls: {
@@ -138,12 +146,14 @@ export const Pain001Sample: Pain001 = {
         },
         CdtrAcct: {
           Id: {
-            Othr: {
-              Id: '+42-966969344',
-              SchmeNm: {
-                Prtry: 'MSISDN',
+            Othr: [
+              {
+                Id: '+42-966969344',
+                SchmeNm: {
+                  Prtry: 'MSISDN',
+                },
               },
-            },
+            ],
           },
           Nm: 'Felicia Quill',
         },
