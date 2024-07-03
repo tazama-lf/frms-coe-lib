@@ -4,7 +4,7 @@ import { AqlLiteral, isAqlQuery } from 'arangojs/aql';
 import { ConfigurationDB, PseudonymsDB, RedisService, TransactionHistoryDB, TransactionDB } from '../src';
 import * as isDatabaseReady from '../src/helpers/readyCheck';
 import { AccountType, NetworkMap, Pacs002, TransactionRelationship, Typology } from '../src/interfaces';
-import { CreateDatabaseManager, DatabaseManagerInstance, NetworkMapDB } from '../src/services/dbManager';
+import { CreateDatabaseManager, DatabaseManagerInstance } from '../src/services/dbManager';
 
 // redis and aragojs are mocked
 // setup.jest.js
@@ -170,18 +170,6 @@ describe('CreateDatabaseManager', () => {
           : reject(new Error('Not AQL Query'));
       });
     });
-
-    jest.spyOn(globalManager._networkMap, 'query').mockImplementation((query: string | AqlLiteral): Promise<any> => {
-      return new Promise((resolve, reject) => {
-        isAqlQuery(query)
-          ? resolve({
-              batches: {
-                all: jest.fn().mockImplementation(() => ['MOCK-QUERY']),
-              },
-            })
-          : reject(new Error('Not AQL Query'));
-      });
-    });
   });
   it('should create a manager with transactionHistory methods', async () => {
     const testTypes = <RedisService & TransactionHistoryDB>{};
@@ -228,24 +216,24 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.queryConfigurationDB).toBeDefined();
     expect(dbManager.getRuleConfig).toBeDefined();
     expect(dbManager.getTransactionConfig).toBeDefined();
-    expect(dbManager.getTypologyExpression).toBeDefined();
+    expect(dbManager.getTypologyConfig).toBeDefined();
 
     expect(await dbManager.queryConfigurationDB('testCollection', 'testFilter')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.queryConfigurationDB('testCollection', 'testFilter', 10)).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getRuleConfig('test', 'test')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getTransactionConfig('test', 'test')).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getTypologyExpression(getMockTypology())).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getTypologyConfig(getMockTypology())).toEqual(['MOCK-QUERY']);
 
     // Rerun for now set cache values
     dbManager.nodeCache.set('test_test', ['MOCK-QUERY']);
     dbManager.nodeCache.set('testId_testCfg', ['MOCK-QUERY']);
     expect(await dbManager.getRuleConfig('test', 'test')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getTransactionConfig('test', 'test')).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getTypologyExpression(getMockTypology())).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getTypologyConfig(getMockTypology())).toEqual(['MOCK-QUERY']);
 
     // Cleanup
     dbManager.nodeCache.del('test_test'); // getRuleConfig && getTransactionConfig
-    dbManager.nodeCache.del('testId_testCfg'); // getTypologyExpression
+    dbManager.nodeCache.del('testId_testCfg'); // getTypologyConfig
   });
 
   it('should create a manager with configuration methods - No TTL', async () => {
@@ -272,13 +260,13 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.queryConfigurationDB).toBeDefined();
     expect(dbManager.getRuleConfig).toBeDefined();
     expect(dbManager.getTransactionConfig).toBeDefined();
-    expect(dbManager.getTypologyExpression).toBeDefined();
+    expect(dbManager.getTypologyConfig).toBeDefined();
 
     expect(await dbManager.queryConfigurationDB('testCollection', 'testFilter')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.queryConfigurationDB('testCollection', 'testFilter', 10)).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getRuleConfig('test', 'test')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getTransactionConfig('test', 'test')).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getTypologyExpression(getMockTypology())).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getTypologyConfig(getMockTypology())).toEqual(['MOCK-QUERY']);
 
     dbManager.quit();
   });
@@ -330,15 +318,6 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.saveEntity('test', 'testTime')).toEqual('MOCK-SAVE');
   });
 
-  it('should create a manager with network map methods', async () => {
-    const testTypes = <NetworkMapDB>{};
-    const dbManager: typeof testTypes = globalManager;
-
-    expect(dbManager.getNetworkMap).toBeDefined();
-
-    expect(await dbManager.getNetworkMap()).toEqual(['MOCK-QUERY']);
-  });
-
   it('should create a manager with redis methods', async () => {
     const testTypes = <RedisService>{};
     const dbManager: typeof testTypes = globalManager;
@@ -366,7 +345,7 @@ describe('CreateDatabaseManager', () => {
   });
 
   it('should create a manager with all methods', async () => {
-    const testTypes = <RedisService & TransactionHistoryDB & ConfigurationDB & PseudonymsDB & NetworkMapDB>{};
+    const testTypes = <RedisService & TransactionHistoryDB & ConfigurationDB & PseudonymsDB>{};
     const dbManager: typeof testTypes = globalManager;
 
     // transactionHistory
@@ -385,6 +364,8 @@ describe('CreateDatabaseManager', () => {
     // configuration
     expect(dbManager.queryConfigurationDB).toBeDefined();
     expect(dbManager.getRuleConfig).toBeDefined();
+    expect(dbManager.getNetworkMap).toBeDefined();
+    expect(dbManager.getTypologyConfig).toBeDefined();
 
     // pseudonyms
     expect(dbManager.queryPseudonymDB).toBeDefined();
@@ -468,7 +449,7 @@ describe('CreateDatabaseManager', () => {
     dbManager.quit();
   });
 
-  it('should not try use cache for getTypologyExpression when cached not enabled', async () => {
+  it('should not try use cache for getTypologyConfig when cached not enabled', async () => {
     const confConfig = {
       configuration: {
         ...configurationConfigNoCache,
@@ -489,7 +470,7 @@ describe('CreateDatabaseManager', () => {
       });
     });
 
-    expect(await dbManager.getTypologyExpression(getMockTypology())).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getTypologyConfig(getMockTypology())).toEqual(['MOCK-QUERY']);
 
     dbManager.quit();
   });
