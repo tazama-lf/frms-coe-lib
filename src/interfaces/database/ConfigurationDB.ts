@@ -68,5 +68,5 @@ export interface ConfigurationDB {
    * ```
    * @memberof ConfigurationDB
    */
-  getTypologyExpression: (typology: Typology) => Promise<unknown>;
+  getTypologyConfig: (typology: Typology) => Promise<unknown>;
 }

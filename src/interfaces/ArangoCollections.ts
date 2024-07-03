@@ -19,7 +19,7 @@ const schema = {
   },
   config: {
     self: 'configuration',
-    typologyExpression: 'typologyExpression',
+    typologyConfiguration: 'typologyConfiguration',
     transactionConfiguration: 'transactionConfiguration',
   },
 };

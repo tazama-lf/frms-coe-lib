@@ -94,13 +94,13 @@ export async function configurationBuilder(manager: DatabaseManagerType, configu
     return toReturn;
   };
 
-  manager.getTypologyExpression = async (typology: Typology) => {
+  manager.getTypologyConfig = async (typology: Typology) => {
     const cacheKey = `${typology.id}_${typology.cfg}`;
     if (manager.setupConfig?.localCacheEnabled ?? false) {
       const cacheVal = manager.nodeCache?.get(cacheKey);
       if (cacheVal) return await Promise.resolve(cacheVal);
     }
-    const db = manager._configuration?.collection(dbConfiguration.typologyExpression);
+    const db = manager._configuration?.collection(dbConfiguration.typologyConfiguration);
     const query: AqlQuery = aql`
       FOR doc IN ${db}
       FILTER doc.id == ${typology.id} AND doc.cfg == ${typology.cfg}
