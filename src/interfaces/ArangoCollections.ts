@@ -18,7 +18,7 @@ const schema = {
     netConfig: 'networkConfiguration',
   },
   config: {
-    self: 'configuration',
+    ruleConfiguration: 'ruleConfiguration',
     typologyConfiguration: 'typologyConfiguration',
     transactionConfiguration: 'transactionConfiguration',
   },

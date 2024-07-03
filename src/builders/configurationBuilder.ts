@@ -56,7 +56,7 @@ export async function configurationBuilder(manager: DatabaseManagerType, configu
       if (cacheVal) return await Promise.resolve(cacheVal);
     }
     const aqlLimit = limit ? aql`LIMIT ${limit}` : undefined;
-    const db = manager._configuration?.collection(dbConfiguration.self);
+    const db = manager._configuration?.collection(dbConfiguration.ruleConfiguration);
     const query: AqlQuery = aql`
       FOR doc IN ${db}
       FILTER doc.id == ${ruleId}
