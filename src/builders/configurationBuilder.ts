@@ -115,7 +115,7 @@ export async function configurationBuilder(manager: DatabaseManagerType, configu
   };
 
   manager.getNetworkMap = async () => {
-    const db = manager._configuration?.collection(dbConfiguration.networkMapConfiguration);
+    const db = manager._configuration?.collection(dbConfiguration.networkConfiguration);
     const networkConfigurationQuery: AqlQuery = aql`
         FOR doc IN ${db}
         FILTER doc.active == true

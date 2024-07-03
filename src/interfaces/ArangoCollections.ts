@@ -18,7 +18,7 @@ const schema = {
     ruleConfiguration: 'ruleConfiguration',
     typologyConfiguration: 'typologyConfiguration',
     transactionConfiguration: 'transactionConfiguration',
-    networkMapConfiguration: 'networkMapConfiguration',
+    networkConfiguration: 'networkConfiguration',
   },
 };
 const { transactions, pseudonyms, config } = schema;
