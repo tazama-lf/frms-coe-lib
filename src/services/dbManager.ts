@@ -7,12 +7,10 @@ import { type RedisConfig } from '../interfaces';
 import { type PseudonymsDB } from '../interfaces/database/PseudonymsDB';
 import { type TransactionHistoryDB } from '../interfaces/database/TransactionHistoryDB';
 import { type ConfigurationDB } from '../interfaces/database/ConfigurationDB';
-import { type NetworkMapDB } from '../interfaces/database/NetworkMapDB';
 import { redisBuilder } from '../builders/redisBuilder';
 import { pseudonymsBuilder } from '../builders/pseudonymsBuilder';
 import { transactionHistoryBuilder } from '../builders/transactionHistoryBuilder';
 import { configurationBuilder } from '../builders/configurationBuilder';
-import { networkMapBuilder } from '../builders/networkMapBuilder';
 import { type TransactionDB } from '../interfaces/database/TransactionDB';
 import { transactionBuilder } from '../builders/transactionBuilder';
 
@@ -33,7 +31,6 @@ interface ManagerConfig {
   transactionHistory?: DBConfig;
   transaction?: DBConfig;
   configuration?: DBConfig;
-  networkMap?: DBConfig;
   redisConfig?: RedisConfig;
 }
 
@@ -47,7 +44,7 @@ interface ManagerStatus {
 }
 
 export type DatabaseManagerType = Partial<
-  ManagerStatus & PseudonymsDB & TransactionHistoryDB & TransactionDB & ConfigurationDB & NetworkMapDB & RedisService
+  ManagerStatus & PseudonymsDB & TransactionHistoryDB & TransactionDB & ConfigurationDB & RedisService
 >;
 
 type DatabaseManagerInstance<T extends ManagerConfig> = ManagerStatus &
@@ -55,7 +52,6 @@ type DatabaseManagerInstance<T extends ManagerConfig> = ManagerStatus &
   (T extends { transactionHistory: DBConfig } ? TransactionHistoryDB : Record<string, any>) &
   (T extends { transaction: DBConfig } ? TransactionDB : Record<string, any>) &
   (T extends { configuration: DBConfig } ? ConfigurationDB : Record<string, any>) &
-  (T extends { networkMap: DBConfig } ? NetworkMapDB : Record<string, any>) &
   (T extends { redisConfig: RedisConfig } ? RedisService : Record<string, any>);
 
 /**
@@ -87,10 +83,6 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
     await configurationBuilder(manager, config.configuration);
   }
 
-  if (config.networkMap) {
-    await networkMapBuilder(manager, config.networkMap);
-  }
-
   manager.isReadyCheck = () => readyChecks;
 
   manager.quit = () => {
@@ -98,7 +90,6 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
     manager._pseudonymsDb?.close();
     manager._transactionHistory?.close();
     manager._configuration?.close();
-    manager._networkMap?.close();
     manager._transaction?.close();
   };
 
@@ -110,4 +101,4 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
   return manager as DatabaseManagerInstance<T>;
 }
 
-export type { ManagerConfig, TransactionHistoryDB, TransactionDB, ConfigurationDB, PseudonymsDB, DatabaseManagerInstance, NetworkMapDB };
+export type { ManagerConfig, TransactionHistoryDB, TransactionDB, ConfigurationDB, PseudonymsDB, DatabaseManagerInstance };

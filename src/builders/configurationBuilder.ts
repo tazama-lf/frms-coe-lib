@@ -113,4 +113,14 @@ export async function configurationBuilder(manager: DatabaseManagerType, configu
     }
     return toReturn;
   };
+
+  manager.getNetworkMap = async () => {
+    const db = manager._configuration?.collection(dbConfiguration.networkMapConfiguration);
+    const networkConfigurationQuery: AqlQuery = aql`
+        FOR doc IN ${db}
+        FILTER doc.active == true
+        RETURN doc
+      `;
+    return await (await manager._configuration?.query(networkConfigurationQuery))?.batches.all();
+  };
 }

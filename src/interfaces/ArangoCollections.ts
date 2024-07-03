@@ -14,18 +14,15 @@ const schema = {
     entities: 'entities',
     transactionRelationship: 'transactionRelationship',
   },
-  networkMap: {
-    netConfig: 'networkConfiguration',
-  },
   config: {
     ruleConfiguration: 'ruleConfiguration',
     typologyConfiguration: 'typologyConfiguration',
     transactionConfiguration: 'transactionConfiguration',
+    networkMapConfiguration: 'networkMapConfiguration',
   },
 };
-const { transactions, pseudonyms, networkMap, config } = schema;
+const { transactions, pseudonyms, config } = schema;
 const dbTransactions = Object.freeze(transactions);
 const dbPseudonyms = Object.freeze(pseudonyms);
 const dbConfiguration = Object.freeze(config);
-const dbNetworkMap = Object.freeze(networkMap);
-export { dbTransactions, dbPseudonyms, dbConfiguration, dbNetworkMap };
+export { dbTransactions, dbPseudonyms, dbConfiguration };
