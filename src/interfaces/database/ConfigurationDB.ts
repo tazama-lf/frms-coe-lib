@@ -68,5 +68,19 @@ export interface ConfigurationDB {
    * ```
    * @memberof ConfigurationDB
    */
-  getTypologyExpression: (typology: Typology) => Promise<unknown>;
+  getTypologyConfig: (typology: Typology) => Promise<unknown>;
+
+  /**
+   * Finds all active networkmaps
+   *
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER doc.active == true
+   * RETURN doc
+   * ```
+   *
+   * @memberof ConfigurationDB
+   */
+  getNetworkMap: () => Promise<unknown>;
 }
