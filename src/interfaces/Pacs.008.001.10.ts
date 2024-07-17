@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
+import { type DataCache } from './rule/DataCache';
+
 export interface Pacs008 {
   TxTp: string;
   FIToFICstmrCdtTrf: FIToFICstmrCdtTrf;
   _key?: string;
+  DataCache?: DataCache;
 }
 
 interface FIToFICstmrCdtTrf {
