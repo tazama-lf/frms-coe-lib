@@ -1,21 +1,26 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import { config } from '../config';
-import { pino } from 'pino';
+import { type DestinationStream, pino } from 'pino';
 import { LumberjackGRPCService } from './lumberjackGRPCService';
 import { type LogLevel } from '../helpers/proto/lumberjack/LogLevel';
 import { type LogCallback, createElasticStream } from '../helpers/logUtilities';
 
-const { stream } = createElasticStream(
-  config.logger.pinoElasticOpts.elasticHost,
-  config.logger.pinoElasticOpts.elasticVersion,
-  config.logger.pinoElasticOpts.elasticUsername,
-  config.logger.pinoElasticOpts.elasticPassword,
-  config.logger.pinoElasticOpts.flushBytes,
-  config.logger.pinoElasticOpts.elasticIndex,
-);
+const pinoStream = (): DestinationStream => {
+  const { stream } = createElasticStream(
+    config.logger.pinoElasticOpts.elasticHost,
+    config.logger.pinoElasticOpts.elasticVersion,
+    config.logger.pinoElasticOpts.elasticUsername,
+    config.logger.pinoElasticOpts.elasticPassword,
+    config.logger.pinoElasticOpts.flushBytes,
+    config.logger.pinoElasticOpts.elasticIndex,
+  );
+  return stream;
+};
 
 const LOGLEVEL = config.logger.logstashLevel.toLowerCase();
 
-const logger = config.nodeEnv === 'dev' || config.nodeEnv === 'test' ? console : pino({ level: LOGLEVEL, stream });
+const logger = config.nodeEnv === 'dev' || config.nodeEnv === 'test' ? console : pino({ level: LOGLEVEL }, pinoStream());
 
 type LogFunc = (message: string, serviceOperation?: string, id?: string, callback?: LogCallback) => void;
 type ErrorFunc = (message: string | Error, innerError?: unknown, serviceOperation?: string, id?: string, callback?: LogCallback) => void;

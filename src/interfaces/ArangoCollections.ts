@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 const schema = {
   transactions: {
     pacs008: 'transactionHistoryPacs008',
@@ -12,18 +14,15 @@ const schema = {
     entities: 'entities',
     transactionRelationship: 'transactionRelationship',
   },
-  networkMap: {
-    netConfig: 'networkConfiguration',
-  },
   config: {
-    self: 'configuration',
-    typologyExpression: 'typologyExpression',
+    ruleConfiguration: 'ruleConfiguration',
+    typologyConfiguration: 'typologyConfiguration',
     transactionConfiguration: 'transactionConfiguration',
+    networkConfiguration: 'networkConfiguration',
   },
 };
-const { transactions, pseudonyms, networkMap, config } = schema;
+const { transactions, pseudonyms, config } = schema;
 const dbTransactions = Object.freeze(transactions);
 const dbPseudonyms = Object.freeze(pseudonyms);
 const dbConfiguration = Object.freeze(config);
-const dbNetworkMap = Object.freeze(networkMap);
-export { dbTransactions, dbPseudonyms, dbConfiguration, dbNetworkMap };
+export { dbTransactions, dbPseudonyms, dbConfiguration };

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 // Original file: src/helpers/proto/Lumberjack.proto
 
 import type * as grpc from '@grpc/grpc-js';

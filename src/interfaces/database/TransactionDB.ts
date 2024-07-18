@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import { type Database } from 'arangojs';
 import { type NetworkMap } from '..';
 
@@ -19,6 +21,21 @@ export interface TransactionDB {
    * @memberof TransactionHistoryDB
    */
   queryTransactionDB: (collection: string, filter: string, limit?: number) => Promise<unknown>;
+
+  /**
+   * @param collection: Collection name against which this query will be run
+   * @param messageid: A String value that will be used to compare with Msgid from reports stored
+   *
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER doc.transaction.FIToFIPmtSts.GrpHdr.MsgId == ${messageid}
+   * RETURN doc`;
+   * ```
+   *
+   * @memberof TransactionHistoryDB
+   */
+  getReportByMessageId: (collection: string, messageid: string) => Promise<unknown>;
 
   /* ```
    * const query = aql`

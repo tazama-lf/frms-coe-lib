@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 export interface RuleConfig {
   _key?: string;
   _id?: string;
@@ -18,7 +20,6 @@ export interface Config {
 
 export interface OutcomeResult {
   subRuleRef: string;
-  outcome: boolean;
   reason: string;
 }
 

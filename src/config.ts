@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import path from 'path';
 import { config as dotenv } from 'dotenv';
 
@@ -28,11 +30,11 @@ dotenv({
 });
 
 export const config: IConfig = {
-  functionName: process.env.FUNCTION_NAME as string,
+  functionName: process.env.FUNCTION_NAME!,
   logger: {
-    logstashHost: process.env.LOGSTASH_HOST as string,
+    logstashHost: process.env.LOGSTASH_HOST!,
     logstashPort: parseInt(process.env.LOGSTASH_PORT ?? '0', 10),
-    logstashLevel: (process.env.LOGSTASH_LEVEL as string) || 'info',
+    logstashLevel: process.env.LOGSTASH_LEVEL! || 'info',
     pinoElasticOpts: {
       flushBytes: 1000,
       elasticUsername: process.env.ELASTIC_USERNAME ?? '',
@@ -43,7 +45,7 @@ export const config: IConfig = {
     },
   },
   apmLogging: process.env.APM_LOGGING === 'true',
-  apmSecretToken: process.env.APM_SECRET_TOKEN as string,
-  ruleVersion: process.env.RULE_VERSION as string,
-  nodeEnv: process.env.NODE_ENV as string,
+  apmSecretToken: process.env.APM_SECRET_TOKEN!,
+  ruleVersion: process.env.RULE_VERSION!,
+  nodeEnv: process.env.NODE_ENV!,
 };

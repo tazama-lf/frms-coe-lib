@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import { aql } from 'arangojs';
 import { type GeneratedAqlQuery } from 'arangojs/aql';
 import { CreateDatabaseManager, type TransactionDB, type DatabaseManagerInstance, type ManagerConfig } from './services/dbManager';

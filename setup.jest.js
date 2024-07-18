@@ -1,4 +1,4 @@
-/* eslint-disable */
+// SPDX-License-Identifier: Apache-2.0
 
 // Use mock redis instead of actual in jest
 jest.mock('ioredis', () => jest.requireActual('ioredis-mock'));

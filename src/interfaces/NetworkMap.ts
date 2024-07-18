@@ -1,9 +1,10 @@
-/* eslint-disable */
+// SPDX-License-Identifier: Apache-2.0
+
 export class Rule {
   id = '';
   cfg = '';
   host = '';
-  typologies: Array<Typology> = [];
+  typologies: Typology[] = [];
 
   getStrValue(): string {
     return `${this.id}${this.cfg}`;
@@ -15,20 +16,13 @@ export class Typology {
   host = '';
   cfg = '';
   desc = '';
-  rules: Array<Rule> = [];
+  rules: Rule[] = [];
 
-  constructor(typology_id: string, cfg: string, host: string) {
-    this.id = typology_id;
+  constructor(typologyId: string, cfg: string, host: string) {
+    this.id = typologyId;
     this.cfg = cfg;
     this.host = host;
   }
-}
-
-export class Channel {
-  id = '';
-  host = '';
-  cfg = '';
-  typologies: Array<Typology> = [];
 }
 
 export class Message {
@@ -36,11 +30,11 @@ export class Message {
   host = '';
   cfg = '';
   txTp = '';
-  channels: Array<Channel> = [];
+  typologies: Typology[] = [];
 }
 
 export class NetworkMap {
   active = false;
   cfg = '';
-  messages: Array<Message> = [];
+  messages: Message[] = [];
 }

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import { type Database } from 'arangojs';
 import { type NetworkMap, type AccountType, type Pain001, type Pain013, type Pacs008, type Pacs002 } from '..';
 

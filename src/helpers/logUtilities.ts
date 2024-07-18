@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import { ecsFormat } from '@elastic/ecs-pino-format';
 import { type LoggerOptions } from 'pino';
 import pinoElastic, { type DestinationStream } from 'pino-elasticsearch';

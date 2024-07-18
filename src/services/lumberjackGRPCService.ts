@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'node:path';
@@ -19,8 +21,8 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 const logProto: any = grpc.loadPackageDefinition(packageDefinition).lumberjack;
 
 export class LumberjackGRPCService {
-  #client: LumberjackClient;
-  #channel: string;
+  readonly #client: LumberjackClient;
+  readonly #channel: string;
   constructor(host: string, channel: string) {
     this.#client = new logProto.Lumberjack(host, grpc.credentials.createInsecure());
     this.#channel = channel;

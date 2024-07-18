@@ -1,4 +1,6 @@
-import { dbConfiguration, dbNetworkMap, dbPseudonyms, dbTransactions } from '../src/interfaces/ArangoCollections';
+// SPDX-License-Identifier: Apache-2.0
+
+import { dbConfiguration, dbPseudonyms, dbTransactions } from '../src/interfaces/ArangoCollections';
 
 describe('Should point to correct collections in transactionHistory', () => {
   test('transactionHistoryPacs008', () => {
@@ -30,12 +32,12 @@ describe('Should point to correct collections in pseudonyms', () => {
 
 describe('Should point to correct collections in configuration', () => {
   test('configuration', () => {
-    expect(dbConfiguration.self).toBe('configuration');
+    expect(dbConfiguration.ruleConfiguration).toBe('ruleConfiguration');
   });
 });
 
 describe('Should point to correct collections in networkmap', () => {
   test('networkConfiguration', () => {
-    expect(dbNetworkMap.netConfig).toBe('networkConfiguration');
+    expect(dbConfiguration.networkConfiguration).toBe('networkConfiguration');
   });
 });

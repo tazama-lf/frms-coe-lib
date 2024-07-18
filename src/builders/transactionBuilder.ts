@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import { Database } from 'arangojs';
 import * as fs from 'fs';
 import { type DBConfig, type DatabaseManagerType, readyChecks } from '../services/dbManager';
@@ -34,6 +36,19 @@ export async function transactionBuilder(manager: DatabaseManagerType, transacti
       FOR doc IN ${db}
       FILTER ${aqlFilter}
       ${aqlLimit}
+      RETURN doc
+    `;
+
+    return await (await manager._transaction?.query(query))?.batches.all();
+  };
+
+  manager.getReportByMessageId = async (collection: string, messageid: string) => {
+    const db = manager._transaction?.collection(collection);
+    const messageidAql = aql`${messageid}`;
+
+    const query: AqlQuery = aql`
+      FOR doc IN ${db}
+      FILTER doc.transaction.FIToFIPmtSts.GrpHdr.MsgId == ${messageidAql}
       RETURN doc
     `;
 

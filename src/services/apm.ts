@@ -1,9 +1,11 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import apm, { type AgentConfigOptions, type TransactionOptions } from 'elastic-apm-node';
 
 export class Apm {
-  #transaction: (name: string, options?: TransactionOptions) => apm.Transaction | null = () => null;
-  #span: (name: string) => apm.Span | null = () => null;
-  #traceParent: () => string | null = () => null;
+  readonly #transaction: (name: string, options?: TransactionOptions) => apm.Transaction | null = () => null;
+  readonly #span: (name: string) => apm.Span | null = () => null;
+  readonly #traceParent: () => string | null = () => null;
 
   constructor(apmOptions?: AgentConfigOptions) {
     const apmEnabled = apmOptions && apmOptions.active;

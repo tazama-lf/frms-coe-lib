@@ -1,11 +1,13 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import { type NetworkMap, type Pacs002 } from '..';
 import { type TypologyResult } from './TypologyResult';
 
-export class CADPRequest {
+export class TADPRequest {
   typologyResult: TypologyResult;
   transaction: Pacs002;
   networkMap: NetworkMap;
-  metaData?: { prcgTmDp: number; prcgTmCRSP: number };
+  metaData?: { prcgTmDp: number; prcgTmED: number };
   constructor(typologyResult: TypologyResult, transaction: Pacs002, networkMap: NetworkMap, ruleResults: []) {
     this.typologyResult = typologyResult;
     this.transaction = transaction;
@@ -16,5 +18,5 @@ export class CADPRequest {
 
 export class CombinedResult {
   typologyResult = '';
-  cadpRequests: CADPRequest[] = [];
+  tadpRequests: TADPRequest[] = [];
 }

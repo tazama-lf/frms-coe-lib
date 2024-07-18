@@ -1,8 +1,10 @@
-import { type ChannelResult } from './ChannelResult';
+// SPDX-License-Identifier: Apache-2.0
+
+import { type TypologyResult } from './TypologyResult';
 
 export class TADPResult {
   id = '';
   cfg = '';
-  channelResult: ChannelResult[] = [];
+  typologyResult: TypologyResult[] = [];
   prcgTm? = 0;
 }

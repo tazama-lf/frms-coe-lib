@@ -1,7 +1,12 @@
+// SPDX-License-Identifier: Apache-2.0
+
+import { type DataCache } from './rule/DataCache';
+
 export interface Pain013 {
   TxTp: string;
   CdtrPmtActvtnReq: CdtrPmtActvtnReq;
   _key?: string;
+  DataCache?: DataCache;
 }
 
 interface CdtrPmtActvtnReq {
@@ -33,7 +38,7 @@ interface InitgPtyID {
 
 interface PrvtID {
   DtAndPlcOfBirth: DtAndPLCOfBirth;
-  Othr: PrvtIDOthr;
+  Othr: PrvtIDOthr[];
 }
 
 interface DtAndPLCOfBirth {
@@ -102,7 +107,7 @@ interface CdtrAcct {
 }
 
 interface CdtrAcctID {
-  Othr: PrvtIDOthr;
+  Othr: PrvtIDOthr[];
 }
 
 interface TrAgt {
@@ -161,7 +166,7 @@ interface DbtrAcct {
 }
 
 interface DbtrAcctID {
-  Othr: PurpleOthr;
+  Othr: PurpleOthr[];
 }
 
 interface PurpleOthr {

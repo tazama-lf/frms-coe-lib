@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import { type Database } from 'arangojs';
 import type NodeCache from 'node-cache';
 import { type DBConfig } from '../../services/dbManager';
@@ -66,5 +68,19 @@ export interface ConfigurationDB {
    * ```
    * @memberof ConfigurationDB
    */
-  getTypologyExpression: (typology: Typology) => Promise<unknown>;
+  getTypologyConfig: (typology: Typology) => Promise<unknown>;
+
+  /**
+   * Finds all active networkmaps
+   *
+   * ```
+   * const query = aql`
+   * FOR doc IN ${collection}
+   * FILTER doc.active == true
+   * RETURN doc
+   * ```
+   *
+   * @memberof ConfigurationDB
+   */
+  getNetworkMap: () => Promise<unknown>;
 }

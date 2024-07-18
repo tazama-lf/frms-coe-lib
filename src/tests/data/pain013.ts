@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import { type Pain013 } from '../../interfaces';
 
 export const Pain013Sample: Pain013 = {
@@ -12,7 +14,7 @@ export const Pain013Sample: Pain013 = {
         Id: {
           PrvtId: {
             DtAndPlcOfBirth: { BirthDt: new Date('1981-04-11'), CityOfBirth: 'Unknown', CtryOfBirth: 'ZZ' },
-            Othr: { Id: '+58-210165155', SchmeNm: { Prtry: 'MSISDN' } },
+            Othr: [{ Id: '+58-210165155', SchmeNm: { Prtry: 'MSISDN' } }],
           },
         },
         CtctDtls: { MobNb: '+58-210165155' },
@@ -29,12 +31,12 @@ export const Pain013Sample: Pain013 = {
         Id: {
           PrvtId: {
             DtAndPlcOfBirth: { BirthDt: new Date('2021-10-07'), CityOfBirth: 'Unknown', CtryOfBirth: 'zz' },
-            Othr: { Id: 'ZZ', SchmeNm: { Prtry: '+58-210165155' } },
+            Othr: [{ Id: 'ZZ', SchmeNm: { Prtry: '+58-210165155' } }],
           },
         },
         CtctDtls: { MobNb: '+58-210165155' },
       },
-      DbtrAcct: { Id: { Othr: { Id: '+58-210165155', SchmeNm: { Prtry: '+58-210165155' }, Nm: 'PASSPORT' } } },
+      DbtrAcct: { Id: { Othr: [{ Id: '+58-210165155', SchmeNm: { Prtry: '+58-210165155' }, Nm: 'PASSPORT' }] } },
       DbtrAgt: { FinInstnId: { ClrSysMmbId: { MmbId: 'Horatio Ford' } } },
       CdtTrfTxInf: {
         PmtId: { EndToEndId: '02d5-dd5d-4995-a643-bd31c0a89e7a' },
@@ -50,12 +52,12 @@ export const Pain013Sample: Pain013 = {
           Id: {
             PrvtId: {
               DtAndPlcOfBirth: { BirthDt: new Date('1923-04-26'), CityOfBirth: 'Unknown', CtryOfBirth: 'ZZ' },
-              Othr: { Id: '+04-830018596', SchmeNm: { Prtry: 'MSISDN' } },
+              Othr: [{ Id: '+04-830018596', SchmeNm: { Prtry: 'MSISDN' } }],
             },
           },
           CtctDtls: { MobNb: '+04-830018596' },
         },
-        CdtrAcct: { Id: { Othr: { Id: '+04-830018596', SchmeNm: { Prtry: 'dfsp002' } } }, Nm: 'April Adamson' },
+        CdtrAcct: { Id: { Othr: [{ Id: '+04-830018596', SchmeNm: { Prtry: 'dfsp002' } }] }, Nm: 'April Adamson' },
         Purp: { Cd: 'MP2P' },
         RgltryRptg: { Dtls: { Tp: 'BALANCE OF PAYMENTS', Cd: '100' } },
         RmtInf: { Ustrd: 'Payment of USD 49932566118723700.89 from Ivan to April' },

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import { v4 } from 'uuid';
 import { TADPResult } from './TADPResult';
 import { MetaData } from '../metaData';
