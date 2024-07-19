@@ -91,3 +91,11 @@ Description: Create Release v2.0.0 release using Github Actions release workflow
 - 4.0.0-rc.2 (Linked Issues: 3a6baa3548a82647d4c51d6b25fa9f8df1bf8aa7)
 - 4.0.0-rc.1 (Linked Issues: 7a5be0448a3c6ae482cd7843a0978896d4724618)
 - 4.0.0-rc.0 (Linked Issues: 0c65632d1d09169bbc6200a9686148e3fe2ce856)
+
+## v1.2.0 (future date, 2024)
+
+* Next change summary here
+
+## v1.0.0 (June 14th, 2024)
+
+* Add pr template, dependabot.yaml Version and changelog file.
