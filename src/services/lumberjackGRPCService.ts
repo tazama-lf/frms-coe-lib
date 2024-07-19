@@ -21,29 +21,29 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 const logProto: any = grpc.loadPackageDefinition(packageDefinition).lumberjack;
 
 export class LumberjackGRPCService {
-  readonly #client: LumberjackClient;
-  readonly #channel: string;
+  readonly client: LumberjackClient;
+  readonly channel: string;
   constructor(host: string, channel: string) {
-    this.#client = new logProto.Lumberjack(host, grpc.credentials.createInsecure());
-    this.#channel = channel;
+    this.client = new logProto.Lumberjack(host, grpc.credentials.createInsecure());
+    this.channel = channel;
   }
 
-  #makeMessage(message: string, level?: LogLevel, serviceOperation?: string, id?: string): LogMessage {
+  makeMessage(message: string, level?: LogLevel, serviceOperation?: string, id?: string): LogMessage {
     return {
       message,
       level,
-      channel: this.#channel,
+      channel: this.channel,
       serviceOperation,
       id,
     };
   }
 
   log(message: string, level?: LogLevel, serviceOperation?: string, id?: string, callback?: (...args: unknown[]) => unknown): void {
-    const object = this.#makeMessage(message, level, serviceOperation, id);
+    const object = this.makeMessage(message, level, serviceOperation, id);
     if (callback) {
-      this.#client.sendLog(object, callback);
+      this.client.sendLog(object, callback);
     } else {
-      this.#client.sendLog(object, () => {
+      this.client.sendLog(object, () => {
         // no callback provided
       });
     }
