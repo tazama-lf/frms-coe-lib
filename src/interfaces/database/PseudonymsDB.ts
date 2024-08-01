@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { type Database } from 'arangojs';
-import { type TransactionRelationship } from '..';
+import { type EntityCondition, type ConditionEdge, type TransactionRelationship, type Othr } from '..';
 
 export interface PseudonymsDB {
   _pseudonymsDb: Database;
@@ -270,4 +270,46 @@ export interface PseudonymsDB {
    * @memberof PseudonymsDB
    */
   saveAccountHolder: (entityId: string, accountId: string, CreDtTm: string) => Promise<unknown>;
+
+  /**
+   * @param conditionId string condition identifier we are storing
+   * @param condition condition object we are storing of EntityCondition type
+   *
+   * @memberof PseudonymsDB
+   */
+  saveCondition: (condition: EntityCondition) => Promise<unknown>;
+
+  /**
+   * @param conditionId string condition identifier we are storing the edge connect
+   * @param accountEntityId string account or entity identifier we are storing the edge connect
+   * @param condtionEdge condition edge for account or entity to condition
+   * @param isAccount boolean flag if account edge should be stored
+   *
+   * @memberof PseudonymsDB
+   */
+  governedAsCreditorBy: (conditionId: string, accountEntityId: string, condtionEdge: ConditionEdge) => Promise<unknown>;
+
+  /**
+   * @param conditionId string condition identifier we are storing the edge connect
+   * @param accountEntityId string account or entity identifier we are storing the edge connect
+   * @param condtionEdge condition edge for account or entity to condition
+   * @param isAccount boolean flag if account edge should be stored
+   *
+   * @memberof PseudonymsDB
+   */
+  governedAsDebtorBy: (conditionId: string, accountEntityId: string, condtionEdge: ConditionEdge) => Promise<unknown>;
+
+  /**
+   * @param ntty Othr object type for enitites condtions that are active
+   *
+   * @memberof PseudonymsDB
+   */
+  getConditionsByEntity: (ntty: Othr) => Promise<unknown>;
+
+  /**
+   * @param ntty Othr object type for entity we are retrieving
+   *
+   * @memberof PseudonymsDB
+   */
+  getEntity: (ntty: Othr) => Promise<unknown>;
 }
