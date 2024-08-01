@@ -1,5 +1,3 @@
-import { type Othr } from '../Pacs.008.001.10';
-
 export interface EntityCondition {
   evtTp: string[];
   incptnDtTm: string;
@@ -7,7 +5,12 @@ export interface EntityCondition {
   condTp: string;
   prsptv: string;
   condRsn: string;
-  ntty: Othr;
+  ntty: {
+    id: string;
+    schmeNm: {
+      prtry: string;
+    };
+  };
   forceCret: boolean;
   usr: string;
   creDtTm: string;
