@@ -481,6 +481,12 @@ message FRMSMessage {
         Splmtrydata SplmtryData = 5;
     }
 
+    message ConditionEdge {
+      repeated string evtTp = 1;
+      string incptnDtTm = 2;
+      string xprtnDtTm = 3;
+    }
+
     message dataCache {
       string dbtrId = 1;
       string cdtrId = 2;
@@ -522,6 +528,8 @@ message FRMSMessage {
     Ruleresults ruleResult = 13;
 
     string alreadySent = 14;
+
+    ConditionEdge conditionEdge = 15;
 
 }
 
