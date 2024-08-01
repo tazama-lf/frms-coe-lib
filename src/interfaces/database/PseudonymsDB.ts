@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { type Database } from 'arangojs';
-import { type EntityCondition, type ConditionEdge, type TransactionRelationship, type Othr } from '..';
+import { type ConditionEdge, type EntityCondition, type TransactionRelationship } from '..';
 
 export interface PseudonymsDB {
   _pseudonymsDb: Database;
@@ -287,7 +287,7 @@ export interface PseudonymsDB {
    *
    * @memberof PseudonymsDB
    */
-  governedAsCreditorBy: (conditionId: string, accountEntityId: string, condtionEdge: ConditionEdge) => Promise<unknown>;
+  saveGovernedAsCreditorByEdge: (conditionId: string, accountEntityId: string, condtionEdge: ConditionEdge) => Promise<unknown>;
 
   /**
    * @param conditionId string condition identifier we are storing the edge connect
@@ -297,19 +297,19 @@ export interface PseudonymsDB {
    *
    * @memberof PseudonymsDB
    */
-  governedAsDebtorBy: (conditionId: string, accountEntityId: string, condtionEdge: ConditionEdge) => Promise<unknown>;
+  saveGovernedAsDebtorByEdge: (conditionId: string, accountEntityId: string, condtionEdge: ConditionEdge) => Promise<unknown>;
 
   /**
    * @param ntty Othr object type for enitites condtions that are active
    *
    * @memberof PseudonymsDB
    */
-  getConditionsByEntity: (ntty: Othr) => Promise<unknown>;
+  getConditionsByEntity: (entityId: string, SchemeProperty: string) => Promise<unknown>;
 
   /**
    * @param ntty Othr object type for entity we are retrieving
    *
    * @memberof PseudonymsDB
    */
-  getEntity: (ntty: Othr) => Promise<unknown>;
+  getEntity: (entityId: string, SchemeProperty: string) => Promise<unknown>;
 }
