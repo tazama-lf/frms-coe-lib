@@ -310,10 +310,9 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     AND (doc.xprtnDtTm > DATE_ISO8601(DATE_NOW())
     OR doc.xprtnDtTm == null)
     RETURN doc`;
-    if (manager._pseudonymsDb) {
-      return (await (await manager._pseudonymsDb.query(query)).batches.all())[0];
-    }
-    throw Error('_pseudonymsDb instance was not connected');
+
+    const result = (await (await manager._pseudonymsDb?.query(query))?.batches.all()) as Array<Array<Record<string, unknown>>>;
+    return result[0];
   };
 
   manager.getEntity = async (ntty: Othr) => {
@@ -324,10 +323,8 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       FILTER doc._key == ${entityIdenity}
       RETURN doc`;
 
-    if (manager._pseudonymsDb) {
-      return (await (await manager._pseudonymsDb.query(query)).batches.all())[0];
-    }
-    throw Error('PseudonymsDb instance was not connected');
+    const result = (await (await manager._pseudonymsDb?.query(query))?.batches.all()) as Array<Array<Record<string, unknown>>>;
+    return result[0];
   };
 
   manager.saveEntity = async (entityId: string, CreDtTm: string) => {
