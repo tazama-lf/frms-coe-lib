@@ -58,7 +58,7 @@ interface DtAndPLCOfBirth {
   CtryOfBirth: string;
 }
 
-export interface Othr {
+interface Othr {
   Id: string;
   SchmeNm: SchmeNm;
 }
