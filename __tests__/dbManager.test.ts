@@ -294,8 +294,8 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.saveAccountHolder).toBeDefined();
     expect(dbManager.saveEntity).toBeDefined();
     expect(dbManager.saveCondition).toBeDefined();
-    expect(dbManager.governedAsCreditorBy).toBeDefined();
-    expect(dbManager.governedAsDebtorBy).toBeDefined();
+    expect(dbManager.saveGovernedAsCreditorByEdge).toBeDefined();
+    expect(dbManager.saveGovernedAsDebtorByEdge).toBeDefined();
     expect(dbManager.getConditionsByEntity).toBeDefined();
     expect(dbManager.getEntity).toBeDefined();
 
@@ -322,10 +322,10 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.saveAccountHolder('test', 'testID', 'testTime')).toEqual('MOCK-SAVE');
     expect(await dbManager.saveEntity('test', 'testTime')).toEqual('MOCK-SAVE');
     expect(await dbManager.saveCondition({} as EntityCondition)).toEqual('MOCK-SAVE');
-    expect(await dbManager.governedAsCreditorBy('test1', 'test2', {} as ConditionEdge)).toEqual('MOCK-SAVE');
-    expect(await dbManager.governedAsDebtorBy('test1', 'test2', {} as ConditionEdge)).toEqual('MOCK-SAVE');
-    expect(await dbManager.getConditionsByEntity({ Id: 'test', SchmeNm: { Prtry: 'test2' } })).toEqual('MOCK-QUERY');
-    expect(await dbManager.getEntity({ Id: 'test', SchmeNm: { Prtry: 'test2' } })).toEqual('MOCK-QUERY');
+    expect(await dbManager.saveGovernedAsCreditorByEdge('test1', 'test2', {} as ConditionEdge)).toEqual('MOCK-SAVE');
+    expect(await dbManager.saveGovernedAsDebtorByEdge('test1', 'test2', {} as ConditionEdge)).toEqual('MOCK-SAVE');
+    expect(await dbManager.getConditionsByEntity('test1', 'test2')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getEntity('test1', 'test2')).toEqual(['MOCK-QUERY']);
   });
 
   it('should create a manager with redis methods', async () => {
