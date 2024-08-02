@@ -1,128 +1,345 @@
-<!-- SPDX-License-Identifier: Apache-2.0 -->
+## Table of Contents
 
-# FRMS Center of Excellence Library
-
-<div align="center">
-  <img alt="GitHub Workflow Status (with event)" src="https://img.shields.io/github/actions/workflow/status/frmscoe/frms-coe-lib/publish.yml">
-  <img alt="GitHub package.json version (subfolder of monorepo)" src="https://img.shields.io/github/package-json/v/frmscoe/frms-coe-lib">
-  <img alt="GitHub" src="https://img.shields.io/github/license/frmscoe/frms-coe-lib">
-</div>
+- [Overview](#overview)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Modules and Classes](#modules-and-classes)
+- [Configuration](#configuration)
+- [External Dependencies](#external-dependencies)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Overview
-This is the central library for FRMS. A reusable wrapper to external services such as database queries and redis methods. Contains shared data models for unification and simplification of changes.
 
-## Environment variables
-While this library doesn't require environmental variables to function. When using certain components the library will parse environmental variables for the following services:
-- LoggerService  
+`frms-coe-lib` is a foundational library designed to provide common functionalities and interfaces for the FRMS (Fraud Risk Management System) ecosystem. It includes utilities, data structures, and interfaces that support various components of the system. The library offers a range of features, including database management, logging, configuration management, rule evaluation, and message handling. It serves as a core dependency for other FRMS components, providing essential building blocks and standardized approaches for handling data and interactions.
 
-| Variable | Required | Purpose | Example
-| ------ | ------ | ------ | ------ |
-| `FUNCTION_NAME` | Yes | Identifier of the application which will show up in the logs as the originator of the log. (Usually application name) | `my-app`
-| `NODE_ENV` | No | Represents the environment the application is currently running in | `test`, `dev`
-| `LOGSTASH_HOST` | No | The endpoint at where logstash is served | `http://0.0.0.0`
-| `LOGSTASH_PORT` | No | The port of where logstash is served | `9700`
-| `LOGSTASH_LEVEL` | No | Level of log granularity | `log`, `debug`, `trace` `warn` `error`
-| `ELASTIC_HOST` | No | The endpoint at where Elastic Search is served (including the **port**) | `http://0.0.0.0:9200`
-| `ELASTIC_INDEX` | No | The name of the index to be used by Elastic | `my-index`
-| `ELASTIC_USERNAME` | No | Your Elastic Search username | `elastic`
-| `ELASTIC_PASSWORD` | No | Your Elastic Search password | `password`
-| `ELASTIC_SEARCH_VERSION` | No | Your Elastic Search Version | `8.11`
-| `APM_LOGGING` | No | A flag configuring whether Application Performance Monitoring is enabled | `true`
-| `APM_SECRET_TOKEN` | No | To authorize requests to the APM Server | `eXaMPLEBsZWNvZGU=`
-| `RULE_VERSION` | No |
+Key features:
+- **Database Management**: Interfaces and utilities for interacting with different database systems, including ArangoDB and Redis.
+- **Logging**: A standardized logging interface supporting various log levels and integration with external systems.
+- **Configuration**: Tools for managing application configuration, including environment variable parsing and structured configuration objects.
+- **Protocol Buffers**: Support for serialization and deserialization of messages using Protocol Buffers.
+- **Rule Management**: Structures and utilities for defining and evaluating rules within the FRMS ecosystem.
 
 ## Installation
 
-A personal access token is required to install this repository. For more information read the following.
-https://docs.github.com/en/packages/learn-github-packages/about-permissions-for-github-packages#about-scopes-and-permissions-for-package-registries
+To install the `frms-coe-lib` package, you can use npm. This library requires Node.js and npm to be installed on your system.
 
-Thereafter you can run 
-  > npm install @frmscoe/frms-coe-lib
+1. **Install via npm:**
 
-## Database Manager Example Usage
+   ```sh
+   npm install @frmscoe/frms-coe-lib --registry=https://npm.pkg.github.com
+   ```
 
-```ts
-// Import functionality and types
-import {
-  CreateDatabaseManager,  
-  type ManagerConfig,
-  type DatabaseManagerInstance,
-} from '@frmscoe/frms-coe-lib';
+The npm package is hosted on GitHub. Make sure you're authenticated with GitHub and have the necessary permissions to access the package (`read:packages`).
 
-// Configuration options defined in the CreateDatabaseManager
-const dbManager: DatabaseManagerInstance<ManagerConfig> = await CreateDatabaseManager({
-    redisConfig: {
-      db: config.redis.db,
-      servers: config.redis.servers,
-      password: config.redis.password,
-      isCluster: config.redis.isCluster,
-    },
-    transactionHistory: {
-      certPath: config.transactionHistoryCertPath,
-      databaseName: config.transactionHistoryName,
-      user: config.transactionHistoryUser,
-      password: config.transactionHistoryPassword,
-      url: config.transactionHistoryURL,
-    },
-    configuration: {
-      url: config.configurationURL,
-      user: config.configurationUser,
-      password: config.configurationPassword,
-      databaseName: config.configDb,
-      certPath: config.configurationCertPath,
-      localCacheEnabled: !!config.cacheTTL,
-      localCacheTTL: config.cacheTTL,
-    },
-    pseudonyms: {
-      url: config.pseudonymsURL,
-      user: config.pseudonymsUser,
-      password: config.pseudonymsPassword,
-      databaseName: config.graphDb,
-      certPath: config.pseudonymsCertPath,
-      localCacheEnabled: !!config.cacheTTL,
-      localCacheTTL: config.cacheTTL,
-    }
-  });
+2. **Importing in your project:**
 
-  // Execute query
-  await databaseManager.getTransactionPacs008('1234567890-4e48-8f50-fc52942b3425')
+Once installed, you can import the library in your project:
+
+  ```typescript
+  import { LoggerService, CreateDatabaseManager } from '@frmscoe/frms-coe-lib';
+  ```
+
+3. **Dependencies:**
+
+    Ensure that you have all required dependencies installed, including any specific versions of third-party packages mentioned in the package's peer dependencies.
+
+4. **Environment Configuration:**
+
+    Set up your environment configuration using a `.env` file or environment variables. Refer to the library's configuration requirements for details on necessary environment variables.
+
+## Usage
+
+The `frms-coe-lib` library provides various functionalities for transaction monitoring, logging, and database management. Below is an overview of how to use the key features of the library.
+
+### 1. **Database Management**
+
+The `CreateDatabaseManager` function initializes and manages connections to multiple databases, including ArangoDB and Redis. This function returns an instance of `DatabaseManagerInstance` which includes methods to interact with the databases.
+
+**Example:**
+```typescript
+import { CreateDatabaseManager, DatabaseManagerInstance } from '@frmscoe/frms-coe-lib';
+
+const dbConfig = {
+  configuration: {
+    url: 'database-url',
+    databaseName: 'database-name',
+    user: 'username',
+    password: 'password',
+    certPath: 'path-to-cert',
+  },
+  redisConfig: {
+    db: 0,
+    servers: [{ host: 'localhost', port: 6379 }],
+    password: 'redis-password',
+    isCluster: false,
+  },
+};
+
+let databaseManager: DatabaseManagerInstance<typeof dbConfig>;
+
+async function initDB() {
+  databaseManager = await CreateDatabaseManager(dbConfig);
+}
+
+initDB();
 ```
 
-## Interfaces, Classes and Data Types
-```js
+### 2. **Logger Service**
 
-// Database interfaces are found under 
-import { ConfigurationDB } from '@frmscoe/frms-coe-lib/lib/interfaces/database/ConfigurationDB';
-import { NetworkMapDB } from '@frmscoe/frms-coe-lib/lib/interfaces/database/NetworkMapDB';
-import { PseudonymsDB } from '@frmscoe/frms-coe-lib/lib/interfaces/database/PseudonymsDB';
-import { TransactionDB } from '@frmscoe/frms-coe-lib/lib/interfaces/database/TransactionDB';
-import { TransactionHistoryDB } from '@frmscoe/frms-coe-lib/lib/interfaces/database/TransactionHistoryDB';
+The `LoggerService` class provides logging functionality, supporting different log levels like `info`, `debug`, `warn`, and `error`. It can also log messages to a GRPC service.
 
-// Some simple method-less classes can be found under
-import * as frms from '@frmscoe/frms-coe-lib/lib/interfaces';
-/*
-  // frms will give access to 
-  frms.Message
-  frms.NetworkMap
-  frms.Rule
-  frms.RuleResult
-  frms.Typology
-*/
+**Example:**
+```typescript
+import { LoggerService } from '@frmscoe/frms-coe-lib';
 
-// Pain and Pacs interfaces are also here
-import { Pacs002 } from '@frmscoe/frms-coe-lib/lib/interfaces';
+const logger = new LoggerService('localhost:50051');
 
-// Other data types are nested deeper under interfaces
-// eg. Data cache can be found
-import { DataCache } from '@frmscoe/frms-coe-lib/lib/interfaces/rule/DataCache';
-// Also RuleConfig, RuleRequest and RuleResult
-
-// Some processor classes for Request/Results
-import { TADPResult } from '@frmscoe/frms-coe-lib/lib/interfaces/processor-files/TADPResult';
-import { TypologyResult } from '@frmscoe/frms-coe-lib/lib/interfaces/processor-files/TypologyResult';
-
+logger.log('This is an info message');
+logger.warn('This is a warning');
+logger.error(new Error('This is an error message'));
 ```
 
-## Troubleshooting
-#### npm install
-Ensure generated token has read package rights
+### 3. **Apm Integration**
+
+The `Apm` class integrates with Elastic APM to track performance and errors. It provides methods to start transactions and spans.
+
+**Example:**
+```typescript
+import { Apm } from '@frmscoe/frms-coe-lib';
+
+const apm = new Apm({
+  serviceName: 'my-service',
+  secretToken: 'apm-secret-token',
+  serverUrl: 'apm-server-url',
+  active: true,
+});
+
+const transaction = apm.startTransaction('transaction-name');
+const span = apm.startSpan('span-name');
+
+// Do something
+
+span.end();
+transaction.end();
+```
+
+### 4. **Redis Service**
+
+The `RedisService` class provides methods to interact with Redis, including setting and getting JSON data, managing sets, and handling binary data.
+
+**Example:**
+```typescript
+import { RedisService } from '@frmscoe/frms-coe-lib';
+
+async function useRedis() {
+  const redisConfig = {
+    db: 0,
+    servers: [{ host: 'localhost', port: 6379 }],
+    password: 'redis-password',
+    isCluster: false,
+  };
+
+  const redisService = await RedisService.create(redisConfig);
+  await redisService.setJson('key', JSON.stringify({ field: 'value' }), 300);
+  const value = await redisService.getJson('key');
+  console.log(value);
+}
+
+useRedis();
+```
+
+## Modules and Classes
+
+1. **ProtoBuf Module**
+
+  - **Class**: `ProtoGrpcType`
+    - **Description**: Contains definitions related to Google Protocol Buffers for message types.
+    - **Methods**:
+      - `google.protobuf.Empty`: Represents an empty message.
+      - `lumberjack.LogLevel`: Enum representing log levels.
+      - `lumberjack.LogMessage`: Represents a log message.
+      - `lumberjack.Lumberjack`: Represents the Lumberjack service with methods like `SendLog`.
+
+2. **Logger Service**
+
+  - **Class**: `LoggerService`
+    - **Description**: Provides logging capabilities, including sending logs to Lumberjack via gRPC or using Pino for ElasticSearch.
+    - **Methods**:
+      - `log(message: string, serviceOperation?: string, id?: string, callback?: LogCallback): void`: Logs a message.
+      - `debug(message: string, serviceOperation?: string, id?: string, callback?: LogCallback): void`: Logs a debug message.
+      - `trace(message: string, serviceOperation?: string, id?: string, callback?: LogCallback): void`: Logs a trace message.
+      - `warn(message: string, serviceOperation?: string, id?: string, callback?: LogCallback): void`: Logs a warning message.
+      - `error(message: string | Error, innerError?: unknown, serviceOperation?: string, id?: string, callback?: LogCallback): void`: Logs an error message.
+      - `fatal(message: string | Error, innerError?: unknown, serviceOperation?: string, id?: string, callback?: LogCallback): void`: Logs a fatal error message.
+
+3. **Database Manager**
+
+  - **Class**: `DatabaseManager`
+    - **Description**: Manages database connections and interactions, including configuration and pseudonyms databases.
+    - **Methods**:
+      - `CreateDatabaseManager<T>(config: T): Promise<DatabaseManagerInstance<T>>`: Creates a database manager instance.
+      - `isReadyCheck(): any`: Checks if the database services are ready.
+      - `quit(): void`: Closes all database connections.
+
+4. **Apm Service**
+
+  - **Class**: Apm
+    - **Description**: Provides APM (Application Performance Management) integration using Elastic APM.
+    - **Methods**:
+      - `startTransaction(name: string, options?: TransactionOptions): apm.Transaction | null`: Starts a new transaction.
+      - `startSpan(name: string): apm.Span | null`: Starts a new span.
+      - `getCurrentTraceparent(): string | null`: Retrieves the current traceparent.
+
+5. **Redis Service**
+
+  - **Class**: RedisService
+    - **Description**: Provides methods for interacting with Redis, including setting and getting data.
+    - **Methods**:
+      - `getJson(key: string): Promise<string>`: Retrieves a JSON value from Redis.
+      - `getBuffer(key: string): Promise<Record<string, unknown>>`: Retrieves a buffer value from Redis.
+      - `getMemberValues(key: string): Promise<Array<Record<string, unknown>>>`: Retrieves members of a Redis set.
+      - `deleteKey(key: string): Promise<void>`: Deletes a key from Redis.
+      - `setJson(key: string, value: string, expire: number): Promise<void>`: Sets a JSON value in Redis with an expiration time.
+      - `set(key: string, value: RedisData, expire: number): Promise<void>`: Sets a value in Redis with an expiration time.
+      - `setAdd(key: string, value: Record<string, unknown>): Promise<void>`: Adds a value to a Redis set.
+      - `addOneGetAll(key: string, value: Record<string, unknown>): Promise<Array<Record<string, unknown>>>`: Adds a value to a Redis set and retrieves all members.
+      - `addOneGetCount(key: string, value: Record<string, unknown>): Promise<number>`: Adds a value to a Redis set and retrieves the count of members.
+      - `quit(): void`: Closes the Redis connection.
+
+6. **Protobuf Utilities**
+
+  - **Functions**:
+    - `createMessageBuffer(data: Record<string, unknown>): Buffer | undefined`: Creates a message buffer from a data object.
+    - `createLogBuffer(data: Record<string, unknown>): Buffer | undefined`: Creates a log buffer from a data object.
+    - `decodeLogBuffer(buffer: Buffer): LogMessageType | undefined`: Decodes a log buffer into a `LogMessageType`.
+
+7. **Unwrap Utility**
+
+  - **Functions**:
+    - `unwrap<T>(type: T[][]): T | undefined`: Unwraps a 2D array and returns the item at `[0][0]`.
+
+## Configuration
+
+### Environment Variables
+
+The `frms-coe-lib` library uses environment variables to configure various components. Here are the key environment variables:
+
+- `DATABASE_URL`: The URL for the database.
+- `DATABASE_USER`: The username for the database.
+- `DATABASE_PASSWORD`: The password for the database.
+- `DATABASE_NAME`: The name of the database.
+- `DATABASE_CERT_PATH`: The path to the database certificate.
+- `REDIS_DB`: The Redis database number.
+- `REDIS_SERVERS`: The Redis servers, specified as a JSON string.
+- `REDIS_AUTH`: The Redis password.
+- `REDIS_IS_CLUSTER`: Specifies whether Redis is in cluster mode (`true` or `false`).
+- `LOGSTASH_HOST`: The Logstash host.
+- `LOGSTASH_PORT`: The Logstash port.
+- `LOGSTASH_LEVEL`: The log level for Logstash.
+- `NODE_ENV`: The node environment (e.g., `development`, `production`).
+- `MAX_CPU`: The maximum number of CPUs to use.
+
+### Configuration Files
+
+In addition to environment variables, the library can be configured using configuration files. These files can be used to set up database connections, logging configurations, and other settings.
+
+### Logging Configuration
+
+The logging configuration can be set through environment variables or configuration files. The following options are available:
+
+- **Log Levels**: Set the log level (e.g., `info`, `debug`, `error`) using the `LOGSTASH_LEVEL` environment variable.
+- **Log Outputs**: Configure log outputs, such as console, file, or external logging services like Logstash.
+
+### Database Configuration
+
+Database connections are configured using the `DATABASE_URL`, `DATABASE_USER`, `DATABASE_PASSWORD`, and other related environment variables. The database can be an SQL or NoSQL database, depending on the application's requirements.
+
+### Redis Configuration
+
+Redis is used for caching and other purposes. The `REDIS_DB`, `REDIS_SERVERS`, `REDIS_AUTH`, and `REDIS_IS_CLUSTER` environment variables are used to configure the Redis connection.
+
+### Advanced Configuration
+
+For advanced users, the library provides options to customize the behavior of certain components. These options can be set through additional configuration files or environment variables.
+
+## External Dependencies
+
+### 1. arangojs
+- **Description**: ArangoDB client for Node.js.
+- **Usage**: Used for connecting to and interacting with ArangoDB databases.
+- **Import**: `import { Database } from 'arangojs';`
+
+### 2. node-cache
+- **Description**: Simple in-memory caching module for Node.js.
+- **Usage**: Used for caching data locally in memory.
+- **Import**: `import NodeCache from 'node-cache';`
+
+### 3. protobufjs
+- **Description**: Protocol Buffers for JavaScript.
+- **Usage**: Used for encoding and decoding protocol buffer messages.
+- **Import**: `import protobuf from 'protobufjs';`
+
+### 4. elastic-apm-node
+- **Description**: APM (Application Performance Monitoring) agent for Node.js.
+- **Usage**: Used for monitoring application performance.
+- **Import**: `import apm, { type AgentConfigOptions, type TransactionOptions } from 'elastic-apm-node';`
+
+### 5. ioredis
+- **Description**: A robust, performance-focused and full-featured Redis client for Node.js.
+- **Usage**: Used for connecting to Redis, including cluster support.
+- **Import**: `import Redis, { type Cluster } from 'ioredis';`
+
+### 6. pino
+- **Description**: A fast, low-overhead logging library.
+- **Usage**: Used for structured logging.
+- **Import**: `import { type DestinationStream, pino } from 'pino';`
+
+### 7. pino-elasticsearch
+- **Description**: Pino transport for Elasticsearch.
+- **Usage**: Used for streaming logs to Elasticsearch.
+- **Import**: `import pinoElastic, { type DestinationStream } from 'pino-elasticsearch';`
+
+### 8. @elastic/ecs-pino-format
+- **Description**: A Pino formatter to convert logs to ECS (Elastic Common Schema).
+- **Usage**: Used for formatting logs to ECS.
+- **Import**: `import { ecsFormat } from '@elastic/ecs-pino-format';`
+
+### 9. @grpc/grpc-js
+- **Description**: gRPC for Node.js.
+- **Usage**: Used for gRPC client and server implementations.
+- **Import**: `import * as grpc from '@grpc/grpc-js';`
+
+### 10. @grpc/proto-loader
+- **Description**: gRPC loader for .proto files.
+- **Usage**: Used for loading gRPC service definitions from .proto files.
+- **Import**: `import * as protoLoader from '@grpc/proto-loader';`
+
+### 11. uuid
+- **Description**: Simple, fast generation of RFC4122 UUIDS.
+- **Usage**: Used for generating unique identifiers.
+- **Import**: `import { v4 } from 'uuid';`
+
+### 12. dotenv
+- **Description**: Loads environment variables from a `.env` file into `process.env`.
+- **Usage**: Used for managing environment variables.
+- **Import**: `import { config as dotenv } from 'dotenv';`
+
+### 13. node:path
+- **Description**: Provides utilities for working with file and directory paths.
+- **Usage**: Used for handling and transforming file paths.
+- **Import**: `import path from 'node:path';`
+
+### 14. fs
+- **Description**: File system module for Node.js.
+- **Usage**: Used for file operations.
+- **Import**: `import fs from 'fs';`
+
+## Contributing
+
+If you want to contribute to the `frms-coe-lib`, please clone the repository and submit a pull request to the `dev` branch.
+
+## License
+
+This library is a component of the Tazama project. The Tazama project is licensed under the Apache 2.0 License.
+
