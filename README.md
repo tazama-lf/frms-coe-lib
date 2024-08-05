@@ -223,46 +223,64 @@ useRedis();
 
 ### Environment Variables
 
-The `frms-coe-lib` library uses environment variables to configure various components. Here are the key environment variables:
+The `frms-coe-lib` library uses environment variables to configure logging for any processor that is using it the logging for more information about logging here is the [link]() . Here are the key environment variables:
 
-- `DATABASE_URL`: The URL for the database.
-- `DATABASE_USER`: The username for the database.
-- `DATABASE_PASSWORD`: The password for the database.
-- `DATABASE_NAME`: The name of the database.
-- `DATABASE_CERT_PATH`: The path to the database certificate.
-- `REDIS_DB`: The Redis database number.
-- `REDIS_SERVERS`: The Redis servers, specified as a JSON string.
-- `REDIS_AUTH`: The Redis password.
-- `REDIS_IS_CLUSTER`: Specifies whether Redis is in cluster mode (`true` or `false`).
-- `LOGSTASH_HOST`: The Logstash host.
-- `LOGSTASH_PORT`: The Logstash port.
-- `LOGSTASH_LEVEL`: The log level for Logstash.
+**PROCESSOR ENVIRONMENT VARIABLES**
+- `FUNCTION_NAME`: The name of the processor. 
+- `RULE_VERSION`: _Deprecated_
 - `NODE_ENV`: The node environment (e.g., `development`, `production`).
-- `MAX_CPU`: The maximum number of CPUs to use.
 
-### Configuration Files
+**LOGSTASH ENVIRONMENT VARIABLES**
+- `LOGSTASH_HOST`: Host address of logstash
+- `LOGSTASH_PORT `: Port of logstash from the server hosting logstash.
+- `LOGSTASH_LEVEL`: Logging level (e.g., `warn`, `error`).
 
-In addition to environment variables, the library can be configured using configuration files. These files can be used to set up database connections, logging configurations, and other settings.
+**ELASTIC ENVIRONMENT VARIABLES**
+- `ELASTIC_USERNAME `: Username credintial of elastic search
+- `ELASTIC_PASSWORD `: Secret credintial of elastic search
+- `ELASTIC_HOST`: Address of the server hosting elastic search
+- `ELASTIC_INDEX`: Logical namespace that holds a collection of documents
+- `ELASTIC_SEARCH_VERSION`: Elastic search version 
 
-### Logging Configuration
+**APM ENVIRONMENT VARIABLES**
+- `APM_LOGGING `: The Logstash host. _Deprecated_
+- `APM_SECRET_TOKEN`: The Logstash port. _Deprecated_
 
-The logging configuration can be set through environment variables or configuration files. The following options are available:
 
-- **Log Levels**: Set the log level (e.g., `info`, `debug`, `error`) using the `LOGSTASH_LEVEL` environment variable.
-- **Log Outputs**: Configure log outputs, such as console, file, or external logging services like Logstash.
+### Configuration Options
+The ManagerConfig interface allows you to define which databases and services you wish to use. Each service can be optionally included in the configuration:
 
-### Database Configuration
+- **Pseudonyms Database**: Manage user pseudonyms.
+- **Transaction History Database**: Access and manage transaction histories.
+- **Transaction Database**: Handle transactional operations.
+- **Configuration Database**: Store and retrieve application configurations.
+- **Redis Cache**: Use Redis for caching to improve performance.
 
-Database connections are configured using the `DATABASE_URL`, `DATABASE_USER`, `DATABASE_PASSWORD`, and other related environment variables. The database can be an SQL or NoSQL database, depending on the application's requirements.
+### Usage Example
+```typescript
+const config: ManagerConfig = {
+    pseudonyms: {
+      url: 'your-pseudonyms-db-url',
+      user: 'your-user',
+      password: 'your-password',
+      databaseName: 'your-db-name',
+      certPath: 'path-to-cert',
+    },
+    transactionHistory: {
+      url: 'your-transaction-history-db-url',
+      user: 'your-user',
+      password: 'your-password',
+      databaseName: 'your-db-name',
+      certPath: 'path-to-cert',
+    },
+    redisConfig: {
+      host: 'your-redis-host',
+      port: 6379,
+      password: 'your-redis-password',
+    },
+  };
 
-### Redis Configuration
-
-Redis is used for caching and other purposes. The `REDIS_DB`, `REDIS_SERVERS`, `REDIS_AUTH`, and `REDIS_IS_CLUSTER` environment variables are used to configure the Redis connection.
-
-### Advanced Configuration
-
-For advanced users, the library provides options to customize the behavior of certain components. These options can be set through additional configuration files or environment variables.
-
+```
 ## External Dependencies
 
 ### 1. arangojs
