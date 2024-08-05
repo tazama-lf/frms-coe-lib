@@ -56,7 +56,7 @@ The `frms-coe-lib` library provides various functionalities for transaction moni
 
 The `CreateDatabaseManager` function initializes and manages connections to multiple databases, including ArangoDB and Redis. This function returns an instance of `DatabaseManagerInstance` which includes methods to interact with the databases.
 
-**Example:**
+**Usage Example:**
 ```typescript
 import { CreateDatabaseManager, DatabaseManagerInstance } from '@frmscoe/frms-coe-lib';
 
@@ -67,29 +67,19 @@ const dbConfig = {
     user: 'username',
     password: 'password',
     certPath: 'path-to-cert',
-  },
-  redisConfig: {
-    db: 0,
-    servers: [{ host: 'localhost', port: 6379 }],
-    password: 'redis-password',
-    isCluster: false,
-  },
+  }
 };
 
 let databaseManager: DatabaseManagerInstance<typeof dbConfig>;
+databaseManager = await CreateDatabaseManager(dbConfig);
 
-async function initDB() {
-  databaseManager = await CreateDatabaseManager(dbConfig);
-}
-
-initDB();
 ```
 
 ### 2. **Logger Service**
 
 The `LoggerService` class provides logging functionality, supporting different log levels like `info`, `debug`, `warn`, and `error`. It can also log messages to a GRPC service.
 
-**Example:**
+**Usage Example:**
 ```typescript
 import { LoggerService } from '@frmscoe/frms-coe-lib';
 
@@ -104,7 +94,7 @@ logger.error(new Error('This is an error message'));
 
 The `Apm` class integrates with Elastic APM to track performance and errors. It provides methods to start transactions and spans.
 
-**Example:**
+**Usage Example:**
 ```typescript
 import { Apm } from '@frmscoe/frms-coe-lib';
 
@@ -144,9 +134,21 @@ async function useRedis() {
   await redisService.setJson('key', JSON.stringify({ field: 'value' }), 300);
   const value = await redisService.getJson('key');
   console.log(value);
-}
 
-useRedis();
+  import { CreateDatabaseManager, DatabaseManagerInstance } from '@frmscoe/frms-coe-lib';
+
+const dbConfig = {
+  redisConfig: {
+    db: 0,
+    servers: [{ host: 'localhost', port: 6379 }],
+    password: 'redis-password',
+    isCluster: false,
+  }
+};
+
+let databaseManager: DatabaseManagerInstance<typeof dbConfig>;
+databaseManager = await CreateDatabaseManager(dbConfig);
+
 ```
 
 ## Modules and Classes
@@ -223,42 +225,55 @@ useRedis();
 
 ### Environment Variables
 
-The `frms-coe-lib` library uses environment variables to configure logging for any processor that is using it the logging for more information about logging here is the [link]() . Here are the key environment variables:
+The `frms-coe-lib` library uses environment variables to configure logging for any processor that is using it the logging for more information about logging here is the [link](https://github.com/frmscoe/docs/blob/dev/Technical/Logging/The-Tazama-Logging-Framework.md) . Here are the key environment variables some variables are required only when NODE_ENV is set to `production`:
 
 **PROCESSOR ENVIRONMENT VARIABLES**
-- `FUNCTION_NAME`: The name of the processor. 
-- `RULE_VERSION`: _Deprecated_
-- `NODE_ENV`: The node environment (e.g., `development`, `production`).
+
+| Variable Name | Purpose                             | Default value           | Requirement             |
+| ------------- | ----------------------------------- | ----------------------- | ----------------------- |
+| FUNCTION_NAME | Specifies the port number to use    | `null`                  | Mandatory               |
+| RULE_VERSION  | Specifies the NATS server address   | `null`                  | Optional                |
+| NODE_ENV      | Defines the NATS subject/topic name | `null`                  | Mandatory               |
 
 **LOGSTASH ENVIRONMENT VARIABLES**
-- `LOGSTASH_HOST`: Host address of logstash
-- `LOGSTASH_PORT `: Port of logstash from the server hosting logstash.
-- `LOGSTASH_LEVEL`: Logging level (e.g., `warn`, `error`).
+
+| Variable Name  | Purpose                                                 | Default value | Requirement                     |
+| -------------- | ------------------------------------------------------- | ------------- | ------------------------------- |
+| LOGSTASH_LEVEL | Specifies the minimum log level to capture logs for     | `info`        | Optional                        |
+| LOGSTASH_PORT  | Specifies port of logstash from the server hosting it   | `0`           | Optional                        |
+| LOGSTASH_HOST  | Specifies address of the host that has logstash exposed | `null`        | Optional `Unless on Production` |
 
 **ELASTIC ENVIRONMENT VARIABLES**
-- `ELASTIC_USERNAME `: Username credintial of elastic search
-- `ELASTIC_PASSWORD `: Secret credintial of elastic search
-- `ELASTIC_HOST`: Address of the server hosting elastic search
-- `ELASTIC_INDEX`: Logical namespace that holds a collection of documents
-- `ELASTIC_SEARCH_VERSION`: Elastic search version 
+
+| Variable Name          | Purpose                                     | Default value           | Requirement                     |
+| ---------------------- | ------------------------------------------- | ----------------------- | ------------------------------- |
+| ELASTIC_SEARCH_VERSION | Specifies the Elasticsearch version         | `8.11`                  | Optional `Unless on Production` |
+| ELASTIC_HOST           | Specifies the Elasticsearch host            | `http://localhost:9200` | Optional `Unless on Production` |
+| ELASTIC_USERNAME       | Username for Elasticsearch authentication   | `''`                    | Optional `Unless on Production` |
+| ELASTIC_PASSWORD       | Password for Elasticsearch authentication   | `''`                    | Optional `Unless on Production` |
 
 **APM ENVIRONMENT VARIABLES**
-- `APM_LOGGING `: The Logstash host. _Deprecated_
-- `APM_SECRET_TOKEN`: The Logstash port. _Deprecated_
+
+| Variable           | Purpose                                                              | Default value       | Requirement  |
+| ------------------ | -------------------------------------------------------------------- | ------------------- | ------------ |
+| APM_LOGGING        | Boolean to flag if you would like to have apm logging                | `true`              | Optional     |
+| APM_SECRET_TOKEN   | Token used for authentication and authorization with the APM system. | `''` _Deprecated_   | Optional     |
+
 
 
 ### Configuration Options
 The ManagerConfig interface allows you to define which databases and services you wish to use. Each service can be optionally included in the configuration:
 
-- **Pseudonyms Database**: Manage user pseudonyms.
-- **Transaction History Database**: Access and manage transaction histories.
-- **Transaction Database**: Handle transactional operations.
-- **Configuration Database**: Store and retrieve application configurations.
-- **Redis Cache**: Use Redis for caching to improve performance.
+- **Pseudonyms Database**: Manage user pseudonyms. `Optional`
+- **Transaction History Database**: Access and manage transaction histories. `Optional`
+- **Transaction Database**: Handle transactional operations. `Optional`
+- **Configuration Database**: Store and retrieve application configurations. `Optional`
+- **Redis Cache**: Use Redis for caching to improve performance. `Optional`
 
 ### Usage Example
+The JSON object example for dbManage configuration
 ```typescript
-const config: ManagerConfig = {
+{
     pseudonyms: {
       url: 'your-pseudonyms-db-url',
       user: 'your-user',
@@ -278,80 +293,9 @@ const config: ManagerConfig = {
       port: 6379,
       password: 'your-redis-password',
     },
-  };
+};
 
 ```
-## External Dependencies
-
-### 1. arangojs
-- **Description**: ArangoDB client for Node.js.
-- **Usage**: Used for connecting to and interacting with ArangoDB databases.
-- **Import**: `import { Database } from 'arangojs';`
-
-### 2. node-cache
-- **Description**: Simple in-memory caching module for Node.js.
-- **Usage**: Used for caching data locally in memory.
-- **Import**: `import NodeCache from 'node-cache';`
-
-### 3. protobufjs
-- **Description**: Protocol Buffers for JavaScript.
-- **Usage**: Used for encoding and decoding protocol buffer messages.
-- **Import**: `import protobuf from 'protobufjs';`
-
-### 4. elastic-apm-node
-- **Description**: APM (Application Performance Monitoring) agent for Node.js.
-- **Usage**: Used for monitoring application performance.
-- **Import**: `import apm, { type AgentConfigOptions, type TransactionOptions } from 'elastic-apm-node';`
-
-### 5. ioredis
-- **Description**: A robust, performance-focused and full-featured Redis client for Node.js.
-- **Usage**: Used for connecting to Redis, including cluster support.
-- **Import**: `import Redis, { type Cluster } from 'ioredis';`
-
-### 6. pino
-- **Description**: A fast, low-overhead logging library.
-- **Usage**: Used for structured logging.
-- **Import**: `import { type DestinationStream, pino } from 'pino';`
-
-### 7. pino-elasticsearch
-- **Description**: Pino transport for Elasticsearch.
-- **Usage**: Used for streaming logs to Elasticsearch.
-- **Import**: `import pinoElastic, { type DestinationStream } from 'pino-elasticsearch';`
-
-### 8. @elastic/ecs-pino-format
-- **Description**: A Pino formatter to convert logs to ECS (Elastic Common Schema).
-- **Usage**: Used for formatting logs to ECS.
-- **Import**: `import { ecsFormat } from '@elastic/ecs-pino-format';`
-
-### 9. @grpc/grpc-js
-- **Description**: gRPC for Node.js.
-- **Usage**: Used for gRPC client and server implementations.
-- **Import**: `import * as grpc from '@grpc/grpc-js';`
-
-### 10. @grpc/proto-loader
-- **Description**: gRPC loader for .proto files.
-- **Usage**: Used for loading gRPC service definitions from .proto files.
-- **Import**: `import * as protoLoader from '@grpc/proto-loader';`
-
-### 11. uuid
-- **Description**: Simple, fast generation of RFC4122 UUIDS.
-- **Usage**: Used for generating unique identifiers.
-- **Import**: `import { v4 } from 'uuid';`
-
-### 12. dotenv
-- **Description**: Loads environment variables from a `.env` file into `process.env`.
-- **Usage**: Used for managing environment variables.
-- **Import**: `import { config as dotenv } from 'dotenv';`
-
-### 13. node:path
-- **Description**: Provides utilities for working with file and directory paths.
-- **Usage**: Used for handling and transforming file paths.
-- **Import**: `import path from 'node:path';`
-
-### 14. fs
-- **Description**: File system module for Node.js.
-- **Usage**: Used for file operations.
-- **Import**: `import fs from 'fs';`
 
 ## Contributing
 
