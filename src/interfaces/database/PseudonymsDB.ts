@@ -277,7 +277,7 @@ export interface PseudonymsDB {
 
   saveGovernedAsDebtorByEdge: (conditionId: string, accountEntityId: string, condtionEdge: ConditionEdge) => Promise<unknown>;
 
-  getConditionsByEntity: (entityId: string, SchemeProperty: string) => Promise<unknown>;
+  getConditionsByEntity: (entityId: string, SchemeProprietary: string) => Promise<unknown>;
 
-  getEntity: (entityId: string, SchemeProperty: string) => Promise<unknown>;
+  getEntity: (entityId: string, SchemeProprietary: string) => Promise<unknown>;
 }
