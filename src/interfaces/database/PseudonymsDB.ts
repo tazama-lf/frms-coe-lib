@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { type Database } from 'arangojs';
-import { type TransactionRelationship } from '..';
+import { type ConditionEdge, type EntityCondition, type TransactionRelationship } from '..';
 
 export interface PseudonymsDB {
   _pseudonymsDb: Database;
@@ -270,4 +270,14 @@ export interface PseudonymsDB {
    * @memberof PseudonymsDB
    */
   saveAccountHolder: (entityId: string, accountId: string, CreDtTm: string) => Promise<unknown>;
+
+  saveCondition: (condition: EntityCondition) => Promise<unknown>;
+
+  saveGovernedAsCreditorByEdge: (conditionId: string, accountEntityId: string, condtionEdge: ConditionEdge) => Promise<unknown>;
+
+  saveGovernedAsDebtorByEdge: (conditionId: string, accountEntityId: string, condtionEdge: ConditionEdge) => Promise<unknown>;
+
+  getConditionsByEntity: (entityId: string, SchemeProperty: string) => Promise<unknown>;
+
+  getEntity: (entityId: string, SchemeProperty: string) => Promise<unknown>;
 }

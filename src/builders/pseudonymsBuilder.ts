@@ -5,7 +5,7 @@ import { join, type AqlQuery, type GeneratedAqlQuery } from 'arangojs/aql';
 import * as fs from 'fs';
 import { formatError } from '../helpers/formatter';
 import { isDatabaseReady } from '../helpers/readyCheck';
-import { type TransactionRelationship } from '../interfaces';
+import { type ConditionEdge, type EntityCondition, type TransactionRelationship } from '../interfaces';
 import { dbPseudonyms } from '../interfaces/ArangoCollections';
 import { readyChecks, type DatabaseManagerType, type DBConfig } from '../services/dbManager';
 
@@ -283,5 +283,66 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     const _to = `accounts/${accountId}`;
 
     return await db?.save({ _key, _from, _to, CreDtTm }, { overwriteMode: 'ignore' });
+  };
+
+  manager.getConditionsByEntity = async (entityId: string, SchemeProprietary: string) => {
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.conditions);
+    const date: string = new Date().toISOString();
+    const nttyPrtry = SchemeProprietary;
+    const nttyId = entityId;
+    const nttyPrtryAql = aql`AND doc.ntty.SchmeNm.Prtry == ${nttyPrtry}`;
+    const nttyIdAql = aql`FILTER doc.ntty.Id == ${nttyId}`;
+
+    const query = aql`FOR doc IN ${db}
+    ${nttyIdAql}
+    ${nttyPrtryAql}
+    AND (doc.xprtnDtTm > ${date}
+    OR doc.xprtnDtTm == null)
+    RETURN doc`;
+
+    return await (await manager._pseudonymsDb?.query(query))?.batches.all();
+  };
+
+  manager.getEntity = async (entityId: string, SchemeProprietary: string) => {
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.entities);
+    const entityIdentity = `${entityId}${SchemeProprietary}`;
+    const entityIdAql = aql`FILTER doc._key == ${entityIdentity}`;
+
+    const query = aql`FOR doc IN ${db}
+      ${entityIdAql}
+      RETURN doc`;
+
+    return await (await manager._pseudonymsDb?.query(query))?.batches.all();
+  };
+
+  manager.saveCondition = async (condition: EntityCondition) => {
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.conditions);
+
+    return await db?.save(condition, { overwriteMode: 'ignore' });
+  };
+
+  manager.saveGovernedAsCreditorByEdge = async (conditionId: string, accountEntityId: string, condtionEdge: ConditionEdge) => {
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.governed_as_creditor_by);
+    const condId = conditionId.substring(conditionId.indexOf('/') + 1, conditionId.length);
+    const accEntId = accountEntityId.substring(accountEntityId.indexOf('/') + 1, accountEntityId.length);
+    const _key = `${condId}${accEntId}`;
+    const _from = accountEntityId;
+    const _to = conditionId;
+
+    return await db?.save(
+      { _key, _from, _to, evtTp: condtionEdge.evtTp, incptnDtTm: condtionEdge.incptnDtTm, xprtnDtTm: condtionEdge?.xprtnDtTm },
+      { overwriteMode: 'ignore' },
+    );
+  };
+
+  manager.saveGovernedAsDebtorByEdge = async (conditionId: string, accountEntityId: string, condtionEdge: ConditionEdge) => {
+    const condId = conditionId.substring(conditionId.indexOf('/') + 1, conditionId.length);
+    const accEntId = accountEntityId.substring(accountEntityId.indexOf('/') + 1, accountEntityId.length);
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.governed_as_debtor_by);
+    const _key = `${condId}${accEntId}`;
+    const _from = accountEntityId;
+    const _to = conditionId;
+
+    return await db?.save({ _key, _from, _to, condtionEdge }, { overwriteMode: 'ignore' });
   };
 }
