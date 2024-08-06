@@ -290,8 +290,8 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     const date: string = new Date().toISOString();
     const nttyPrtry = SchemeProprietary;
     const nttyId = entityId;
-    const nttyPrtryAql = aql`AND doc.ntty.SchmeNm.Prtry == ${nttyPrtry}`;
-    const nttyIdAql = aql`FILTER doc.ntty.Id == ${nttyId}`;
+    const nttyPrtryAql = aql`AND doc.ntty.schmeNm.prtry == ${nttyPrtry}`;
+    const nttyIdAql = aql`FILTER doc.ntty.id == ${nttyId}`;
 
     const query = aql`FOR doc IN ${db}
     ${nttyIdAql}
