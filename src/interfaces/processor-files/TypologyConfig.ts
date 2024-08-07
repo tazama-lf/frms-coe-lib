@@ -24,7 +24,7 @@ export type ExpressionMathJSON = Array<string | number | ExpressionMathJSON>;
 export interface ITypologyExpression {
   id: string;
   cfg: string;
-  desc?: string | undefined;
+  desc?: string;
   rules: IRuleValue[];
   expression: ExpressionMathJSON;
   workflow: WorkFlow;
