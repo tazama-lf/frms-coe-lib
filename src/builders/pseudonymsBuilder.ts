@@ -343,6 +343,9 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     const _from = accountEntityId;
     const _to = conditionId;
 
-    return await db?.save({ _key, _from, _to, condtionEdge }, { overwriteMode: 'ignore' });
+    return await db?.save(
+      { _key, _from, _to, evtTp: condtionEdge.evtTp, incptnDtTm: condtionEdge.incptnDtTm, xprtnDtTm: condtionEdge?.xprtnDtTm },
+      { overwriteMode: 'ignore' },
+    );
   };
 }
