@@ -321,7 +321,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     return await db?.save(condition, { overwriteMode: 'ignore' });
   };
 
-  manager.saveGovernedAsCreditorByEdge = async (conditionId: string, accountEntityId: string, condtionEdge: ConditionEdge) => {
+  manager.saveGovernedAsCreditorByEdge = async (conditionId: string, accountEntityId: string, conditionEdge: ConditionEdge) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.governed_as_creditor_by);
     const condId = conditionId.substring(conditionId.indexOf('/') + 1, conditionId.length);
     const accEntId = accountEntityId.substring(accountEntityId.indexOf('/') + 1, accountEntityId.length);
@@ -330,12 +330,12 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     const _to = conditionId;
 
     return await db?.save(
-      { _key, _from, _to, evtTp: condtionEdge.evtTp, incptnDtTm: condtionEdge.incptnDtTm, xprtnDtTm: condtionEdge?.xprtnDtTm },
+      { _key, _from, _to, evtTp: conditionEdge.evtTp, incptnDtTm: conditionEdge.incptnDtTm, xprtnDtTm: conditionEdge?.xprtnDtTm },
       { overwriteMode: 'ignore' },
     );
   };
 
-  manager.saveGovernedAsDebtorByEdge = async (conditionId: string, accountEntityId: string, condtionEdge: ConditionEdge) => {
+  manager.saveGovernedAsDebtorByEdge = async (conditionId: string, accountEntityId: string, conditionEdge: ConditionEdge) => {
     const condId = conditionId.substring(conditionId.indexOf('/') + 1, conditionId.length);
     const accEntId = accountEntityId.substring(accountEntityId.indexOf('/') + 1, accountEntityId.length);
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.governed_as_debtor_by);
@@ -344,7 +344,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     const _to = conditionId;
 
     return await db?.save(
-      { _key, _from, _to, evtTp: condtionEdge.evtTp, incptnDtTm: condtionEdge.incptnDtTm, xprtnDtTm: condtionEdge?.xprtnDtTm },
+      { _key, _from, _to, evtTp: conditionEdge.evtTp, incptnDtTm: conditionEdge.incptnDtTm, xprtnDtTm: conditionEdge?.xprtnDtTm },
       { overwriteMode: 'ignore' },
     );
   };
