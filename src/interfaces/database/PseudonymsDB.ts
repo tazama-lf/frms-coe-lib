@@ -311,4 +311,12 @@ export interface PseudonymsDB {
    * @memberof PseudonymsDB
    */
   getEntity: (entityId: string, SchemeProprietary: string) => Promise<unknown>;
+
+  /**
+   * @param accountId string of identifier for account being retrieved
+   * @param SchemeProprietary string of scheme proprietary of the entity being retrieved
+   *
+   * @memberof PseudonymsDB
+   */
+  getAccount: (accountId: string, SchemeProprietary: string) => Promise<unknown>;
 }

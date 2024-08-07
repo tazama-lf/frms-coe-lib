@@ -315,6 +315,18 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
+  manager.getAccount = async (accountId: string, SchemeProprietary: string) => {
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.accounts);
+    const accountIdentity = `${accountId}${SchemeProprietary}`;
+    const accountIdAql = aql`FILTER doc._key == ${accountIdentity}`;
+
+    const query = aql`FOR doc IN ${db}
+      ${accountIdAql}
+      RETURN doc`;
+
+    return await (await manager._pseudonymsDb?.query(query))?.batches.all();
+  };
+
   manager.saveCondition = async (condition: EntityCondition) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.conditions);
 
