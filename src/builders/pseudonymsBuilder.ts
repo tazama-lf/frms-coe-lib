@@ -303,19 +303,19 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
-  manager.getConditionsByAccount = async (accountId: string, SchemeProprietary: string, memberId: string) => {
+  manager.getConditionsByAccount = async (accountId: string, SchemeProprietary: string, agtMemberId: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.conditions);
     const date: string = new Date().toISOString();
     const acctPrtry = SchemeProprietary;
     const acctId = accountId;
-    const acctMemberId = memberId;
+    const conditionAgtMemberId = agtMemberId;
     const acctIdAql = aql`FILTER doc.acct.id == ${acctId}`;
     const acctPrtryAql = aql`AND doc.acct.schmeNm.prtry == ${acctPrtry}`;
-    const acctMemberIdAql = aql`AND doc.acct.agt.finInstnId.clrSysMmbId.mmbId == ${acctMemberId}`;
+    const agtMemberIdAql = aql`AND doc.acct.agt.finInstnId.clrSysMmbId.mmbId == ${conditionAgtMemberId}`;
     const query = aql`FOR doc IN ${db}
     ${acctIdAql}
     ${acctPrtryAql}
-    ${acctMemberIdAql}
+    ${agtMemberIdAql}
     AND (doc.xprtnDtTm > ${date}
     OR doc.xprtnDtTm == null)
     RETURN doc`;
@@ -335,9 +335,9 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
-  manager.getAccount = async (accountId: string, SchemeProprietary: string) => {
+  manager.getAccount = async (accountId: string, SchemeProprietary: string, agtMemberId: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.accounts);
-    const accountIdentity = `${accountId}${SchemeProprietary}`;
+    const accountIdentity = `${accountId}${SchemeProprietary}${agtMemberId}`;
     const accountIdAql = aql`FILTER doc._key == ${accountIdentity}`;
 
     const query = aql`FOR doc IN ${db}

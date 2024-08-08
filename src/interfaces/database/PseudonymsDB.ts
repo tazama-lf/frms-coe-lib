@@ -318,7 +318,7 @@ export interface PseudonymsDB {
    *
    * @memberof PseudonymsDB
    */
-  getAccount: (accountId: string, SchemeProprietary: string) => Promise<unknown>;
+  getAccount: (accountId: string, SchemeProprietary: string, agtMemberId: string) => Promise<unknown>;
 
   /**
    * @param accountId string of identifier for account being retrieved
