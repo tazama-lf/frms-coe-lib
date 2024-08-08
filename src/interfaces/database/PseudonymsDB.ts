@@ -314,9 +314,18 @@ export interface PseudonymsDB {
 
   /**
    * @param accountId string of identifier for account being retrieved
-   * @param SchemeProprietary string of scheme proprietary of the entity being retrieved
+   * @param SchemeProprietary string of scheme proprietary of the account being retrieved
    *
    * @memberof PseudonymsDB
    */
   getAccount: (accountId: string, SchemeProprietary: string) => Promise<unknown>;
+
+  /**
+   * @param accountId string of identifier for account being retrieved
+   * @param SchemeProprietary string of scheme proprietary of the account being retrieved
+   * @param MemberId string of financial institution member id of the account being retrieved
+   *
+   * @memberof PseudonymsDB
+   */
+  getConditionsByAccount: (accountId: string, SchemeProprietary: string, MemberId: string) => Promise<unknown>;
 }

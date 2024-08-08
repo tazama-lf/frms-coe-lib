@@ -303,6 +303,26 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
+  manager.getConditionsByAccount = async (accountId: string, SchemeProprietary: string, memberId: string) => {
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.conditions);
+    const date: string = new Date().toISOString();
+    const acctPrtry = SchemeProprietary;
+    const acctId = accountId;
+    const acctMemberId = memberId;
+    const acctIdAql = aql`FILTER doc.acct.id == ${acctId}`;
+    const acctPrtryAql = aql`AND doc.acct.schmeNm.prtry == ${acctPrtry}`;
+    const acctMemberIdAql = aql`AND doc.acct.agt.finInstnId.clrSysMmbId.mmbId == ${acctMemberId}`;
+    const query = aql`FOR doc IN ${db}
+    ${acctIdAql}
+    ${acctPrtryAql}
+    ${acctMemberIdAql}
+    AND (doc.xprtnDtTm > ${date}
+    OR doc.xprtnDtTm == null)
+    RETURN doc`;
+
+    return await (await manager._pseudonymsDb?.query(query))?.batches.all();
+  };
+
   manager.getEntity = async (entityId: string, SchemeProprietary: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.entities);
     const entityIdentity = `${entityId}${SchemeProprietary}`;
