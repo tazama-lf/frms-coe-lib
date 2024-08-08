@@ -6,5 +6,12 @@ export interface AccountCondition extends Condition {
     schmeNm: {
       prtry: string;
     };
+    agt: {
+      finInstnId: {
+        clrSysMmbId: {
+          mmbId: string;
+        };
+      };
+    };
   };
 }
