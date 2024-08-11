@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AqlLiteral, isAqlQuery } from 'arangojs/aql';
-import { ConfigurationDB, PseudonymsDB, RedisService, TransactionHistoryDB, TransactionDB } from '../src';
+import { ConfigurationDB, PseudonymsDB, RedisService, TransactionDB, TransactionHistoryDB } from '../src';
 import * as isDatabaseReady from '../src/helpers/readyCheck';
-import { AccountType, NetworkMap, Pacs002, TransactionRelationship, Typology } from '../src/interfaces';
+import { AccountType, ConditionEdge, EntityCondition, NetworkMap, Pacs002, TransactionRelationship, Typology } from '../src/interfaces';
 import { CreateDatabaseManager, DatabaseManagerInstance } from '../src/services/dbManager';
 
 // redis and aragojs are mocked
@@ -293,6 +293,13 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.saveAccount).toBeDefined();
     expect(dbManager.saveAccountHolder).toBeDefined();
     expect(dbManager.saveEntity).toBeDefined();
+    expect(dbManager.saveCondition).toBeDefined();
+    expect(dbManager.saveGovernedAsCreditorByEdge).toBeDefined();
+    expect(dbManager.saveGovernedAsDebtorByEdge).toBeDefined();
+    expect(dbManager.getConditionsByEntity).toBeDefined();
+    expect(dbManager.getEntity).toBeDefined();
+    expect(dbManager.getAccount).toBeDefined();
+    expect(await dbManager.getConditionsByAccount).toBeDefined();
 
     expect(await dbManager.queryPseudonymDB('testCollection', 'testFilter')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.queryPseudonymDB('testCollection', 'testFilter', 10)).toEqual(['MOCK-QUERY']);
@@ -316,6 +323,13 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.saveAccount('test')).toEqual('MOCK-SAVE');
     expect(await dbManager.saveAccountHolder('test', 'testID', 'testTime')).toEqual('MOCK-SAVE');
     expect(await dbManager.saveEntity('test', 'testTime')).toEqual('MOCK-SAVE');
+    expect(await dbManager.saveCondition({} as EntityCondition)).toEqual('MOCK-SAVE');
+    expect(await dbManager.saveGovernedAsCreditorByEdge('test1', 'test2', {} as ConditionEdge)).toEqual('MOCK-SAVE');
+    expect(await dbManager.saveGovernedAsDebtorByEdge('test1', 'test2', {} as ConditionEdge)).toEqual('MOCK-SAVE');
+    expect(await dbManager.getConditionsByEntity('test1', 'test2')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getEntity('test1', 'test2')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getAccount('test1', 'test2', 'test3')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getConditionsByAccount('test1', 'test2', 'test3')).toEqual(['MOCK-QUERY']);
   });
 
   it('should create a manager with redis methods', async () => {

@@ -13,6 +13,9 @@ const schema = {
     account_holder: 'account_holder',
     entities: 'entities',
     transactionRelationship: 'transactionRelationship',
+    conditions: 'conditions',
+    governed_as_debtor_by: 'governed_as_debtor_by',
+    governed_as_creditor_by: 'governed_as_creditor_by',
   },
   config: {
     ruleConfiguration: 'ruleConfiguration',
@@ -25,4 +28,4 @@ const { transactions, pseudonyms, config } = schema;
 const dbTransactions = Object.freeze(transactions);
 const dbPseudonyms = Object.freeze(pseudonyms);
 const dbConfiguration = Object.freeze(config);
-export { dbTransactions, dbPseudonyms, dbConfiguration };
+export { dbConfiguration, dbPseudonyms, dbTransactions };

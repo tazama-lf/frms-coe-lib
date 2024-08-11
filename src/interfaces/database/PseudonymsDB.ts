@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { type Database } from 'arangojs';
-import { type TransactionRelationship } from '..';
+import { type ConditionEdge, type EntityCondition, type TransactionRelationship } from '..';
 
 export interface PseudonymsDB {
   _pseudonymsDb: Database;
@@ -270,4 +270,62 @@ export interface PseudonymsDB {
    * @memberof PseudonymsDB
    */
   saveAccountHolder: (entityId: string, accountId: string, CreDtTm: string) => Promise<unknown>;
+
+  /**
+   * @param condition condition object we are storing of EntityCondition type
+   *
+   * @memberof PseudonymsDB
+   */
+  saveCondition: (condition: EntityCondition) => Promise<unknown>;
+
+  /**
+   * @param conditionId string condition identifier we are storing the edge connect
+   * @param accountEntityId string account or entity identifier we are storing the edge connect
+   * @param conditionEdge condition edge for account or entity to condition
+   *
+   * @memberof PseudonymsDB
+   */
+  saveGovernedAsCreditorByEdge: (conditionId: string, accountEntityId: string, conditionEdge: ConditionEdge) => Promise<unknown>;
+
+  /**
+   * @param conditionId string condition identifier we are storing the edge connect
+   * @param accountEntityId string account or entity identifier we are storing the edge connect
+   * @param conditionEdge condition edge for account or entity to condition
+   *
+   * @memberof PseudonymsDB
+   */
+  saveGovernedAsDebtorByEdge: (conditionId: string, accountEntityId: string, conditionEdge: ConditionEdge) => Promise<unknown>;
+
+  /**
+   * @param entityId string of identifier for entity being retrieved
+   * @param SchemeProprietary string of scheme proprietary of the entity being retrieved
+   *
+   * @memberof PseudonymsDB
+   */
+  getConditionsByEntity: (entityId: string, SchemeProprietary: string) => Promise<unknown>;
+
+  /**
+   * @param entityId string of identifier for entity being retrieved
+   * @param SchemeProprietary string of scheme proprietary of the entity being retrieved
+   *
+   * @memberof PseudonymsDB
+   */
+  getEntity: (entityId: string, SchemeProprietary: string) => Promise<unknown>;
+
+  /**
+   * @param accountId string of identifier for account being retrieved
+   * @param SchemeProprietary string of scheme proprietary of the account being retrieved
+   *
+   * @memberof PseudonymsDB
+   */
+  getAccount: (accountId: string, SchemeProprietary: string, agtMemberId: string) => Promise<unknown>;
+
+  /**
+   * @param accountId string of identifier for account being retrieved
+   * @param SchemeProprietary string of scheme proprietary of the account being retrieved
+   * @param MemberId string of financial institution member id of the account being retrieved
+   *
+   * @memberof PseudonymsDB
+   */
+  getConditionsByAccount: (accountId: string, SchemeProprietary: string, MemberId: string) => Promise<unknown>;
 }
