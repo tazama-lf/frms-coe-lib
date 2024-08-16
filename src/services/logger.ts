@@ -27,7 +27,7 @@ type ErrorFunc = (message: string | Error, innerError?: unknown, serviceOperatio
 
 const createErrorFn = (grpcClient?: LumberjackGRPCService): ErrorFunc => {
   return (message: string | Error, innerError?: unknown, serviceOperation?: string, id?: string, callback?: LogCallback): void => {
-    let errMessage = typeof message === 'string' ? message : message.stack ?? message.message;
+    let errMessage = typeof message === 'string' ? message : (message.stack ?? message.message);
 
     if (innerError) {
       if (innerError instanceof Error) {
