@@ -2,6 +2,7 @@
 
 import { type Database } from 'arangojs';
 import { type ConditionEdge, type EntityCondition, type TransactionRelationship } from '..';
+import { type RawEntityConditionResponse } from '../event-flow/EntityConditionEdge';
 
 export interface PseudonymsDB {
   _pseudonymsDb: Database;
@@ -303,6 +304,14 @@ export interface PseudonymsDB {
    * @memberof PseudonymsDB
    */
   getConditionsByEntity: (entityId: string, SchemeProprietary: string) => Promise<unknown>;
+
+  /**
+   * @param entityId string of identifier for entity being retrieved
+   * @param SchemeProprietary string of scheme proprietary of the entity being retrieved
+   *
+   * @memberof PseudonymsDB
+   */
+  getConditionsByEntityGraph: (entityId: string, SchemeProprietary: string) => Promise<RawEntityConditionResponse[][] | unknown>;
 
   /**
    * @param entityId string of identifier for entity being retrieved
