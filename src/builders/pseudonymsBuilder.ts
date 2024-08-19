@@ -8,7 +8,7 @@ import { isDatabaseReady } from '../helpers/readyCheck';
 import { type ConditionEdge, type EntityCondition, type TransactionRelationship } from '../interfaces';
 import { dbPseudonyms } from '../interfaces/ArangoCollections';
 import { readyChecks, type DatabaseManagerType, type DBConfig } from '../services/dbManager';
-import { type RawEntityConditionResponse } from '../interfaces/event-flow/EntityConditionEdge';
+import { type RawConditionResponse } from '../interfaces/event-flow/EntityConditionEdge';
 
 export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig: DBConfig): Promise<void> {
   manager._pseudonymsDb = new Database({
@@ -304,24 +304,25 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
-  manager.getConditionsByEntityGraph = async (entityId: string, proprietary: string) => {
+  manager.getEntityConditionsByGraph = async (id: string, proprietary: string) => {
     const date: string = new Date().toISOString();
+
     const filterAql = aql`
       LET fromVertex = DOCUMENT(edge._from)
       LET toVertex = DOCUMENT(edge._to)
-      FILTER toVertex.ntty.id == ${entityId}
+      FILTER toVertex.ntty.id == ${id}
       AND toVertex.ntty.schmeNm.prtry == ${proprietary}
       AND (edge.xprtnDtTm > ${date}
         OR edge.xprtnDtTm == null)`;
 
     const result = await (
-      await manager._pseudonymsDb?.query<RawEntityConditionResponse>(aql`
+      await manager._pseudonymsDb?.query<RawConditionResponse>(aql`
       LET gov_cred = (
           FOR edge IN governed_as_creditor_by
           ${filterAql}
           RETURN {
               edge: edge,
-              entity: fromVertex,
+              result: fromVertex,
               condition: toVertex
           }
       )
@@ -331,7 +332,51 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
           ${filterAql}
           RETURN {
               edge: edge,
-              entity: fromVertex,
+              result: fromVertex,
+              condition: toVertex
+          }
+      )
+  
+      RETURN {
+          "governed_as_creditor_by": gov_cred,
+          "governed_as_debtor_by": gov_debtor
+      }
+    `)
+    )?.batches.all();
+
+    return result;
+  };
+
+  manager.getAccountConditionsByGraph = async (id: string, proprietary: string, agt: string) => {
+    const date: string = new Date().toISOString();
+
+    const filterAql = aql`
+      LET fromVertex = DOCUMENT(edge._from)
+      LET toVertex = DOCUMENT(edge._to)
+      FILTER toVertex.acct.id == ${id}
+      AND toVertex.acct.schmeNm.prtry == ${proprietary}
+      AND toVertex.acct.agt.finInstnId.clrSysMmbId.mmbId == ${agt}
+      AND (edge.xprtnDtTm > ${date}
+        OR edge.xprtnDtTm == null)`;
+
+    const result = await (
+      await manager._pseudonymsDb?.query<RawConditionResponse>(aql`
+      LET gov_cred = (
+          FOR edge IN governed_as_creditor_by
+          ${filterAql}
+          RETURN {
+              edge: edge,
+              result: fromVertex,
+              condition: toVertex
+          }
+      )
+      
+      LET gov_debtor = (
+          FOR edge IN governed_as_debtor_by
+          ${filterAql}
+          RETURN {
+              edge: edge,
+              result: fromVertex,
               condition: toVertex
           }
       )

@@ -4,15 +4,15 @@ export interface EntityMetaData {
   _rev: string;
 }
 
-export interface RawEntityConditionResponse {
+export interface RawConditionResponse {
   governed_as_creditor_by: Result[];
   governed_as_debtor_by: Result[];
 }
 
 export interface Result {
   edge: Edge;
-  entity: Entity;
-  condition: Condition;
+  result: Entity | Account;
+  condition: EntityCondition | AccountCondition;
 }
 
 export interface Edge extends EntityMetaData {
@@ -28,6 +28,10 @@ export interface Entity extends EntityMetaData {
   CreDtTm: string;
 }
 
+export interface Account extends EntityMetaData {
+  // no extra fields sent in with accounts
+}
+
 export interface Condition extends EntityMetaData {
   evtTp: string[];
   condTp: string;
@@ -35,12 +39,16 @@ export interface Condition extends EntityMetaData {
   incptnDtTm: string;
   xprtnDtTm: string;
   condRsn: string;
-  ntty: Ntty;
   forceCret: boolean;
   usr: string;
   creDtTm: string;
 }
-
+export interface EntityCondition extends Condition {
+  ntty: Ntty;
+}
+export interface AccountCondition extends Condition {
+  acct: Acct;
+}
 export interface Ntty {
   id: string;
   schmeNm: SchmeNm;
@@ -48,4 +56,19 @@ export interface Ntty {
 
 export interface SchmeNm {
   prtry: string;
+}
+export interface Acct extends Ntty {
+  agt: Agt;
+}
+
+export interface Agt {
+  finInstnId: FinInstnId;
+}
+
+export interface FinInstnId {
+  clrSysMmbId: ClrSysMmbId;
+}
+
+export interface ClrSysMmbId {
+  mmbId: string;
 }
