@@ -5,7 +5,7 @@ import { join, type AqlQuery, type GeneratedAqlQuery } from 'arangojs/aql';
 import * as fs from 'fs';
 import { formatError } from '../helpers/formatter';
 import { isDatabaseReady } from '../helpers/readyCheck';
-import { type ConditionEdge, type EntityCondition, type TransactionRelationship } from '../interfaces';
+import { type AccountCondition, type ConditionEdge, type EntityCondition, type TransactionRelationship } from '../interfaces';
 import { dbPseudonyms } from '../interfaces/ArangoCollections';
 import { readyChecks, type DatabaseManagerType, type DBConfig } from '../services/dbManager';
 import { type RawConditionResponse } from '../interfaces/event-flow/EntityConditionEdge';
@@ -435,7 +435,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
-  manager.saveCondition = async (condition: EntityCondition) => {
+  manager.saveCondition = async (condition: EntityCondition | AccountCondition) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.conditions);
 
     return await db?.save(condition, { overwriteMode: 'ignore' });

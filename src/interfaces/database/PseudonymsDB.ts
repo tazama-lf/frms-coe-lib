@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { type Database } from 'arangojs';
-import { type ConditionEdge, type EntityCondition, type TransactionRelationship } from '..';
+import { type AccountCondition, type ConditionEdge, type EntityCondition, type TransactionRelationship } from '..';
 import { type RawConditionResponse } from '../event-flow/EntityConditionEdge';
 
 export interface PseudonymsDB {
@@ -273,11 +273,11 @@ export interface PseudonymsDB {
   saveAccountHolder: (entityId: string, accountId: string, CreDtTm: string) => Promise<unknown>;
 
   /**
-   * @param condition condition object we are storing of EntityCondition type
+   * @param condition condition object we are storing of `EntityCondition` or `AccountCondition` type
    *
    * @memberof PseudonymsDB
    */
-  saveCondition: (condition: EntityCondition) => Promise<unknown>;
+  saveCondition: (condition: EntityCondition | AccountCondition) => Promise<unknown>;
 
   /**
    * @param conditionId string condition identifier we are storing the edge connect
@@ -316,7 +316,7 @@ export interface PseudonymsDB {
   /**
    * @param entityId string of identifier for entity being retrieved
    * @param schemeProprietary string of scheme proprietary of the entity being retrieved
-   * @param agt agt
+   * @param agt agt name
    *
    * @memberof PseudonymsDB
    */
