@@ -1,11 +1,18 @@
 ## Table of Contents
 
+- [Table of Contents](#table-of-contents)
 - [Overview](#overview)
 - [Installation](#installation)
 - [Usage](#usage)
+  - [1. **Database Management**](#1-database-management)
+  - [2. **Logger Service**](#2-logger-service)
+  - [3. **Apm Integration**](#3-apm-integration)
+  - [4. **Redis Service**](#4-redis-service)
 - [Modules and Classes](#modules-and-classes)
 - [Configuration](#configuration)
-- [External Dependencies](#external-dependencies)
+  - [Environment Variables](#environment-variables)
+  - [Configuration Options](#configuration-options)
+  - [Usage Example](#usage-example)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -22,12 +29,19 @@ Key features:
 
 ## Installation
 
-To install the `frms-coe-lib` package, you can use npm. This library requires Node.js and npm to be installed on your system.
+The npm package is hosted on GitHub. Make sure you're authenticated with GitHub and have the necessary permissions to access the package (`read:packages`). Create a [`.npmrc`](https://docs.npmjs.com/cli/v9/configuring-npm/npmrc?v=true) file if you currently do not have. Add the following content:
+```.rc
+@tazama-lf:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=some-secret
+```
+Replace "some-secret" with your GitHub Token.
+
+To install the `frms-coe-lib` package, you can use npm.
 
 1. **Install via npm:**
 
    ```sh
-   npm install @frmscoe/frms-coe-lib --registry=https://npm.pkg.github.com
+   npm install @tazama-lf/frms-coe-lib --registry=https://npm.pkg.github.com
    ```
 
 The npm package is hosted on GitHub. Make sure you're authenticated with GitHub and have the necessary permissions to access the package (`read:packages`).
@@ -37,7 +51,7 @@ The npm package is hosted on GitHub. Make sure you're authenticated with GitHub 
 Once installed, you can import the library in your project:
 
   ```typescript
-  import { LoggerService, CreateDatabaseManager } from '@frmscoe/frms-coe-lib';
+  import { LoggerService, CreateDatabaseManager } from '@tazama-lf/frms-coe-lib';
   ```
 
 3. **Dependencies:**
@@ -58,7 +72,7 @@ The `CreateDatabaseManager` function initializes and manages connections to mult
 
 **Usage Example:**
 ```typescript
-import { CreateDatabaseManager, DatabaseManagerInstance } from '@frmscoe/frms-coe-lib';
+import { CreateDatabaseManager, DatabaseManagerInstance } from '@tazama-lf/frms-coe-lib';
 
 const dbConfig = {
   configuration: {
@@ -81,7 +95,7 @@ The `LoggerService` class provides logging functionality, supporting different l
 
 **Usage Example:**
 ```typescript
-import { LoggerService } from '@frmscoe/frms-coe-lib';
+import { LoggerService } from '@tazama-lf/frms-coe-lib';
 
 const logger = new LoggerService('localhost:50051');
 
@@ -96,7 +110,7 @@ The `Apm` class integrates with Elastic APM to track performance and errors. It 
 
 **Usage Example:**
 ```typescript
-import { Apm } from '@frmscoe/frms-coe-lib';
+import { Apm } from '@tazama-lf/frms-coe-lib';
 
 const apm = new Apm({
   serviceName: 'my-service',
@@ -120,7 +134,7 @@ The `RedisService` class provides methods to interact with Redis, including sett
 
 **Example:**
 ```typescript
-import { RedisService } from '@frmscoe/frms-coe-lib';
+import { RedisService } from '@tazama-lf/frms-coe-lib';
 
 async function useRedis() {
   const redisConfig = {
@@ -135,7 +149,7 @@ async function useRedis() {
   const value = await redisService.getJson('key');
   console.log(value);
 
-  import { CreateDatabaseManager, DatabaseManagerInstance } from '@frmscoe/frms-coe-lib';
+  import { CreateDatabaseManager, DatabaseManagerInstance } from '@tazama-lf/frms-coe-lib';
 
 const dbConfig = {
   redisConfig: {
