@@ -16,6 +16,8 @@ const schema = {
     conditions: 'conditions',
     governed_as_debtor_by: 'governed_as_debtor_by',
     governed_as_creditor_by: 'governed_as_creditor_by',
+    governed_as_debtor_account_by: 'governed_as_debtor_account_by',
+    governed_as_creditor_account_by: 'governed_as_creditor_account_by',
   },
   config: {
     ruleConfiguration: 'ruleConfiguration',
