@@ -295,6 +295,8 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.saveEntity).toBeDefined();
     expect(dbManager.saveCondition).toBeDefined();
     expect(dbManager.saveGovernedAsCreditorByEdge).toBeDefined();
+    expect(dbManager.saveGovernedAsCreditorAccountByEdge).toBeDefined();
+    expect(dbManager.saveGovernedAsDebtorAccountByEdge).toBeDefined();
     expect(dbManager.saveGovernedAsDebtorByEdge).toBeDefined();
     expect(dbManager.getConditionsByEntity).toBeDefined();
     expect(dbManager.getEntityConditionsByGraph).toBeDefined();
@@ -328,6 +330,8 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.saveCondition({} as EntityCondition)).toEqual('MOCK-SAVE');
     expect(await dbManager.saveGovernedAsCreditorByEdge('test1', 'test2', {} as ConditionEdge)).toEqual('MOCK-SAVE');
     expect(await dbManager.saveGovernedAsDebtorByEdge('test1', 'test2', {} as ConditionEdge)).toEqual('MOCK-SAVE');
+    expect(await dbManager.saveGovernedAsCreditorAccountByEdge('test1', 'test2', {} as ConditionEdge)).toEqual('MOCK-SAVE');
+    expect(await dbManager.saveGovernedAsDebtorAccountByEdge('test1', 'test2', {} as ConditionEdge)).toEqual('MOCK-SAVE');
     expect(await dbManager.getConditionsByEntity('test1', 'test2')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getEntityConditionsByGraph('test1', 'test2')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getAccountConditionsByGraph('test1', 'test2', 'ntty')).toEqual(['MOCK-QUERY']);
@@ -395,6 +399,8 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.getPacs002Edge).toBeDefined();
     expect(dbManager.getDebtorPacs002Edges).toBeDefined();
     expect(dbManager.getSuccessfulPacs002Edges).toBeDefined();
+    expect(dbManager.saveGovernedAsCreditorAccountByEdge).toBeDefined();
+    expect(dbManager.saveGovernedAsDebtorAccountByEdge).toBeDefined();
     expect(dbManager.getDebtorPacs008Edges).toBeDefined();
     expect(dbManager.getCreditorPacs008Edges).toBeDefined();
     expect(dbManager.getPreviousPacs008Edges).toBeDefined();
