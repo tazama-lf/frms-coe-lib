@@ -296,6 +296,23 @@ export interface PseudonymsDB {
    * @memberof PseudonymsDB
    */
   saveGovernedAsDebtorByEdge: (conditionId: string, accountEntityId: string, conditionEdge: ConditionEdge) => Promise<unknown>;
+  /**
+   * @param conditionId string condition identifier we are storing the edge connect
+   * @param accountEntityId string account or entity identifier we are storing the edge connect
+   * @param conditionEdge condition edge for account or entity to condition
+   *
+   * @memberof PseudonymsDB
+   */
+  saveGovernedAsDebtorAccountByEdge: (conditionId: string, accountEntityId: string, conditionEdge: ConditionEdge) => Promise<unknown>;
+
+  /**
+   * @param conditionId string condition identifier we are storing the edge connect
+   * @param accountEntityId string account or entity identifier we are storing the edge connect
+   * @param conditionEdge condition edge for account or entity to condition
+   *
+   * @memberof PseudonymsDB
+   */
+  saveGovernedAsCreditorAccountByEdge: (conditionId: string, accountEntityId: string, conditionEdge: ConditionEdge) => Promise<unknown>;
 
   /**
    * @param entityId string of identifier for entity being retrieved

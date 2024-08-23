@@ -362,7 +362,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     const result = await (
       await manager._pseudonymsDb?.query<RawConditionResponse>(aql`
       LET gov_cred = (
-          FOR edge IN governed_as_creditor_by
+          FOR edge IN governed_as_creditor_account_by
           ${filterAql}
           RETURN {
               edge: edge,
@@ -372,7 +372,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       )
       
       LET gov_debtor = (
-          FOR edge IN governed_as_debtor_by
+          FOR edge IN governed_as_debtor_account_by
           ${filterAql}
           RETURN {
               edge: edge,
@@ -443,28 +443,44 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
 
   manager.saveGovernedAsCreditorByEdge = async (conditionId: string, accountEntityId: string, conditionEdge: ConditionEdge) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.governed_as_creditor_by);
-    const condId = conditionId.substring(conditionId.indexOf('/') + 1, conditionId.length);
-    const accEntId = accountEntityId.substring(accountEntityId.indexOf('/') + 1, accountEntityId.length);
-    const _key = `${condId}${accEntId}`;
     const _from = accountEntityId;
     const _to = conditionId;
 
     return await db?.save(
-      { _key, _from, _to, evtTp: conditionEdge.evtTp, incptnDtTm: conditionEdge.incptnDtTm, xprtnDtTm: conditionEdge?.xprtnDtTm },
+      { _from, _to, evtTp: conditionEdge.evtTp, incptnDtTm: conditionEdge.incptnDtTm, xprtnDtTm: conditionEdge?.xprtnDtTm },
       { overwriteMode: 'ignore' },
     );
   };
 
   manager.saveGovernedAsDebtorByEdge = async (conditionId: string, accountEntityId: string, conditionEdge: ConditionEdge) => {
-    const condId = conditionId.substring(conditionId.indexOf('/') + 1, conditionId.length);
-    const accEntId = accountEntityId.substring(accountEntityId.indexOf('/') + 1, accountEntityId.length);
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.governed_as_debtor_by);
-    const _key = `${condId}${accEntId}`;
     const _from = accountEntityId;
     const _to = conditionId;
 
     return await db?.save(
-      { _key, _from, _to, evtTp: conditionEdge.evtTp, incptnDtTm: conditionEdge.incptnDtTm, xprtnDtTm: conditionEdge?.xprtnDtTm },
+      { _from, _to, evtTp: conditionEdge.evtTp, incptnDtTm: conditionEdge.incptnDtTm, xprtnDtTm: conditionEdge?.xprtnDtTm },
+      { overwriteMode: 'ignore' },
+    );
+  };
+
+  manager.saveGovernedAsCreditorAccountByEdge = async (conditionId: string, accountEntityId: string, conditionEdge: ConditionEdge) => {
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.governed_as_creditor_account_by);
+    const _from = accountEntityId;
+    const _to = conditionId;
+
+    return await db?.save(
+      { _from, _to, evtTp: conditionEdge.evtTp, incptnDtTm: conditionEdge.incptnDtTm, xprtnDtTm: conditionEdge?.xprtnDtTm },
+      { overwriteMode: 'ignore' },
+    );
+  };
+
+  manager.saveGovernedAsDebtorAccountByEdge = async (conditionId: string, accountEntityId: string, conditionEdge: ConditionEdge) => {
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.governed_as_debtor_account_by);
+    const _from = accountEntityId;
+    const _to = conditionId;
+
+    return await db?.save(
+      { _from, _to, evtTp: conditionEdge.evtTp, incptnDtTm: conditionEdge.incptnDtTm, xprtnDtTm: conditionEdge?.xprtnDtTm },
       { overwriteMode: 'ignore' },
     );
   };
