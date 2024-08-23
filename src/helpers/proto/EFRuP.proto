@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+message ClearingSystemMemberId {
+    string mmbId = 1;
+}
+
+message FinancialInstitutionId {
+    ClearingSystemMemberId clrSysMmbId = 1;
+}
+
+message Agent {
+    FinancialInstitutionId finInstnId = 1;
+}
+
+message Account {
+    string id = 1;
+    SchemeName schmeNm = 2;
+    Agent agt = 3;
+}
+
+message SchemeName {
+    string prtry = 1;
+}
+
+message Entity {
+    string id = 1;
+    SchemeName schmeNm = 2;
+}
+
+message Perspective {
+    string prsptv = 1;
+    repeated string evtTp = 2;
+    string incptnDtTm = 3;
+    string xprtnDtTm = 4;
+}
+
+message ConditionDetails {
+    string condId = 1;
+    string condTp = 2;
+    string incptnDtTm = 3;
+    string xprtnDtTm = 4;
+    string condRsn = 5;
+    string usr = 6;
+    string creDtTm = 7;
+    repeated Perspective prsptvs = 8;
+}
+
+message Conditions {
+    Entity ntty = 1;
+    Account acct = 2;
+    repeated ConditionDetails conditions = 3;
+}
