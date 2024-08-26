@@ -16,9 +16,12 @@ export interface ConditionDetails extends Pick<Condition, 'incptnDtTm' | 'xprtnD
   prsptvs: Array<Pick<Condition, 'prsptv' | 'evtTp' | 'incptnDtTm' | 'xprtnDtTm'>>;
 }
 
-export interface ConditionResponse {
-  // one of ntty and acct, never both
-  ntty?: Ntty;
-  acct?: Acct;
+export interface EntityConditionResponse {
+  ntty: Ntty;
+  conditions: ConditionDetails[];
+}
+
+export interface AccountConditionResponse {
+  acct: Acct;
   conditions: ConditionDetails[];
 }
