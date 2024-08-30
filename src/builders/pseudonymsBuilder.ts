@@ -9,6 +9,7 @@ import { type AccountCondition, type ConditionEdge, type EntityCondition, type T
 import { dbPseudonyms } from '../interfaces/ArangoCollections';
 import { readyChecks, type DatabaseManagerType, type DBConfig } from '../services/dbManager';
 import { type RawConditionResponse } from '../interfaces/event-flow/EntityConditionEdge';
+import { v4 } from 'uuid';
 
 export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig: DBConfig): Promise<void> {
   manager._pseudonymsDb = new Database({
@@ -326,7 +327,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
               condition: toVertex
           }
       )
-      
+
       LET gov_debtor = (
           FOR edge IN governed_as_debtor_by
           ${filterAql}
@@ -336,7 +337,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
               condition: toVertex
           }
       )
-  
+
       RETURN {
           "governed_as_creditor_by": gov_cred,
           "governed_as_debtor_by": gov_debtor
@@ -370,7 +371,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
               condition: toVertex
           }
       )
-      
+
       LET gov_debtor = (
           FOR edge IN governed_as_debtor_account_by
           ${filterAql}
@@ -380,7 +381,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
               condition: toVertex
           }
       )
-  
+
       RETURN {
           "governed_as_creditor_by": gov_cred,
           "governed_as_debtor_by": gov_debtor
@@ -437,8 +438,8 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
 
   manager.saveCondition = async (condition: EntityCondition | AccountCondition) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.conditions);
-
-    return await db?.save(condition, { overwriteMode: 'ignore' });
+    const uuid = v4();
+    return await db?.save({ ...condition, _key: uuid, condId: uuid }, { overwriteMode: 'ignore' });
   };
 
   manager.saveGovernedAsCreditorByEdge = async (conditionId: string, accountEntityId: string, conditionEdge: ConditionEdge) => {
