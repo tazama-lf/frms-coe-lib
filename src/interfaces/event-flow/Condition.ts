@@ -1,4 +1,5 @@
 export interface Condition {
+  condId: string;
   evtTp: string[];
   incptnDtTm: string;
   xprtnDtTm?: string;
