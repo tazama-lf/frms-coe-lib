@@ -406,6 +406,7 @@ message FRMSMessage {
     message workflow {
         uint32 alertThreshold = 1;
         uint32 interdictionThreshold = 2;
+        string flowProcessor = 3;
     }
 
     message Tadpresult {
