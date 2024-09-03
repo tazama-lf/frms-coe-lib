@@ -485,4 +485,40 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       { overwriteMode: 'ignore' },
     );
   };
+
+  manager.updateExpiryDateOfAccountEdges = async (edgeCreditorByKey: string, edgeDebtorByKey: string, expireDateTime: string) => {
+    return await Promise.all([
+      edgeDebtorByKey
+        ? manager._pseudonymsDb
+            ?.collection(dbPseudonyms.governed_as_debtor_account_by)
+            ?.update(edgeDebtorByKey, { xprtnDtTm: expireDateTime }, { returnNew: true })
+        : undefined,
+      edgeCreditorByKey
+        ? manager._pseudonymsDb
+            ?.collection(dbPseudonyms.governed_as_creditor_account_by)
+            ?.update(edgeCreditorByKey, { xprtnDtTm: expireDateTime }, { returnNew: true })
+        : undefined,
+    ]);
+  };
+
+  manager.updateExpiryDateOfEntityEdges = async (edgeCreditorByKey: string, edgeDebtorByKey: string, expireDateTime: string) => {
+    return await Promise.all([
+      edgeDebtorByKey
+        ? manager._pseudonymsDb
+            ?.collection(dbPseudonyms.governed_as_debtor_by)
+            ?.update(edgeDebtorByKey, { xprtnDtTm: expireDateTime }, { returnNew: true })
+        : undefined,
+      edgeCreditorByKey
+        ? manager._pseudonymsDb
+            ?.collection(dbPseudonyms.governed_as_creditor_by)
+            ?.update(edgeCreditorByKey, { xprtnDtTm: expireDateTime }, { returnNew: true })
+        : undefined,
+    ]);
+  };
+
+  manager.updateCondition = async (conditionId: string, expireDateTime: string) => {
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.conditions);
+
+    return await db?.update(conditionId, { xprtnDtTm: expireDateTime }, { returnNew: true });
+  };
 }
