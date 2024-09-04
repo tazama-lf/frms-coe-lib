@@ -303,7 +303,10 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.getAccountConditionsByGraph).toBeDefined();
     expect(dbManager.getEntity).toBeDefined();
     expect(dbManager.getAccount).toBeDefined();
-    expect(await dbManager.getConditionsByAccount).toBeDefined();
+    expect(dbManager.getConditionsByAccount).toBeDefined();
+    expect(dbManager.updateCondition).toBeDefined();
+    expect(dbManager.updateExpiryDateOfAccountEdges).toBeDefined();
+    expect(dbManager.updateExpiryDateOfEntityEdges).toBeDefined();
 
     expect(await dbManager.queryPseudonymDB('testCollection', 'testFilter')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.queryPseudonymDB('testCollection', 'testFilter', 10)).toEqual(['MOCK-QUERY']);
@@ -338,6 +341,15 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.getEntity('test1', 'test2')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getAccount('test1', 'test2', 'test3')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getConditionsByAccount('test1', 'test2', 'test3')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.updateExpiryDateOfAccountEdges('_testkey1', '_testkey2', '2024-09-05T21:00:00.999Z')).toEqual([
+      'MOCK-UPDATE',
+      'MOCK-UPDATE',
+    ]);
+    expect(await dbManager.updateExpiryDateOfEntityEdges('_testkey1', '_testkey2', '2024-09-05T21:00:00.999Z')).toEqual([
+      'MOCK-UPDATE',
+      'MOCK-UPDATE',
+    ]);
+    expect(await dbManager.updateCondition('_testkey1', '2024-09-05T21:00:00.999Z')).toEqual('MOCK-UPDATE');
   });
 
   it('should create a manager with redis methods', async () => {

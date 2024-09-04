@@ -363,4 +363,30 @@ export interface PseudonymsDB {
    * @memberof PseudonymsDB
    */
   getConditionsByAccount: (accountId: string, SchemeProprietary: string, MemberId: string) => Promise<unknown>;
+
+  /**
+   * @param edgeCreditorByKey string _key of identifier for creditor by edge
+   * @param edgeDebtorByKey string _key of identifier for debtor by edge
+   * @param expireDateTime new date to use for expire timedate in edges
+   *
+   * @memberof PseudonymsDB
+   */
+  updateExpiryDateOfAccountEdges: (edgeCreditorByKey: string, edgeDebtorByKey: string, expireDateTime: string) => Promise<unknown>;
+
+  /**
+   * @param edgeCreditorByKey string _key of identifier for creditor by edge
+   * @param edgeDebtorByKey string _key of identifier for debtor by edge
+   * @param expireDateTime new date to use for expire timedate in edges
+   *
+   * @memberof PseudonymsDB
+   */
+  updateExpiryDateOfEntityEdges: (edgeCreditorByKey: string, edgeDebtorByKey: string, expireDateTime: string) => Promise<unknown>;
+
+  /**
+   * @param conditionId string _key of identifier for condition being updated
+   * @param expireDateTime new date to use for expire timedate in the condition
+   *
+   * @memberof PseudonymsDB
+   */
+  updateCondition: (conditionId: string, expireDateTime: string) => Promise<unknown>;
 }
