@@ -50,3 +50,7 @@ message Conditions {
     Account acct = 2;
     repeated ConditionDetails conditions = 3;
 }
+
+message CacheConditions {
+    repeated Conditions conditions = 1;
+}

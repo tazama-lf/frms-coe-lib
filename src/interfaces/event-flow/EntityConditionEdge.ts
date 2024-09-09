@@ -7,6 +7,8 @@ export interface EntityMetaData {
 export interface RawConditionResponse {
   governed_as_creditor_by: Result[];
   governed_as_debtor_by: Result[];
+  governed_as_creditor_account_by: Result[];
+  governed_as_debtor_account_by: Result[];
 }
 
 export interface Result {

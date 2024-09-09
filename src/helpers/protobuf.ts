@@ -13,6 +13,7 @@ const LogMessage = log.lookupType('LogMessage');
 
 const conditions = protobuf.loadSync(path.join(__dirname, '/proto/EFRuP.proto'));
 const ConditionsMessage = conditions.lookupType('Conditions');
+const CacheConditionsMessage = conditions.lookupType('CacheConditions');
 
 /**
  * Create a Message `Buffer` derived from a byte array resulting from the input type
@@ -60,6 +61,36 @@ export const createConditionsBuffer = (data: AccountConditionResponse | EntityCo
   } catch (error) {
     return undefined;
   }
+};
+
+/**
+ * Create a  Cache `Buffer` for conditions derived from a byte array resulting from the input type
+ *
+ * @param data The object to serialise to a `Buffer`
+ * @returns {Buffer | undefined} The resulting `Buffer`, or `undefined` if an error occurred
+ */
+export const createCacheConditionsBuffer = (data: {
+  account: AccountConditionResponse;
+  entity: EntityConditionResponse;
+}): Buffer | undefined => {
+  try {
+    const msg = CacheConditionsMessage.create(data);
+    const enc = CacheConditionsMessage.encode(msg).finish() as Buffer;
+    return enc;
+  } catch (error) {
+    return undefined;
+  }
+};
+
+/**
+ * Decodes a  AccountConditionResponse | EntityConditionResponse `Buffer` derived from a byte array resulting from the input type
+ *
+ * @param {Buffer} buffer The byte array to decode to a `AccountConditionResponse and EntityConditionResponse`
+ * @returns { AccountConditionResponse | EntityConditionResponse | undefined} The resulting ` AccountConditionResponse | EntityConditionResponse`, or `undefined` if an error occurred
+ */
+export const decodeCacheConditionsBuffer = (buffer: Buffer): { account: AccountConditionResponse; entity: EntityConditionResponse } => {
+  const decodedMessage = CacheConditionsMessage.decode(buffer);
+  return CacheConditionsMessage.toObject(decodedMessage) as { account: AccountConditionResponse; entity: EntityConditionResponse };
 };
 
 /**
