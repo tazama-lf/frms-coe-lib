@@ -52,5 +52,6 @@ message Conditions {
 }
 
 message CacheConditions {
-    repeated Conditions conditions = 1;
+    Conditions account = 1;
+    Conditions entity = 2;
 }
