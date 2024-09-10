@@ -383,6 +383,72 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       )
 
       RETURN {
+          "governed_as_creditor_account_by": gov_cred,
+          "governed_as_debtor_account_by": gov_debtor
+      }
+    `)
+    )?.batches.all();
+
+    return result;
+  };
+
+  manager.getConditionsByGraph = async (activeOnly: boolean) => {
+    const date: string = new Date().toISOString();
+    let filter;
+    if (activeOnly) {
+      filter = `FILTER edge.xprtnDtTm < ${date}`;
+    }
+
+    const filterAql = aql`
+      LET fromVertex = DOCUMENT(edge._from)
+      LET toVertex = DOCUMENT(edge._to)
+      ${filter}`;
+
+    const result = await (
+      await manager._pseudonymsDb?.query<RawConditionResponse>(aql`
+      LET gov_acct_cred = (
+          FOR edge IN governed_as_creditor_account_by
+          ${filterAql}
+          RETURN {
+              edge: edge,
+              result: fromVertex,
+              condition: toVertex
+          }
+      )
+
+      LET gov_acct_debtor = (
+          FOR edge IN governed_as_debtor_account_by
+          ${filterAql}
+          RETURN {
+              edge: edge,
+              result: fromVertex,
+              condition: toVertex
+          }
+      )
+
+      LET gov_cred = (
+          FOR edge IN governed_as_creditor_by
+          ${filterAql}
+          RETURN {
+              edge: edge,
+              result: fromVertex,
+              condition: toVertex
+          }
+      )
+
+      LET gov_debtor = (
+          FOR edge IN governed_as_debtor_by
+          ${filterAql}
+          RETURN {
+              edge: edge,
+              result: fromVertex,
+              condition: toVertex
+          }
+      )
+
+      RETURN {
+          "governed_as_creditor_account_by": gov_acct_cred,
+          "governed_as_debtor_account_by": gov_acct_debtor,
           "governed_as_creditor_by": gov_cred,
           "governed_as_debtor_by": gov_debtor
       }
@@ -408,6 +474,22 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     AND (doc.xprtnDtTm > ${date}
     OR doc.xprtnDtTm == null)
     RETURN doc`;
+
+    return await (await manager._pseudonymsDb?.query(query))?.batches.all();
+  };
+
+  manager.getConditions = async (activeOnly: boolean) => {
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.conditions);
+    const date: string = new Date().toISOString();
+
+    let filter;
+    if (activeOnly) {
+      filter = `FILTER doc.xprtnDtTm < ${date}`;
+    }
+
+    const query = aql`FOR doc IN ${db}
+      ${filter}
+      RETURN doc`;
 
     return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };

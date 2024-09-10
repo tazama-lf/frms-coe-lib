@@ -300,6 +300,8 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.saveGovernedAsDebtorByEdge).toBeDefined();
     expect(dbManager.getConditionsByEntity).toBeDefined();
     expect(dbManager.getEntityConditionsByGraph).toBeDefined();
+    expect(dbManager.getConditions).toBeDefined();
+    expect(dbManager.getConditionsByGraph).toBeDefined();
     expect(dbManager.getAccountConditionsByGraph).toBeDefined();
     expect(dbManager.getEntity).toBeDefined();
     expect(dbManager.getAccount).toBeDefined();
@@ -337,6 +339,8 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.saveGovernedAsDebtorAccountByEdge('test1', 'test2', {} as ConditionEdge)).toEqual('MOCK-SAVE');
     expect(await dbManager.getConditionsByEntity('test1', 'test2')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getEntityConditionsByGraph('test1', 'test2')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getConditionsByGraph(true)).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getConditions(true)).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getAccountConditionsByGraph('test1', 'test2', 'ntty')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getEntity('test1', 'test2')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getAccount('test1', 'test2', 'test3')).toEqual(['MOCK-QUERY']);
