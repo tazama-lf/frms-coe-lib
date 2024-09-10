@@ -478,6 +478,22 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
+  manager.getConditions = async (activeOnly: boolean) => {
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.conditions);
+    const date: string = new Date().toISOString();
+
+    let filter;
+    if (activeOnly) {
+      filter = `FILTER doc.xprtnDtTm < ${date}`;
+    }
+
+    const query = aql`FOR doc IN ${db}
+      ${filter}
+      RETURN doc`;
+
+    return await (await manager._pseudonymsDb?.query(query))?.batches.all();
+  };
+
   manager.getEntity = async (entityId: string, SchemeProprietary: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.entities);
     const entityIdentity = `${entityId}${SchemeProprietary}`;

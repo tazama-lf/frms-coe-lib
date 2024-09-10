@@ -4,6 +4,7 @@ import protobuf from 'protobufjs';
 import path from 'node:path';
 import { type LogMessage as LogMessageType } from './proto/lumberjack/LogMessage';
 import { type AccountConditionResponse, type EntityConditionResponse } from '../interfaces/event-flow/ConditionDetails';
+import { type AccountCondition, type EntityCondition } from '../interfaces';
 
 const root = protobuf.loadSync(path.join(__dirname, '/proto/Full.proto'));
 const FRMSMessage = root.lookupType('FRMSMessage');
@@ -14,6 +15,7 @@ const LogMessage = log.lookupType('LogMessage');
 const conditions = protobuf.loadSync(path.join(__dirname, '/proto/EFRuP.proto'));
 const ConditionsMessage = conditions.lookupType('Conditions');
 const CacheConditionsMessage = conditions.lookupType('CacheConditions');
+const CacheSimpleConditionsMessage = conditions.lookupType('SimpleConditions');
 
 /**
  * Create a Message `Buffer` derived from a byte array resulting from the input type
@@ -80,6 +82,35 @@ export const createCacheConditionsBuffer = (data: {
   } catch (error) {
     return undefined;
   }
+};
+
+/**
+ * Create a  Cache `Buffer` for conditions derived from a byte array resulting from the input type
+ *
+ * @param conditions A list of conditions to serialise to a `Buffer`
+ * @returns {Buffer | undefined} The resulting `Buffer`, or `undefined` if an error occurred
+ */
+export const createSimpleConditionsBuffer = (conditions: Array<AccountCondition | EntityCondition>): Buffer | undefined => {
+  const data = { conditions };
+  try {
+    const msg = CacheSimpleConditionsMessage.create(data);
+    const enc = CacheSimpleConditionsMessage.encode(msg).finish() as Buffer;
+    return enc;
+  } catch (error) {
+    return undefined;
+  }
+};
+
+/**
+ * Decodes a `Buffer` derived from a byte array resulting from the input type
+ *
+ * @param {Buffer} buffer The byte array to decode to a `AccountConditionResponse and EntityConditionResponse`
+ * @returns (AccountCondition|EntityCondition)[]
+ */
+export const decodeSimpleConditionsBuffer = (buffer: Buffer): Array<AccountCondition | EntityCondition> => {
+  const decodedMessage = CacheSimpleConditionsMessage.decode(buffer);
+  const payload = CacheSimpleConditionsMessage.toObject(decodedMessage) as { conditions: Array<AccountCondition | EntityCondition> };
+  return payload.conditions;
 };
 
 /**

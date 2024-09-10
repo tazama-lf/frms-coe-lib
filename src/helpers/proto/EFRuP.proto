@@ -55,3 +55,24 @@ message CacheConditions {
     Conditions account = 1;
     Conditions entity = 2;
 }
+
+message SimpleCondition {
+    repeated string evtTp = 1;
+    string condTp = 2;
+    string prsptv = 3;
+    string incptnDtTm = 4;
+    string condRsn = 5;
+    bool forceCret = 6;
+    string usr = 7;
+    string creDtTm = 8;
+    string condId = 9;
+    string xprtnDtTm = 10;
+    oneof entityType {
+      Account acct = 11;
+      Entity ntty = 12;
+    }
+}
+
+message SimpleConditions {
+  repeated SimpleCondition conditions = 1;
+}

@@ -347,6 +347,13 @@ export interface PseudonymsDB {
   getConditionsByGraph: (activeOnly: boolean) => Promise<RawConditionResponse[][] | unknown>;
 
   /**
+   * @param activeOnly Only active conditions
+   *
+   * @memberof PseudonymsDB
+   */
+  getConditions: (activeOnly: boolean) => Promise<unknown>;
+
+  /**
    * @param entityId string of identifier for entity being retrieved
    * @param SchemeProprietary string of scheme proprietary of the entity being retrieved
    *
