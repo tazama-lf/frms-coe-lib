@@ -3,9 +3,12 @@
 import {
   createCacheConditionsBuffer,
   createConditionsBuffer,
+  createSimpleConditionsBuffer,
   decodeCacheConditionsBuffer,
   decodeConditionsBuffer,
+  decodeSimpleConditionsBuffer,
 } from '../src/helpers/protobuf';
+import { AccountCondition, EntityCondition } from '../src/interfaces';
 import { Acct } from '../src/interfaces/event-flow/EntityConditionEdge';
 
 const acct: Acct = {
@@ -73,7 +76,7 @@ describe('Should serialise/deserialise EFRuP conditions', () => {
     expect(deserialisedEntityConditions).toEqual(entityConditons);
   });
 
-  test('se/deserialise ALL EFRuP conditions', () => {
+  test('se/deserialise ALL EFRuP conditions through graph/edges', () => {
     const accountConditions = { acct: acct, conditions };
     const entityConditons = { ntty: entity, conditions };
     let conds = { account: accountConditions, entity: entityConditons };
@@ -84,5 +87,54 @@ describe('Should serialise/deserialise EFRuP conditions', () => {
     const deserialisedConditions = decodeCacheConditionsBuffer(bufConds!);
     expect(deserialisedConditions).toBeDefined();
     expect(deserialisedConditions).toEqual(conds);
+  });
+
+  test('se/deserialise conditions from conditions collections', () => {
+    const items: (EntityCondition | AccountCondition)[] = [
+      {
+        evtTp: ['pacs.008.001.10'],
+        condTp: 'non-overridable-block',
+        prsptv: 'creditor',
+        incptnDtTm: '2024-09-10T00:00:00.000Z',
+        condRsn: 'R001',
+        acct,
+        forceCret: true,
+        usr: 'bob',
+        creDtTm: '2024-09-09T07:38:16.421Z',
+        condId: 'a66e78a0-2508-4fca-aac3-3207d8d2f88b',
+      },
+      {
+        evtTp: ['pacs.008.001.10'],
+        condTp: 'overridable-block',
+        prsptv: 'both',
+        incptnDtTm: '2024-09-17T21:00:00.999Z',
+        condRsn: 'R001',
+        ntty: entity,
+        forceCret: true,
+        usr: 'bob',
+        creDtTm: '2024-09-09T07:38:24.349Z',
+        condId: 'c859d422-d67f-454e-aae2-5011b0b16af2',
+      },
+      {
+        evtTp: ['pacs.008.001.10'],
+        condTp: 'overridable-block',
+        prsptv: 'both',
+        incptnDtTm: '2024-09-17T21:00:00.999Z',
+        xprtnDtTm: '2024-10-10T21:00:00.999Z',
+        condRsn: 'R001',
+        ntty: entity,
+        forceCret: true,
+        usr: 'bob',
+        creDtTm: '2024-09-10T08:38:40.265Z',
+        condId: '62b21fc0-5f4f-4f49-9cb0-c69e0123b3ec',
+      },
+    ];
+    let bufConds = createSimpleConditionsBuffer(items);
+    expect(bufConds).toBeDefined();
+    expect(bufConds?.byteLength).toBeGreaterThan(0);
+
+    const deserialisedConditions = decodeSimpleConditionsBuffer(bufConds!);
+    expect(deserialisedConditions).toBeDefined();
+    expect(deserialisedConditions).toEqual(items);
   });
 });
