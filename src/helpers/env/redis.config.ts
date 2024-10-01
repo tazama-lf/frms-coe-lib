@@ -21,7 +21,7 @@ export const validateRedisConfig = (authEnabled: boolean): RedisConfig => {
   return {
     db: validateEnvVar('REDIS_DATABASE', 'string'),
     password,
-    servers: validateEnvVar('REDIS_SERVERS', 'string'),
+    servers: JSON.parse(validateEnvVar('REDIS_SERVERS', 'string')),
     isCluster: validateEnvVar('REDIS_IS_CLUSTER', 'boolean'),
   };
 };
