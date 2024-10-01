@@ -1,21 +1,5 @@
 import { validateEnvVar } from '.';
-
-/**
- * Interface representing the configuration for Redis.
- */
-export interface RedisConfig {
-  /** The database number to use. */
-  db: string;
-
-  /** The authentication password for Redis (optional). */
-  auth?: string;
-
-  /** The servers for the Redis instance(s). */
-  servers: string;
-
-  /** Indicates whether the Redis configuration is for a cluster. */
-  isCluster: boolean;
-}
+import { type RedisConfig } from '../../interfaces';
 
 /**
  * Validates and retrieves the Redis configuration from environment variables.
@@ -28,16 +12,16 @@ export interface RedisConfig {
  * const redisConfig = validateRedisConfig(true);
  */
 export const validateRedisConfig = (authEnabled: boolean): RedisConfig => {
-  let auth: string | undefined;
+  let password = '';
 
   if (authEnabled) {
-    auth = validateEnvVar('REDIS_AUTH', 'string');
+    password = validateEnvVar('REDIS_AUTH', 'string');
   }
 
   return {
     db: validateEnvVar('REDIS_DATABASE', 'string'),
-    auth,
-    servers: validateEnvVar('REDIS_SERVERS', 'string'),
+    password,
+    servers: JSON.parse(validateEnvVar('REDIS_SERVERS', 'string')),
     isCluster: validateEnvVar('REDIS_IS_CLUSTER', 'boolean'),
   };
 };
