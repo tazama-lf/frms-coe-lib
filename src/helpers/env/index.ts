@@ -31,7 +31,7 @@ export function validateEnvVar<T>(name: string, type: 'string' | 'number' | 'boo
       return value as T;
     case 'number':
       numValue = Number(value);
-      if (isNaN(numValue)) {
+      if (isNaN(numValue) && !optional) {
         throw new Error(`Environment variable ${name} is not a valid number.`);
       }
       return numValue as T;
@@ -42,7 +42,10 @@ export function validateEnvVar<T>(name: string, type: 'string' | 'number' | 'boo
       } else if (value.toLowerCase() === 'false') {
         return false as T;
       }
-      throw new Error(`Environment variable ${name} is not a valid boolean.`);
+      if (!optional) {
+        throw new Error(`Environment variable ${name} is not a valid boolean.`);
+      }
+      return undefined as T;
     default:
       throw new Error('Unsupported type');
   }
