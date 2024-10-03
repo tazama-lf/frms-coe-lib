@@ -22,7 +22,7 @@ export interface ApmConfig {
  */
 export interface LogConfig {
   /** The host of the logging sidecar. */
-  sidecarHost: string;
+  sidecarHost?: string;
 }
 
 /**
@@ -38,7 +38,7 @@ export const validateAPMConfig = (): ApmConfig => {
   return {
     apmActive: validateEnvVar('APM_ACTIVE', 'boolean'),
     apmServiceName: validateEnvVar('APM_SERVICE_NAME', 'string'),
-    apmSecretToken: validateEnvVar('APM_SECRET_TOKEN', 'string'),
+    apmSecretToken: validateEnvVar('APM_SECRET_TOKEN', 'string', true),
     apmUrl: validateEnvVar('APM_URL', 'string'),
   };
 };
@@ -54,6 +54,6 @@ export const validateAPMConfig = (): ApmConfig => {
  */
 export const validateLogConfig = (): LogConfig => {
   return {
-    sidecarHost: validateEnvVar('SIDECAR_HOST', 'string'),
+    sidecarHost: validateEnvVar('SIDECAR_HOST', 'string', true),
   };
 };

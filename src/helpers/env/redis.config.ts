@@ -12,11 +12,7 @@ import { type RedisConfig } from '../../interfaces';
  * const redisConfig = validateRedisConfig(true);
  */
 export const validateRedisConfig = (authEnabled: boolean): RedisConfig => {
-  let password = '';
-
-  if (authEnabled) {
-    password = validateEnvVar('REDIS_AUTH', 'string');
-  }
+  const password = validateEnvVar<string>('REDIS_AUTH', 'string', !authEnabled);
 
   return {
     db: validateEnvVar('REDIS_DATABASE', 'string'),
