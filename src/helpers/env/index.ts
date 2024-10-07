@@ -8,7 +8,7 @@ import { validateProcessorConfig } from './processor.config';
  * @template T - The expected type of the environment variable.
  * @param {string} name - The name of the environment variable to validate.
  * @param {'string' | 'number' | 'boolean'} type - The expected type of the environment variable.
- * @param {string} optional - Is this variable optional (Defaults to false)
+ * @param {boolean} optional - Is this variable optional (Defaults to false)
  * @returns {T} - The value of the environment variable, cast to the specified type.
  * @throws {Error} - Throws an error if the environment variable is not defined, or if the value cannot be converted to the specified type.
  *
