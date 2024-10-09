@@ -19,5 +19,7 @@ export const validateRedisConfig = (authEnabled: boolean): RedisConfig => {
     password,
     servers: JSON.parse(validateEnvVar('REDIS_SERVERS', 'string')),
     isCluster: validateEnvVar('REDIS_IS_CLUSTER', 'boolean'),
+    distributedCacheEnabled: validateEnvVar('DISTRIBUTED_CACHE_ENABLED', 'boolean', true),
+    distributedCacheTTL: validateEnvVar('DISTRIBUTED_CACHETTL', 'number', true),
   };
 };
