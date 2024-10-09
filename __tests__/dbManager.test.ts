@@ -4,7 +4,7 @@ import { AqlLiteral, isAqlQuery } from 'arangojs/aql';
 import { ConfigurationDB, PseudonymsDB, RedisService, TransactionDB, TransactionHistoryDB } from '../src';
 import * as isDatabaseReady from '../src/helpers/readyCheck';
 import { AccountType, ConditionEdge, EntityCondition, NetworkMap, Pacs002, TransactionRelationship, Typology } from '../src/interfaces';
-import { CreateDatabaseManager, DatabaseManagerInstance } from '../src/services/dbManager';
+import { CreateDatabaseManager, DatabaseManagerInstance, LocalCacheConfig, ManagerConfig } from '../src/services/dbManager';
 
 // redis and aragojs are mocked
 // setup.jest.js
@@ -35,8 +35,6 @@ const configurationConfig = {
   user: 'TestConfiguration',
   password: 'TestConfiguration',
   url: 'TestConfiguration',
-  localCacheEnabled: true,
-  localCacheTTL: 10,
 };
 
 const configurationConfigNoTTL = {
@@ -45,7 +43,6 @@ const configurationConfigNoTTL = {
   user: 'TestConfiguration',
   password: 'TestConfiguration',
   url: 'TestConfiguration',
-  localCacheEnabled: true,
 };
 
 const configurationConfigNoCache = {
@@ -91,12 +88,18 @@ const mockTR: TransactionRelationship = {
   Amt: 'MOCK-Amt',
   Ccy: 'MOCK-Ccy',
 };
+
+const localCacheOptions: LocalCacheConfig = {
+  localCacheEnabled: true,
+  localCacheTTL: 300,
+};
 const config = {
   redisConfig: redisConfig,
   transactionHistory: transactionHistoryConfig,
   configuration: configurationConfig,
   pseudonyms: pseudonymsConfig,
   networkMap: networkMapConfig,
+  localCacheConfig: localCacheOptions,
 };
 
 let globalManager: DatabaseManagerInstance<typeof config>;
@@ -108,6 +111,7 @@ beforeAll(async () => {
     configuration: configurationConfig,
     pseudonyms: pseudonymsConfig,
     networkMap: networkMapConfig,
+    localCacheConfig: localCacheOptions,
   };
   globalManager = await CreateDatabaseManager(config);
 });
