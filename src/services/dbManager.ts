@@ -22,6 +22,9 @@ export interface DBConfig {
   password: string;
   databaseName: string;
   certPath: string;
+}
+
+export interface LocalCacheConfig {
   localCacheEnabled?: boolean;
   localCacheTTL?: number;
 }
@@ -32,6 +35,7 @@ interface ManagerConfig {
   transaction?: DBConfig;
   configuration?: DBConfig;
   redisConfig?: RedisConfig;
+  localCacheConfig?: LocalCacheConfig;
 }
 
 interface ManagerStatus {
@@ -80,7 +84,7 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
   }
 
   if (config.configuration) {
-    await configurationBuilder(manager, config.configuration);
+    await configurationBuilder(manager, config.configuration, config.localCacheConfig);
   }
 
   manager.isReadyCheck = () => readyChecks;
