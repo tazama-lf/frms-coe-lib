@@ -68,7 +68,5 @@ export const validateDatabaseConfig = (authEnabled: boolean, database: Database)
     url: validateEnvVar(`${prefix}_URL`, 'string'),
     user: validateEnvVar(`${prefix}_USER`, 'string'),
     certPath: validateEnvVar(`${prefix}_CERT_PATH`, 'string'),
-    localCacheTTL: validateEnvVar<number>('CACHETTL', 'number', true),
-    localCacheEnabled: validateEnvVar<boolean>('CACHE_ENABLED', 'boolean', true),
   };
 };

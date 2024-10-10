@@ -306,7 +306,13 @@ The JSON object example for dbManage configuration
       host: 'your-redis-host',
       port: 6379,
       password: 'your-redis-password',
+      distributedCacheEnabled: true;
+      distributedCacheTTL: 300;
     },
+    localConfig: {
+      localCacheEnabled: true;
+      localCacheTTL: 300;
+    }
 };
 
 ```
