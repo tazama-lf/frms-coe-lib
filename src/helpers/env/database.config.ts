@@ -61,12 +61,13 @@ export const validateDatabaseConfig = (authEnabled: boolean, database: Database)
   }
 
   const password = validateEnvVar<string>(`${prefix}_PASSWORD`, 'string', !authEnabled);
+  const user = validateEnvVar<string>(`${prefix}_USER`, 'string', !authEnabled);
 
   return {
     databaseName: validateEnvVar(prefix, 'string'),
     password,
     url: validateEnvVar(`${prefix}_URL`, 'string'),
-    user: validateEnvVar(`${prefix}_USER`, 'string'),
+    user,
     certPath: validateEnvVar(`${prefix}_CERT_PATH`, 'string'),
   };
 };
