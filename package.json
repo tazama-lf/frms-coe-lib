@@ -35,7 +35,7 @@
     "@types/uuid": "^10.0.0",
     "arangojs": "^8.8.1",
     "dotenv": "^16.4.5",
-    "elastic-apm-node": "^4.6.0",
+    "elastic-apm-node": "^4.8.0",
     "fast-json-stringify": "^5.16.0",
     "ioredis": "^5.4.1",
     "node-cache": "^5.1.2",
