@@ -13,6 +13,9 @@ import { transactionHistoryBuilder } from '../builders/transactionHistoryBuilder
 import { configurationBuilder } from '../builders/configurationBuilder';
 import { type TransactionDB } from '../interfaces/database/TransactionDB';
 import { transactionBuilder } from '../builders/transactionBuilder';
+import { validateLocalCacheConfig } from '../config/index';
+import { type Database, validateDatabaseConfig } from '../config/database.config';
+import { Cache, validateRedisConfig } from '../config/redis.config';
 
 export let readyChecks: Record<string, unknown> = {};
 
@@ -103,6 +106,31 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
   }
 
   return manager as DatabaseManagerInstance<T>;
+}
+
+export async function CreateStorageManager<T extends ManagerConfig>(
+  requiredStorages: Array<Database | Cache>,
+): Promise<{ db: DatabaseManagerInstance<T>; config: ManagerConfig }> {
+  let config: ManagerConfig = {};
+
+  for (const currentStorage of requiredStorages) {
+    if (config[currentStorage]) {
+      throw Error(`${currentStorage} was already defined.`);
+    }
+    if (currentStorage === Cache.DISTRIBUTED) {
+      config = { ...config, ...validateRedisConfig(true) };
+    } else if (currentStorage === Cache.LOCAL) {
+      config = { ...config, ...validateLocalCacheConfig() };
+    } else {
+      config = { ...config, ...validateDatabaseConfig(true, currentStorage as Database) };
+    }
+  }
+
+  if (!Object.values(config).every((value) => value === undefined)) {
+    return { db: (await CreateDatabaseManager(config)) as DatabaseManagerInstance<T>, config };
+  } else {
+    throw Error('Configuration supplied to Database manager was not valid.');
+  }
 }
 
 export type { ManagerConfig, TransactionHistoryDB, TransactionDB, ConfigurationDB, PseudonymsDB, DatabaseManagerInstance };

@@ -1,5 +1,5 @@
 import { validateEnvVar } from '.';
-import { type DBConfig } from '../../services/dbManager';
+import { type ManagerConfig } from '../services/dbManager';
 
 /**
  * Enum representing different database types.
@@ -8,19 +8,16 @@ import { type DBConfig } from '../../services/dbManager';
  */
 export enum Database {
   /** Database for storing pseudonyms. */
-  PSEUDONYMS,
+  PSEUDONYMS = 'pseudonyms',
 
   /** Database for transaction history. */
-  TRANSACTION_HISTORY,
+  TRANSACTION_HISTORY = 'transactionHistory',
 
   /** Database for configuration settings. */
-  CONFIGURATION,
-
-  /** Database for individual transactions. */
-  TRANSACTION,
+  CONFIGURATION = 'configuration',
 
   /** Database for evaluations. */
-  EVALUATION,
+  EVALUATION = 'transaction',
 }
 
 /**
@@ -34,40 +31,37 @@ export enum Database {
  * @example
  * const transactionHistoryConfig = validateDatabaseConfig(true, Database.TRANSACTION_HISTORY);
  */
-export const validateDatabaseConfig = (authEnabled: boolean, database: Database): DBConfig => {
-  let prefix = 'TRANSACTION_HISTORY_DATABASE';
+export const validateDatabaseConfig = (authEnabled: boolean, database: Database): ManagerConfig => {
+  let prefix = '';
 
   switch (database) {
-    case Database.PSEUDONYMS: {
+    case Database.PSEUDONYMS:
       prefix = 'PSEUDONYMS_DATABASE';
       break;
-    }
-    case Database.TRANSACTION_HISTORY: {
+    case Database.TRANSACTION_HISTORY:
       prefix = 'TRANSACTION_HISTORY_DATABASE';
       break;
-    }
-    case Database.CONFIGURATION: {
+    case Database.CONFIGURATION:
       prefix = 'CONFIGURATION_DATABASE';
       break;
-    }
-    case Database.TRANSACTION: {
-      prefix = 'TRANSACTION_DATABASE';
-      break;
-    }
-    case Database.EVALUATION: {
+    case Database.EVALUATION:
       prefix = 'EVALUATION_DATABASE';
       break;
-    }
+    default:
+      throw Error('Database selected is invalid.');
   }
 
   const password = validateEnvVar<string>(`${prefix}_PASSWORD`, 'string', !authEnabled);
   const user = validateEnvVar<string>(`${prefix}_USER`, 'string', !authEnabled);
 
-  return {
-    databaseName: validateEnvVar(prefix, 'string'),
-    password,
-    url: validateEnvVar(`${prefix}_URL`, 'string'),
-    user,
-    certPath: validateEnvVar(`${prefix}_CERT_PATH`, 'string'),
+  const result: ManagerConfig = {
+    [database]: {
+      databaseName: validateEnvVar(prefix, 'string'),
+      password,
+      url: validateEnvVar(`${prefix}_URL`, 'string'),
+      user,
+      certPath: validateEnvVar(`${prefix}_CERT_PATH`, 'string'),
+    },
   };
+  return result;
 };

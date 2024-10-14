@@ -1,6 +1,6 @@
-import { validateDatabaseConfig } from './database.config';
+import { type Database, validateDatabaseConfig } from './database.config';
 import { validateLogConfig, validateAPMConfig } from './monitoring.config';
-import { validateRedisConfig } from './redis.config';
+import { type Cache, validateRedisConfig } from './redis.config';
 import { validateProcessorConfig } from './processor.config';
 import { validateLocalCacheConfig } from './localcache.config';
 /**
@@ -51,6 +51,8 @@ export function validateEnvVar<T>(name: string, type: 'string' | 'number' | 'boo
       throw new Error('Unsupported type');
   }
 }
+
+export type StorageKey = Cache & Database;
 
 export {
   validateDatabaseConfig,

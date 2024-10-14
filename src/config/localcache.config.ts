@@ -1,5 +1,5 @@
 import { validateEnvVar } from '.';
-import { type LocalCacheConfig } from '../../services/dbManager';
+import { type ManagerConfig } from '../services/dbManager';
 
 /**
  * Validates and retrieves the Local cache options configuration from environment variables.
@@ -10,9 +10,11 @@ import { type LocalCacheConfig } from '../../services/dbManager';
  * @example
  * const localCacheOptions = validateLocalCacheConfig();
  */
-export const validateLocalCacheConfig = (): LocalCacheConfig => {
+export const validateLocalCacheConfig = (): ManagerConfig => {
   return {
-    localCacheEnabled: validateEnvVar('LOCAL_CACHE_ENABLED', 'boolean', true),
-    localCacheTTL: validateEnvVar('LOCAL_CACHETTL', 'number', true),
+    localCacheConfig: {
+      localCacheEnabled: validateEnvVar('LOCAL_CACHE_ENABLED', 'boolean', true),
+      localCacheTTL: validateEnvVar('LOCAL_CACHETTL', 'number', true),
+    },
   };
 };
