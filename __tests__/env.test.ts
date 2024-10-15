@@ -1,4 +1,4 @@
-import { validateEnvVar } from '../src/helpers/env';
+import { validateEnvVar } from '../src/config/index';
 
 describe('Environment Variables', () => {
   beforeAll(() => {

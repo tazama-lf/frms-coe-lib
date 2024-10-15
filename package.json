@@ -1,6 +1,6 @@
 {
   "name": "@tazama-lf/frms-coe-lib",
-  "version": "5.0.0-rc.0",
+  "version": "5.0.0-rc.1",
   "description": "FRMS Center of Excellence package library",
   "main": "lib/index.js",
   "repository": {

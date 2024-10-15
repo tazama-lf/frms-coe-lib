@@ -14,6 +14,12 @@ export interface ProcessorConfig {
   nodeEnv: string;
 }
 
+export interface AdditionalConfig {
+  name: string;
+  type: 'string' | 'boolean' | 'number';
+  optional?: boolean;
+}
+
 /**
  * Validates and retrieves the processor configuration from environment variables.
  *
@@ -21,9 +27,21 @@ export interface ProcessorConfig {
  * @throws {Error} - Throws an error if required environment variables are not defined or invalid.
  *
  * @example
- * const processorConfig = validateProcessorConfig();
+ * const processorConfig = validateProcessorConfig(additionalEnvironmentVariables?: additionalConfig[]);
  */
-export const validateProcessorConfig = (): ProcessorConfig => {
+
+export const validateProcessorConfig = (additionalEnvironmentVariables?: AdditionalConfig[]): ProcessorConfig => {
+  //Additional Environment variables
+  const valueAndVariablesName = additionalEnvironmentVariables?.map((value) => {
+    return { value: validateEnvVar<string>(value.name, value.type, value.optional), name: value.name };
+  });
+
+  // reduce array of object to object of config
+  const _additionalConfiguration = valueAndVariablesName?.reduce<Record<string, string | number | boolean>>((acc, item) => {
+    acc[item.name] = item.value;
+    return acc;
+  }, {});
+
   const nodeEnv = validateEnvVar('NODE_ENV', 'string');
 
   if (nodeEnv !== 'dev' && nodeEnv !== 'production' && nodeEnv !== 'test') {
@@ -36,9 +54,10 @@ export const validateProcessorConfig = (): ProcessorConfig => {
     throw new Error('The value specified for MAX_CPU is not a number.');
   }
 
-  return {
+  const _processorConfig: ProcessorConfig = {
     maxCPU: parseInt(maxCPU, 10),
     functionName: validateEnvVar('FUNCTION_NAME', 'string'),
     nodeEnv,
   };
+  return { ..._processorConfig, ..._additionalConfiguration };
 };
