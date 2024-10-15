@@ -25,7 +25,6 @@ const pinoStream = (): DestinationStream | undefined => {
 
 const LOGLEVEL = config.logstashLevel.toLowerCase();
 
-// const logger =  console : ;
 
 type LogFunc = (message: string, serviceOperation?: string, id?: string, callback?: LogCallback) => void;
 type ErrorFunc = (message: string | Error, innerError?: unknown, serviceOperation?: string, id?: string, callback?: LogCallback) => void;
