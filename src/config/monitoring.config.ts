@@ -23,6 +23,15 @@ export interface ApmConfig {
 export interface LogConfig {
   /** The host of the logging sidecar. */
   sidecarHost?: string;
+  logstashLevel: string;
+  pinoElasticOpts?: {
+    flushBytes: number;
+    elasticUsername: string;
+    elasticPassword: string;
+    elasticHost: string;
+    elasticIndex: string;
+    elasticVersion: number;
+  };
 }
 
 /**
@@ -55,5 +64,14 @@ export const validateAPMConfig = (): ApmConfig => {
 export const validateLogConfig = (): LogConfig => {
   return {
     sidecarHost: validateEnvVar('SIDECAR_HOST', 'string', true),
+    logstashLevel: validateEnvVar('SIDECAR_HOST', 'string', true) || 'info',
+    pinoElasticOpts: {
+      flushBytes: 1000,
+      elasticUsername: validateEnvVar('ELASTIC_USERNAME', 'string', true) ?? '',
+      elasticPassword: validateEnvVar('ELASTIC_PASSWORD', 'string', true) ?? '',
+      elasticHost: validateEnvVar('ELASTIC_HOST', 'string', true) ?? 'http://localhost:9200',
+      elasticIndex: validateEnvVar('ELASTIC_INDEX', 'string', true) ?? 'logs-tazama',
+      elasticVersion: validateEnvVar('ELASTIC_SEARCH_VERSION', 'string', true) ?? '8',
+    },
   };
 };

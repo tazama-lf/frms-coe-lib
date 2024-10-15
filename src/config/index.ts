@@ -1,8 +1,8 @@
-import { type Database, validateDatabaseConfig } from './database.config';
-import { validateLogConfig, validateAPMConfig } from './monitoring.config';
-import { type Cache, validateRedisConfig } from './redis.config';
-import { validateProcessorConfig } from './processor.config';
+import { validateDatabaseConfig } from './database.config';
 import { validateLocalCacheConfig } from './localcache.config';
+import { validateAPMConfig, validateLogConfig } from './monitoring.config';
+import { validateProcessorConfig } from './processor.config';
+import { validateRedisConfig } from './redis.config';
 /**
  * Validates and retrieves the specified environment variable.
  *
@@ -52,13 +52,11 @@ export function validateEnvVar<T>(name: string, type: 'string' | 'number' | 'boo
   }
 }
 
-export type StorageKey = Cache & Database;
-
 export {
-  validateDatabaseConfig,
-  validateLogConfig,
   validateAPMConfig,
-  validateRedisConfig,
-  validateProcessorConfig,
+  validateDatabaseConfig,
   validateLocalCacheConfig,
+  validateLogConfig,
+  validateProcessorConfig,
+  validateRedisConfig,
 };

@@ -1,31 +1,36 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { config } from '../config';
-import { type DestinationStream, pino } from 'pino';
+import { type DestinationStream, pino, type Logger } from 'pino';
 import { LumberjackGRPCService } from './lumberjackGRPCService';
 import { type LogLevel } from '../helpers/proto/lumberjack/LogLevel';
 import { type LogCallback, createElasticStream } from '../helpers/logUtilities';
+import { validateLogConfig } from '../config/index';
+import { type ProcessorConfig } from '../config/processor.config';
 
-const pinoStream = (): DestinationStream => {
-  const { stream } = createElasticStream(
-    config.logger.pinoElasticOpts.elasticHost,
-    config.logger.pinoElasticOpts.elasticVersion,
-    config.logger.pinoElasticOpts.elasticUsername,
-    config.logger.pinoElasticOpts.elasticPassword,
-    config.logger.pinoElasticOpts.flushBytes,
-    config.logger.pinoElasticOpts.elasticIndex,
-  );
-  return stream;
+const config = validateLogConfig();
+
+const pinoStream = (): DestinationStream | undefined => {
+  if (config.pinoElasticOpts) {
+    const { stream } = createElasticStream(
+      config.pinoElasticOpts.elasticHost,
+      config.pinoElasticOpts.elasticVersion,
+      config.pinoElasticOpts.elasticUsername,
+      config.pinoElasticOpts.elasticPassword,
+      config.pinoElasticOpts.flushBytes,
+      config.pinoElasticOpts.elasticIndex,
+    );
+    return stream;
+  }
 };
 
-const LOGLEVEL = config.logger.logstashLevel.toLowerCase();
+const LOGLEVEL = config.logstashLevel.toLowerCase();
 
-const logger = config.nodeEnv === 'dev' || config.nodeEnv === 'test' ? console : pino({ level: LOGLEVEL }, pinoStream());
+// const logger =  console : ;
 
 type LogFunc = (message: string, serviceOperation?: string, id?: string, callback?: LogCallback) => void;
 type ErrorFunc = (message: string | Error, innerError?: unknown, serviceOperation?: string, id?: string, callback?: LogCallback) => void;
 
-const createErrorFn = (grpcClient?: LumberjackGRPCService): ErrorFunc => {
+const createErrorFn = (logger: Console | Logger<never>, grpcClient?: LumberjackGRPCService): ErrorFunc => {
   return (message: string | Error, innerError?: unknown, serviceOperation?: string, id?: string, callback?: LogCallback): void => {
     let errMessage = typeof message === 'string' ? message : (message.stack ?? message.message);
 
@@ -43,7 +48,7 @@ const createErrorFn = (grpcClient?: LumberjackGRPCService): ErrorFunc => {
   };
 };
 
-const createLogCallback = (level: LogLevel, grpcClient?: LumberjackGRPCService): LogFunc => {
+const createLogCallback = (level: LogLevel, logger: Console | Logger<never>, grpcClient?: LumberjackGRPCService): LogFunc => {
   switch (level) {
     case 'trace':
       return (message: string, serviceOperation?: string, id?: string, callback?: LogCallback): void => {
@@ -99,44 +104,50 @@ export class LoggerService {
   warn: LogFunc = () => null;
   error: (message: string | Error, innerError?: unknown, serviceOperation?: string, id?: string, callback?: LogCallback) => void = () =>
     null;
-
+  logger: Console | Logger<never>;
   /* for enabling logging through the sidecar */
 
   lumberjackService: LumberjackGRPCService | undefined = undefined;
 
-  constructor(sidecarHost?: string) {
-    if (sidecarHost) {
-      this.lumberjackService = new LumberjackGRPCService(sidecarHost, config.functionName);
+  constructor(processorConfig: ProcessorConfig) {
+    const config = validateLogConfig();
+    if (processorConfig.nodeEnv === 'dev' || processorConfig.nodeEnv === 'test') {
+      this.logger = console;
+    } else {
+      this.logger = pino({ level: LOGLEVEL }, pinoStream());
     }
-    switch (config.logger.logstashLevel.toLowerCase()) {
+    if (config.sidecarHost) {
+      this.lumberjackService = new LumberjackGRPCService(config.sidecarHost, processorConfig.functionName);
+    }
+    switch (config.logstashLevel.toLowerCase()) {
       // error > warn > info > debug > trace
       case 'trace':
-        this.trace = createLogCallback('trace', this.lumberjackService);
-        this.debug = createLogCallback('debug', this.lumberjackService);
-        this.log = createLogCallback('info', this.lumberjackService);
-        this.warn = createLogCallback('warn', this.lumberjackService);
-        this.error = createErrorFn(this.lumberjackService);
+        this.trace = createLogCallback('trace', this.logger, this.lumberjackService);
+        this.debug = createLogCallback('debug', this.logger, this.lumberjackService);
+        this.log = createLogCallback('info', this.logger, this.lumberjackService);
+        this.warn = createLogCallback('warn', this.logger, this.lumberjackService);
+        this.error = createErrorFn(this.logger, this.lumberjackService);
         break;
       case 'debug':
-        this.debug = createLogCallback('debug', this.lumberjackService);
-        this.log = createLogCallback('info', this.lumberjackService);
-        this.warn = createLogCallback('warn', this.lumberjackService);
-        this.error = createErrorFn(this.lumberjackService);
+        this.debug = createLogCallback('debug', this.logger, this.lumberjackService);
+        this.log = createLogCallback('info', this.logger, this.lumberjackService);
+        this.warn = createLogCallback('warn', this.logger, this.lumberjackService);
+        this.error = createErrorFn(this.logger, this.lumberjackService);
         break;
       case 'info':
-        this.log = createLogCallback('info', this.lumberjackService);
-        this.warn = createLogCallback('warn', this.lumberjackService);
-        this.error = createErrorFn(this.lumberjackService);
+        this.log = createLogCallback('info', this.logger, this.lumberjackService);
+        this.warn = createLogCallback('warn', this.logger, this.lumberjackService);
+        this.error = createErrorFn(this.logger, this.lumberjackService);
         break;
       case 'warn':
-        this.warn = createLogCallback('warn', this.lumberjackService);
-        this.error = createErrorFn(this.lumberjackService);
+        this.warn = createLogCallback('warn', this.logger, this.lumberjackService);
+        this.error = createErrorFn(this.logger, this.lumberjackService);
         break;
       case 'error':
-        this.error = createErrorFn(this.lumberjackService);
+        this.error = createErrorFn(this.logger, this.lumberjackService);
         break;
       case 'fatal':
-        this.error = createErrorFn(this.lumberjackService);
+        this.error = createErrorFn(this.logger, this.lumberjackService);
         break;
       default:
         break;

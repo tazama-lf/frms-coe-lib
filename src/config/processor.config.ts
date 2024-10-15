@@ -14,6 +14,12 @@ export interface ProcessorConfig {
   nodeEnv: string;
 }
 
+export interface additionalConfig {
+  name: string;
+  type: 'string' | 'boolean' | 'number';
+  optional?: boolean;
+}
+
 /**
  * Validates and retrieves the processor configuration from environment variables.
  *
@@ -21,9 +27,29 @@ export interface ProcessorConfig {
  * @throws {Error} - Throws an error if required environment variables are not defined or invalid.
  *
  * @example
- * const processorConfig = validateProcessorConfig();
+ * const processorConfig = validateProcessorConfig(additionalEnvironmentVariables?: additionalConfig[]);
  */
-export const validateProcessorConfig = (): ProcessorConfig => {
+let _processorConfigObject: ProcessorConfig = {
+  maxCPU: 0,
+  functionName: '',
+  nodeEnv: '',
+};
+
+let _configuration: Record<string, string | number | boolean> | undefined;
+
+export const validateProcessorConfig = (additionalEnvironmentVariables?: additionalConfig[]): ProcessorConfig => {
+  //Additional Environment variables
+  const valueAndVariablesName = additionalEnvironmentVariables?.map((value) => {
+    console.log(value.optional);
+    return { value: validateEnvVar<string>(value.name, value.type, value.optional), name: value.name };
+  });
+
+  // reduce array of object to object of config
+  _configuration = valueAndVariablesName?.reduce<Record<string, string | number | boolean>>((acc, item) => {
+    acc[item.name] = item.value;
+    return acc;
+  }, {});
+
   const nodeEnv = validateEnvVar('NODE_ENV', 'string');
 
   if (nodeEnv !== 'dev' && nodeEnv !== 'production' && nodeEnv !== 'test') {
@@ -36,9 +62,12 @@ export const validateProcessorConfig = (): ProcessorConfig => {
     throw new Error('The value specified for MAX_CPU is not a number.');
   }
 
-  return {
+  _processorConfigObject = {
     maxCPU: parseInt(maxCPU, 10),
     functionName: validateEnvVar('FUNCTION_NAME', 'string'),
     nodeEnv,
   };
+  return { ..._processorConfigObject, ..._configuration };
 };
+
+export const processorConfig = { ..._processorConfigObject, ..._configuration };
