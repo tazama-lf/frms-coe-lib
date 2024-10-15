@@ -10,10 +10,9 @@ import { type ManagerConfig } from '../services/dbManager';
  * @example
  * const localCacheOptions = validateLocalCacheConfig();
  */
-let _localCacheConfig: ManagerConfig = {};
 
 export const validateLocalCacheConfig = (): ManagerConfig => {
-  _localCacheConfig = {
+  const localCacheConfig: ManagerConfig = {
     localCacheConfig: {
       localCacheEnabled: validateEnvVar('LOCAL_CACHE_ENABLED', 'boolean', true),
       localCacheTTL: validateEnvVar('LOCAL_CACHETTL', 'number', true),
@@ -21,8 +20,6 @@ export const validateLocalCacheConfig = (): ManagerConfig => {
   };
 
   return {
-    ..._localCacheConfig,
+    ...localCacheConfig,
   };
 };
-
-export const localCacheConfig = _localCacheConfig;

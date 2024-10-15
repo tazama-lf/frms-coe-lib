@@ -14,7 +14,7 @@ export interface ProcessorConfig {
   nodeEnv: string;
 }
 
-export interface additionalConfig {
+export interface AdditionalConfig {
   name: string;
   type: 'string' | 'boolean' | 'number';
   optional?: boolean;
@@ -29,23 +29,15 @@ export interface additionalConfig {
  * @example
  * const processorConfig = validateProcessorConfig(additionalEnvironmentVariables?: additionalConfig[]);
  */
-let _processorConfigObject: ProcessorConfig = {
-  maxCPU: 0,
-  functionName: '',
-  nodeEnv: '',
-};
 
-let _configuration: Record<string, string | number | boolean> | undefined;
-
-export const validateProcessorConfig = (additionalEnvironmentVariables?: additionalConfig[]): ProcessorConfig => {
+export const validateProcessorConfig = (additionalEnvironmentVariables?: AdditionalConfig[]): ProcessorConfig => {
   //Additional Environment variables
   const valueAndVariablesName = additionalEnvironmentVariables?.map((value) => {
-    console.log(value.optional);
     return { value: validateEnvVar<string>(value.name, value.type, value.optional), name: value.name };
   });
 
   // reduce array of object to object of config
-  _configuration = valueAndVariablesName?.reduce<Record<string, string | number | boolean>>((acc, item) => {
+  const _additionalConfiguration = valueAndVariablesName?.reduce<Record<string, string | number | boolean>>((acc, item) => {
     acc[item.name] = item.value;
     return acc;
   }, {});
@@ -62,12 +54,10 @@ export const validateProcessorConfig = (additionalEnvironmentVariables?: additio
     throw new Error('The value specified for MAX_CPU is not a number.');
   }
 
-  _processorConfigObject = {
+  const _processorConfig: ProcessorConfig = {
     maxCPU: parseInt(maxCPU, 10),
     functionName: validateEnvVar('FUNCTION_NAME', 'string'),
     nodeEnv,
   };
-  return { ..._processorConfigObject, ..._configuration };
+  return { ..._processorConfig, ..._additionalConfiguration };
 };
-
-export const processorConfig = { ..._processorConfigObject, ..._configuration };

@@ -66,7 +66,7 @@ export const validateLogConfig = (): LogConfig => {
     sidecarHost: validateEnvVar('SIDECAR_HOST', 'string', true),
     logstashLevel: validateEnvVar('SIDECAR_HOST', 'string', true) || 'info',
     pinoElasticOpts: {
-      flushBytes: 1000,
+      flushBytes: validateEnvVar('ELASTIC_FLUSH_BYTES', 'number', true) ?? 1000,
       elasticUsername: validateEnvVar('ELASTIC_USERNAME', 'string', true) ?? '',
       elasticPassword: validateEnvVar('ELASTIC_PASSWORD', 'string', true) ?? '',
       elasticHost: validateEnvVar('ELASTIC_HOST', 'string', true) ?? 'http://localhost:9200',
