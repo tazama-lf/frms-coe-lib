@@ -110,6 +110,7 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
 
 export async function CreateStorageManager<T extends ManagerConfig>(
   requiredStorages: Array<Database | Cache>,
+  requireAuth?: boolean,
 ): Promise<{ db: DatabaseManagerInstance<T>; config: ManagerConfig }> {
   let config: ManagerConfig = {};
 
@@ -118,11 +119,11 @@ export async function CreateStorageManager<T extends ManagerConfig>(
       throw Error(`${currentStorage} was already defined.`);
     }
     if (currentStorage === Cache.DISTRIBUTED) {
-      config = { ...config, ...validateRedisConfig(true) };
+      config = { ...config, ...validateRedisConfig(requireAuth ?? false) };
     } else if (currentStorage === Cache.LOCAL) {
       config = { ...config, ...validateLocalCacheConfig() };
     } else {
-      config = { ...config, ...validateDatabaseConfig(true, currentStorage as Database) };
+      config = { ...config, ...validateDatabaseConfig(requireAuth ?? false, currentStorage as Database) };
     }
   }
 
