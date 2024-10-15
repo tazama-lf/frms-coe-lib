@@ -1,6 +1,6 @@
 {
   "name": "@tazama-lf/frms-coe-lib",
-  "version": "5.0.0-rc.1",
+  "version": "5.0.0-rc.2",
   "description": "FRMS Center of Excellence package library",
   "main": "lib/index.js",
   "repository": {
@@ -14,7 +14,7 @@
     "@tazama-lf:registry": "https://npm.pkg.github.com/"
   },
   "scripts": {
-    "build": "tsc --project tsconfig.json && copyfiles -f src/helpers/proto/*.proto lib/helpers/proto",
+    "build": "npx rimraf lib && tsc --project tsconfig.json && copyfiles -f src/helpers/proto/*.proto lib/helpers/proto",
     "test": "jest --config=jest.config.ts --passWithNoTests",
     "clean": "npx rimraf lib node_modules coverage package-lock.json",
     "fix": "npm run fix:prettier && npm run fix:eslint",
