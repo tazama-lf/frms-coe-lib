@@ -406,6 +406,7 @@ message FRMSMessage {
     message workflow {
         uint32 alertThreshold = 1;
         uint32 interdictionThreshold = 2;
+        string flowProcessor = 3;
     }
 
     message Tadpresult {
@@ -499,6 +500,12 @@ message FRMSMessage {
       string creDtTm = 7;
     }
 
+    message ConditionEdge {
+      repeated string evtTp = 1;
+      string incptnDtTm = 2;
+      string xprtnDtTm = 3;
+    }
+
 
     string transactionID = 1;
     Transaction transaction = 2;
@@ -522,6 +529,8 @@ message FRMSMessage {
     Ruleresults ruleResult = 13;
 
     string alreadySent = 14;
+
+    ConditionEdge conditionEdge = 15;
 
 }
 
