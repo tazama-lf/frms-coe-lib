@@ -64,7 +64,7 @@ export const validateAPMConfig = (): ApmConfig => {
 export const validateLogConfig = (): LogConfig => {
   return {
     sidecarHost: validateEnvVar('SIDECAR_HOST', 'string', true),
-    logstashLevel: validateEnvVar('SIDECAR_HOST', 'string', true) || 'info',
+    logstashLevel: validateEnvVar('LOGSTASH_LEVEL', 'string', true) || 'info',
     pinoElasticOpts: {
       flushBytes: validateEnvVar('ELASTIC_FLUSH_BYTES', 'number', true) ?? 1000,
       elasticUsername: validateEnvVar('ELASTIC_USERNAME', 'string', true) ?? '',
