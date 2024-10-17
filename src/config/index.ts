@@ -25,6 +25,10 @@ export function validateEnvVar<T>(name: string, type: 'string' | 'number' | 'boo
     throw new Error(`Environment variable ${name} is not defined.`);
   }
 
+  if (value && !value.trim().length && optional) {
+    throw new Error(`Environment variable ${name} is optional but set to a string with whitespaces only. Consider removing it.`);
+  }
+
   let numValue;
 
   switch (type) {
