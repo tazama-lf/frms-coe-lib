@@ -239,41 +239,39 @@ databaseManager = await CreateDatabaseManager(dbConfig);
 
 ### Environment Variables
 
-The `frms-coe-lib` library uses environment variables to configure logging for any processor that is using it the logging for more information about logging here is the [link](https://github.com/frmscoe/docs/blob/dev/Technical/Logging/The-Tazama-Logging-Framework.md) . Here are the key environment variables some variables are required only when NODE_ENV is set to `production`:
+In our system, all environment variables are processed using a validation algorithm that converts them into configurations for each third-party service. Validation is triggered during the instantiation of each class object, such as when creating an instance of `databaseManager` via the `CreateStorageManager` function. 
 
-**PROCESSOR ENVIRONMENT VARIABLES**
+### Third-Party Services
 
-| Variable Name | Purpose                             | Default value           | Requirement             |
-| ------------- | ----------------------------------- | ----------------------- | ----------------------- |
-| FUNCTION_NAME | Specifies the port number to use    | `null`                  | Mandatory               |
-| RULE_VERSION  | Specifies the NATS server address   | `null`                  | Optional                |
-| NODE_ENV      | Defines the NATS subject/topic name | `null`                  | Mandatory               |
+This validation mechanism applies specifically to third-party services. For processor-based configurations, we execute a specialized function called `validateProcessorConfig`. This function accommodates additional environment variables provided by the processor.
 
-**LOGSTASH ENVIRONMENT VARIABLES**
+### Interface for Optional Environment Variables
 
-| Variable Name  | Purpose                                                 | Default value | Requirement                     |
-| -------------- | ------------------------------------------------------- | ------------- | ------------------------------- |
-| LOGSTASH_LEVEL | Specifies the minimum log level to capture logs for     | `info`        | Optional                        |
-| LOGSTASH_PORT  | Specifies port of logstash from the server hosting it   | `0`           | Optional                        |
-| LOGSTASH_HOST  | Specifies address of the host that has logstash exposed | `null`        | Optional `Unless on Production` |
+The `validateProcessorConfig` function utilizes the following interface for optional environment variables:
 
-**ELASTIC ENVIRONMENT VARIABLES**
+```typescript
+export interface AdditionalConfig {
+  name: string;
+  type: 'string' | 'boolean' | 'number';
+  optional?: boolean;
+}
+```
 
-| Variable Name          | Purpose                                     | Default value           | Requirement                     |
-| ---------------------- | ------------------------------------------- | ----------------------- | ------------------------------- |
-| ELASTIC_SEARCH_VERSION | Specifies the Elasticsearch version         | `8.11`                  | Optional `Unless on Production` |
-| ELASTIC_HOST           | Specifies the Elasticsearch host            | `http://localhost:9200` | Optional `Unless on Production` |
-| ELASTIC_USERNAME       | Username for Elasticsearch authentication   | `''`                    | Optional `Unless on Production` |
-| ELASTIC_PASSWORD       | Password for Elasticsearch authentication   | `''`                    | Optional `Unless on Production` |
+By default, this function checks for the following environment variables:
 
-**APM ENVIRONMENT VARIABLES**
+- **NODE_ENV**
+- **MAX_CPU**
+- **FUNCTION_NAME**
 
-| Variable           | Purpose                                                              | Default value       | Requirement  |
-| ------------------ | -------------------------------------------------------------------- | ------------------- | ------------ |
-| APM_LOGGING        | Boolean to flag if you would like to have apm logging                | `true`              | Optional     |
-| APM_SECRET_TOKEN   | Token used for authentication and authorization with the APM system. | `''` _Deprecated_   | Optional     |
+### Third-Party Services Overview
 
+The third-party services we support include:
 
+- **ArangoDB**: For database operations.
+- **Logging**: Capable of sending logs to Pino or console/stdout.
+- **APM (Application Performance Monitoring)**: Integrated with Elastic for performance tracking.
+
+To see what are the variables required for each service please refer to VARIABLES.md document
 
 ### Configuration Options
 The ManagerConfig interface allows you to define which databases and services you wish to use. Each service can be optionally included in the configuration:
@@ -283,6 +281,7 @@ The ManagerConfig interface allows you to define which databases and services yo
 - **Transaction Database**: Handle transactional operations. `Optional`
 - **Configuration Database**: Store and retrieve application configurations. `Optional`
 - **Redis Cache**: Use Redis for caching to improve performance. `Optional`
+- **Local Cache**: Options for using local cache to improve performance. `Optional` Note: This object is heavily used by configuration builder
 
 ### Usage Example
 The JSON object example for dbManage configuration
