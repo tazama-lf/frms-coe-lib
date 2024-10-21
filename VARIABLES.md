@@ -40,8 +40,8 @@ Logging Class: This class needs configuration variables to check the environment
 | -------- | ------- | ------- | 
 | TRANSACTION_HISTORY_DATABASE | String | No | 
 | TRANSACTION_HISTORY_DATABASE_URL | String | No | 
-| TRANSACTION_HISTORY_DATABASE_USER | String | No | 
-| TRANSACTION_HISTORY_DATABASE_PASSWORD |  String | No | 
+| TRANSACTION_HISTORY_DATABASE_USER | String | if specified No | 
+| TRANSACTION_HISTORY_DATABASE_PASSWORD |  String | if specified No | 
 | TRANSACTION_HISTORY_DATABASE_CERT_PATH |  String | No | 
 
 ##### 2. PSEUDONYMS DATABASE 
@@ -49,8 +49,8 @@ Logging Class: This class needs configuration variables to check the environment
 | Variables | DataType | Optional | 
 | -------- | ------- | ------- | 
 | PSEUDONYMS_DATABASE_URL |  String | No | 
-| PSEUDONYMS_DATABASE_USER |  String | No |  
-| PSEUDONYMS_DATABASE_PASSWORD |  String | No | 
+| PSEUDONYMS_DATABASE_USER |  String | if specified No |  
+| PSEUDONYMS_DATABASE_PASSWORD |  String | if specified No | 
 | PSEUDONYMS_DATABASE_CERT_PATH |  String | No | 
 
 ##### 3. CONFIGURATION DATABASE 
@@ -59,9 +59,9 @@ Logging Class: This class needs configuration variables to check the environment
 | -------- | ------- | ------- | 
 | CONFIGURATION_DATABASE_CERT_PATH |  String | No | 
 | CONFIGURATION_DATABASE |  String | No | 
-| CONFIGURATION_DATABASE_USER |  String | No |  
+| CONFIGURATION_DATABASE_USER |  String | if specified No |  
 | CONFIGURATION_DATABASE_URL | String | No |   
-| CONFIGURATION_DATABASE_PASSWORD |  String | No |  
+| CONFIGURATION_DATABASE_PASSWORD |  String | if specified No |  
 
 ##### 3. EVALUATION DATABASE 
 
@@ -69,8 +69,8 @@ Logging Class: This class needs configuration variables to check the environment
 | -------- | ------- | ------- | 
 | TRANSACTION_DATABASE_CERT_PATH |  String | No |  
 | TRANSACTION_DATABASE_URL |  String | No |  
-| TRANSACTION_DATABASE_USER |  String | No |  
-| TRANSACTION_DATABASE_PASSWORD |  String | No | 
+| TRANSACTION_DATABASE_USER |  String | if specified No |  
+| TRANSACTION_DATABASE_PASSWORD |  String | if specified No | 
 | TRANSACTION_DATABASE | String | No |  
 
 ### Elastic Variables
