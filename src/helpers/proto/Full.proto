@@ -493,11 +493,18 @@ message FRMSMessage {
         string ccy = 2;
       }
 
-      DataCacheAmt amt = 5;
+      message DataCacheIntBkSttlmAmt {
+        double amt = 1;
+        string ccy = 2;
+      }
 
-      reserved 6;
+      DataCacheAmt instdAmt = 5;
+      DataCacheIntBkSttlmAmt Intrbksttlmamt = 6;
+
+
+      reserved 7;
       reserved "CreDtTm";
-      string creDtTm = 7;
+      string creDtTm = 8;
     }
 
     message ConditionEdge {
