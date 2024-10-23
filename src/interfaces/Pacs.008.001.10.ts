@@ -22,6 +22,7 @@ interface CdtTrfTxInf {
   IntrBkSttlmAmt: InstdAmtClass;
   InstdAmt: InstdAmtClass;
   ChrgBr: string;
+  XchgRate?: number;
   ChrgsInf: ChrgsInf;
   InitgPty: Cdtr;
   Dbtr: Cdtr;

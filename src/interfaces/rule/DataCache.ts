@@ -15,4 +15,5 @@ export interface DataCache {
     amt: number;
     ccy: string;
   };
+  xchgRate: number;
 }
