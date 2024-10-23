@@ -111,6 +111,7 @@ message FRMSMessage {
     message Eqvtamt {
         Amt Amt = 1;
         string CcyOfTrf = 2;
+        optional double XchgRate = 3;
     }
 
     message Amt1 {
@@ -184,13 +185,14 @@ message FRMSMessage {
         Pmttpinf PmtTpInf = 2;
         Amt1 Amt = 3;
         string ChrgBr = 4;
-        Cdtragt CdtrAgt = 5;
-        Cdtr Cdtr = 6;
-        Cdtracct CdtrAcct = 7;
-        Purp Purp = 8;
-        Rgltryrptg RgltryRptg = 9;
-        Rmtinf RmtInf = 10;
-        SplmtrydataPain001 SplmtryData = 11;
+        optional double XchgRate = 5;
+        Cdtragt CdtrAgt = 6;
+        Cdtr Cdtr = 7;
+        Cdtracct CdtrAcct = 8;
+        Purp Purp = 9;
+        Rgltryrptg RgltryRptg = 10;
+        Rmtinf RmtInf = 11;
+        SplmtrydataPain001 SplmtryData = 12;
     }
 
     message Pmtinf {
@@ -493,11 +495,19 @@ message FRMSMessage {
         string ccy = 2;
       }
 
-      DataCacheAmt amt = 5;
+      message DataCacheIntBkSttlmAmt {
+        double amt = 1;
+        string ccy = 2;
+      }
 
-      reserved 6;
+      DataCacheAmt instdAmt = 5;
+      DataCacheIntBkSttlmAmt intrBkSttlmAmt = 6;
+      optional double xchgRate = 7;
+
+
+      reserved 8;
       reserved "CreDtTm";
-      string creDtTm = 7;
+      string creDtTm = 9;
     }
 
     message ConditionEdge {

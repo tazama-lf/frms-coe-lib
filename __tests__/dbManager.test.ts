@@ -441,6 +441,10 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.addOneGetCount).toBeDefined();
   });
 
+  it(`should return a networkmap`, async () => {
+    expect(await globalManager.getNetworkMap()).toEqual(['MOCK-QUERY']);
+  });
+
   it('should not try use cache for getRuleConfig when cached not enabled', async () => {
     const confConfig = {
       configuration: {
@@ -465,6 +469,22 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.getRuleConfig('test-ruleid', 'test-cfg')).toEqual(['MOCK-QUERY']);
 
     dbManager.quit();
+  });
+
+  it('should try to use cache for getRuleConfig when cached enabled', async () => {
+    jest.spyOn(globalManager._configuration, 'query').mockImplementation((query: string | AqlLiteral): Promise<any> => {
+      return new Promise((resolve, reject) => {
+        isAqlQuery(query)
+          ? resolve({
+              batches: {
+                all: jest.fn().mockImplementation(() => [['MOCK-QUERY']]),
+              },
+            })
+          : reject(new Error('Not AQL Query'));
+      });
+    });
+
+    expect(await globalManager.getRuleConfig('test-ruleid', 'test-cfg')).toEqual([['MOCK-QUERY']]);
   });
 
   it('should not try use cache for getTransactionConfig when cached not enabled', async () => {
@@ -493,6 +513,22 @@ describe('CreateDatabaseManager', () => {
     dbManager.quit();
   });
 
+  it('should try to use cache for getTransactionConfig when cached enabled', async () => {
+    jest.spyOn(globalManager._configuration, 'query').mockImplementation((query: string | AqlLiteral): Promise<any> => {
+      return new Promise((resolve, reject) => {
+        isAqlQuery(query)
+          ? resolve({
+              batches: {
+                all: jest.fn().mockImplementation(() => [['MOCK-QUERY']]),
+              },
+            })
+          : reject(new Error('Not AQL Query'));
+      });
+    });
+
+    expect(await globalManager.getTransactionConfig('test-ruleid', 'test-cfg')).toEqual([['MOCK-QUERY']]);
+  });
+
   it('should not try use cache for getTypologyConfig when cached not enabled', async () => {
     const confConfig = {
       configuration: {
@@ -517,6 +553,22 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.getTypologyConfig(getMockTypology())).toEqual(['MOCK-QUERY']);
 
     dbManager.quit();
+  });
+
+  it('should not try use cache for getTypologyConfig when cached not enabled', async () => {
+    jest.spyOn(globalManager._configuration, 'query').mockImplementation((query: string | AqlLiteral): Promise<any> => {
+      return new Promise((resolve, reject) => {
+        isAqlQuery(query)
+          ? resolve({
+              batches: {
+                all: jest.fn().mockImplementation(() => [['MOCK-QUERY']]),
+              },
+            })
+          : reject(new Error('Not AQL Query'));
+      });
+    });
+
+    expect(await globalManager.getTypologyConfig(getMockTypology())).toEqual([['MOCK-QUERY']]);
   });
 
   it('should use cert if path valid', async () => {
