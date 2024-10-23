@@ -8,4 +8,6 @@ export interface RedisConfig {
   }>;
   password: string;
   isCluster: boolean;
+  distributedCacheEnabled?: boolean;
+  distributedCacheTTL?: number;
 }

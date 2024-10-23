@@ -163,8 +163,13 @@ export class RedisService {
    * Much like `setJson()`, but without the JSON restriction,
    * This version accepts `Buffer` and `number` times in addition
    */
-  async set(key: string, value: RedisData, expire: number): Promise<void> {
-    const res = await this._redisClient.set(key, value, 'EX', expire);
+  async set(key: string, value: RedisData, expire?: number): Promise<void> {
+    let res;
+    if (expire) {
+      res = await this._redisClient.set(key, value, 'EX', expire);
+    } else {
+      res = await this._redisClient.set(key, value);
+    }
 
     if (res !== 'OK') {
       throw new Error('Error while setting key in redis');

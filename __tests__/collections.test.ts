@@ -28,6 +28,18 @@ describe('Should point to correct collections in pseudonyms', () => {
   test('accounts', () => {
     expect(dbPseudonyms.accounts).toBe('accounts');
   });
+
+  test('conditions', () => {
+    expect(dbPseudonyms.conditions).toBe('conditions');
+  });
+
+  test('governed_as_debtor_by', () => {
+    expect(dbPseudonyms.governed_as_debtor_by).toBe('governed_as_debtor_by');
+  });
+
+  test('governed_as_creditor_by', () => {
+    expect(dbPseudonyms.governed_as_creditor_by).toBe('governed_as_creditor_by');
+  });
 });
 
 describe('Should point to correct collections in configuration', () => {

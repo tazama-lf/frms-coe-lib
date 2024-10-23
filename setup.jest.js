@@ -12,6 +12,9 @@ class MockDatabase {
       save: () => {
         return 'MOCK-SAVE';
       },
+      update: () => {
+        return 'MOCK-UPDATE';
+      },
     };
   }
 
@@ -21,6 +24,10 @@ class MockDatabase {
 
   save(data, options) {
     return data;
+  }
+
+  update(selector, newdata, options) {
+    return newdata;
   }
 
   close() {

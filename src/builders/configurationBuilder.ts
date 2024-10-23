@@ -8,9 +8,13 @@ import { formatError } from '../helpers/formatter';
 import { isDatabaseReady } from '../helpers/readyCheck';
 import { type Typology } from '../interfaces';
 import { dbConfiguration } from '../interfaces/ArangoCollections';
-import { readyChecks, type DatabaseManagerType, type DBConfig } from '../services/dbManager';
+import { type LocalCacheConfig, readyChecks, type DatabaseManagerType, type DBConfig } from '../services/dbManager';
 
-export async function configurationBuilder(manager: DatabaseManagerType, configurationConfig: DBConfig): Promise<void> {
+export async function configurationBuilder(
+  manager: DatabaseManagerType,
+  configurationConfig: DBConfig,
+  cacheConfig?: LocalCacheConfig,
+): Promise<void> {
   manager._configuration = new Database({
     url: configurationConfig.url,
     databaseName: configurationConfig.databaseName,
@@ -32,7 +36,7 @@ export async function configurationBuilder(manager: DatabaseManagerType, configu
   }
 
   manager.setupConfig = configurationConfig;
-  manager.nodeCache = manager.setupConfig?.localCacheEnabled ? new NodeCache() : undefined;
+  manager.nodeCache = cacheConfig?.localCacheEnabled ? new NodeCache() : undefined;
 
   manager.queryConfigurationDB = async (collection: string, filter: string, limit?: number) => {
     const db = manager._configuration?.collection(collection);
@@ -51,7 +55,7 @@ export async function configurationBuilder(manager: DatabaseManagerType, configu
 
   manager.getRuleConfig = async (ruleId: string, cfg: string, limit?: number) => {
     const cacheKey = `${ruleId}_${cfg}`;
-    if (manager.setupConfig?.localCacheEnabled ?? false) {
+    if (cacheConfig?.localCacheEnabled ?? false) {
       const cacheVal = manager.nodeCache?.get(cacheKey);
       if (cacheVal) return await Promise.resolve(cacheVal);
     }
@@ -66,15 +70,15 @@ export async function configurationBuilder(manager: DatabaseManagerType, configu
     `;
 
     const toReturn = await (await manager._configuration?.query(query))?.batches.all();
-    if (manager.setupConfig?.localCacheEnabled && toReturn && toReturn[0] && toReturn[0].length === 1) {
-      manager.nodeCache?.set(cacheKey, toReturn, manager.setupConfig?.localCacheTTL ?? 3000);
+    if (cacheConfig?.localCacheEnabled && toReturn && toReturn[0] && toReturn[0].length === 1) {
+      manager.nodeCache?.set(cacheKey, toReturn, cacheConfig?.localCacheTTL ?? 3000);
     }
     return toReturn;
   };
 
   manager.getTransactionConfig = async (transctionId: string, cfg: string) => {
     const cacheKey = `${transctionId}_${cfg}`;
-    if (manager.setupConfig?.localCacheEnabled ?? false) {
+    if (cacheConfig?.localCacheEnabled ?? false) {
       const cacheVal = manager.nodeCache?.get(cacheKey);
       if (cacheVal) return await Promise.resolve(cacheVal);
     }
@@ -88,15 +92,15 @@ export async function configurationBuilder(manager: DatabaseManagerType, configu
     `;
 
     const toReturn = await (await manager._configuration?.query(query))?.batches.all();
-    if (manager.setupConfig?.localCacheEnabled && toReturn && toReturn[0] && toReturn[0].length === 1) {
-      manager.nodeCache?.set(cacheKey, toReturn, manager.setupConfig?.localCacheTTL ?? 3000);
+    if (cacheConfig?.localCacheEnabled && toReturn && toReturn[0] && toReturn[0].length === 1) {
+      manager.nodeCache?.set(cacheKey, toReturn, cacheConfig?.localCacheTTL ?? 3000);
     }
     return toReturn;
   };
 
   manager.getTypologyConfig = async (typology: Typology) => {
     const cacheKey = `${typology.id}_${typology.cfg}`;
-    if (manager.setupConfig?.localCacheEnabled ?? false) {
+    if (cacheConfig?.localCacheEnabled ?? false) {
       const cacheVal = manager.nodeCache?.get(cacheKey);
       if (cacheVal) return await Promise.resolve(cacheVal);
     }
@@ -108,8 +112,8 @@ export async function configurationBuilder(manager: DatabaseManagerType, configu
     `;
 
     const toReturn = await (await manager._configuration?.query(query))?.batches.all();
-    if (manager.setupConfig?.localCacheEnabled && toReturn && toReturn[0] && toReturn[0].length === 1) {
-      manager.nodeCache?.set(cacheKey, toReturn, manager.setupConfig?.localCacheTTL ?? 3000);
+    if (cacheConfig?.localCacheEnabled && toReturn && toReturn[0] && toReturn[0].length === 1) {
+      manager.nodeCache?.set(cacheKey, toReturn, cacheConfig?.localCacheTTL ?? 3000);
     }
     return toReturn;
   };
