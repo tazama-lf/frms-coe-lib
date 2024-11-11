@@ -4,9 +4,12 @@ name: Publish package to GitHub Packages
 on:
   push:
     branches: [ "dev" ]
+  workflow_dispatch:
 
 jobs:
+
   build-and-publish:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -34,16 +37,184 @@ jobs:
         env:
           GH_TOKEN: '${{ secrets.GH_TOKEN }}'
 
-      - name: Run dry
-        run: npm run dry
-        env:
-          GH_TOKEN: '${{ secrets.GH_TOKEN }}'
-
-      - name: Build library
-        run: npm run build
-
       - name: Publish package
         run: npm publish
         env:
           GH_TOKEN: '${{ secrets.GH_TOKEN }}'
           NODE_AUTH_TOKEN: '${{ secrets.NODE_AUTH_TOKEN }}'
+          
+  sync-version-across-tazama-repos:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    needs: build-and-publish
+    env:
+      PR_NUMBER: ${{ github.event.number }}
+      GH_TOKEN: '${{ secrets.GH_TOKEN }}'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get the new Verion and store it as a variable
+        run: NEW_VERSION=$(npm pkg get version --workspaces=false | tr -d \")
+
+      - name: update frms-coe-lib version across tazama-lf org repos in dev
+        env:
+          BRANCH: sync-frms-coe-lib-version-dev
+          GH_TOKEN: '${{ secrets.GH_TOKEN }}'
+          PR_REVIEWERS: |
+            rtkay123
+            # Lenbkr
+            # Justus-at-Tazama
+            cshezi
+            # JeanPierreNell
+            scott45
+          REPOS: |  # List of repositories to have version updated
+            # relay-service
+            rule-901
+            # typology-processor
+            # channel-router-setup-processor
+            # event-sidecar
+            # lumberjack
+            # nats-utilities
+            # batch-ppa
+            # admin-service
+            # payment-platform-adapter
+            rule-executer
+            # tms-service
+            # transaction-aggregation-decisioning-processor
+            frms-coe-startup-lib
+        run: |
+          for repo in $REPOS; do
+            git clone https://github.com/frmscoe/$repo.git
+            cd $repo
+            git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/frmscoe/$repo.git
+            
+            if git ls-remote --heads origin "${{ env.branch }}" | grep "${{ env.branch }}"; then
+              # Branch exists, pull the latest changes
+              git checkout "${{ env.branch }}"
+              git pull origin "${{ env.branch }}"
+            else
+              # Branch does not exist, create it
+              git checkout -b "${{ env.branch }}"
+            fi
+
+            sed -i 's/"version": "[^"]*"/"version": "$NEW_VERSION"/' package.json
+
+            if [[ `git status --porcelain=v1 2>/dev/null | wc -l` == 0 ]]; then
+              echo "no diff detected, exiting..."
+              exit 0;
+            fi
+
+            git add -A
+            git commit -m "chore: update frms-coe-lib to $NEW_VERSION" || exit 0
+            git push origin "${{ env.branch }}"
+            
+            # Clear the GITHUB_TOKEN environment variable and use a temporary file for gh authentication
+            echo "${{ secrets.GH_TOKEN }}" > /tmp/gh_token
+            unset GITHUB_TOKEN
+            gh auth login --with-token < /tmp/gh_token
+            
+            # Create the PR with reviewers
+            IFS=',' read -ra REVIEWERS <<< "${PR_REVIEWERS}"
+            REVIEWERS_ARGS=""
+            for reviewer in "${REVIEWERS[@]}"; do
+              REVIEWERS_ARGS+="--reviewer $reviewer "
+            done
+
+            gh pr create --title "chore: update frms-coe-lib to $NEW_VERSION in $repo" --body "update frms-coe-lib to $NEW_VERSION based on [this pull request](https://github.com/tazama-lf/frms-coe-lib/pull/$PR_NUMBER)" --base dev --head "${{ env.branch }}" $REVIEWERS_ARGS || echo "PR already exists, updating existing PR"
+            
+            # Cleanup
+            rm /tmp/gh_token
+            
+            cd ..
+          done
+
+      - name: update frms-coe-lib version across frmscoe org repos in dev
+        env:
+          BRANCH: sync-frms-coe-lib-version-dev
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          PR_REVIEWERS: |
+            rtkay123
+            Lenbkr
+            Justus-at-Tazama
+            cshezi
+            JeanPierreNell
+            scott45
+          REPOS: |  # List of repositories to have version updated
+            rule-001
+            # rule-002
+            # rule-003
+            # rule-004
+            # rule-006
+            # rule-007
+            # rule-008
+            # rule-010
+            # rule-011
+            # rule-016
+            # rule-017
+            # rule-018
+            # rule-020
+            # rule-021
+            # rule-024
+            # rule-025
+            # rule-026
+            # rule-027
+            # rule-028
+            # rule-030
+            # rule-044
+            # rule-045
+            # rule-048
+            # rule-054
+            # rule-063
+            # rule-074
+            # rule-075
+            # rule-076
+            # rule-078
+            # rule-083
+            # rule-084
+            # rule-090
+            # rule-091
+        run: |
+          for repo in $REPOS; do
+            git clone https://github.com/frmscoe/$repo.git
+            cd $repo
+            git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/frmscoe/$repo.git
+            
+            if git ls-remote --heads origin "${{ env.branch }}" | grep "${{ env.branch }}"; then
+              # Branch exists, pull the latest changes
+              git checkout "${{ env.branch }}"
+              git pull origin "${{ env.branch }}"
+            else
+              # Branch does not exist, create it
+              git checkout -b "${{ env.branch }}"
+            fi
+
+            sed -i 's/"version": "[^"]*"/"version": "$NEW_VERSION"/' package.json
+
+            if [[ `git status --porcelain=v1 2>/dev/null | wc -l` == 0 ]]; then
+              echo "no diff detected, exiting..."
+              exit 0;
+            fi
+
+            git add -A
+            git commit -m "chore: update frms-coe-lib to $NEW_VERSION" || exit 0
+            git push origin "${{ env.branch }}"
+            
+            # Clear the GITHUB_TOKEN environment variable and use a temporary file for gh authentication
+            echo "${{ secrets.GH_TOKEN }}" > /tmp/gh_token
+            unset GITHUB_TOKEN
+            gh auth login --with-token < /tmp/gh_token
+            
+            # Create the PR with reviewers
+            IFS=',' read -ra REVIEWERS <<< "${PR_REVIEWERS}"
+            REVIEWERS_ARGS=""
+            for reviewer in "${REVIEWERS[@]}"; do
+              REVIEWERS_ARGS+="--reviewer $reviewer "
+            done
+
+            gh pr create --title "chore: update frms-coe-lib to $NEW_VERSION in $repo" --body "update frms-coe-lib to $NEW_VERSION based on [this pull request](https://github.com/tazama-lf/frms-coe-lib/pull/$PR_NUMBER)" --base dev --head "${{ env.branch }}" $REVIEWERS_ARGS || echo "PR already exists, updating existing PR"
+            
+            # Cleanup
+            rm /tmp/gh_token
+            
+            cd ..
+          done
