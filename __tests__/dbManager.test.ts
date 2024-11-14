@@ -3,7 +3,18 @@
 import { AqlLiteral, isAqlQuery } from 'arangojs/aql';
 import { ConfigurationDB, PseudonymsDB, RedisService, TransactionDB, TransactionHistoryDB } from '../src';
 import * as isDatabaseReady from '../src/helpers/readyCheck';
-import { AccountType, ConditionEdge, EntityCondition, NetworkMap, Pacs002, TransactionRelationship, Typology } from '../src/interfaces';
+import {
+  AccountType,
+  ConditionEdge,
+  EntityCondition,
+  NetworkMap,
+  Pacs002,
+  Pacs008,
+  Pain001,
+  Pain013,
+  TransactionRelationship,
+  Typology,
+} from '../src/interfaces';
 import { CreateDatabaseManager, DatabaseManagerInstance, LocalCacheConfig, ManagerConfig } from '../src/services/dbManager';
 
 // redis and aragojs are mocked
@@ -194,6 +205,10 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.getAccountHistoryPacs008Msgs).toBeDefined();
     expect(dbManager.saveTransactionHistory).toBeDefined();
     expect(dbManager.insertTransaction).toBeDefined();
+    expect(dbManager.saveTransactionHistoryPain001).toBeDefined();
+    expect(dbManager.saveTransactionHistoryPain013).toBeDefined();
+    expect(dbManager.saveTransactionHistoryPacs008).toBeDefined();
+    expect(dbManager.saveTransactionHistoryPacs002).toBeDefined();
 
     expect(await dbManager.queryTransactionDB('testCollection', 'testFilter')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.queryTransactionDB('testCollection', 'testFilter', 10)).toEqual(['MOCK-QUERY']);
@@ -209,7 +224,10 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.getAccountEndToEndIds('test', AccountType.DebtorAcct)).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getAccountHistoryPacs008Msgs('test', AccountType.CreditorAcct)).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getAccountHistoryPacs008Msgs('test', AccountType.DebtorAcct)).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.saveTransactionHistory(testPacs002, 'testCollection')).toEqual('MOCK-SAVE');
+    expect(await dbManager.saveTransactionHistoryPain001(testPacs002 as unknown as Pain001)).toEqual('MOCK-SAVE');
+    expect(await dbManager.saveTransactionHistoryPain013(testPacs002 as unknown as Pain013)).toEqual('MOCK-SAVE');
+    expect(await dbManager.saveTransactionHistoryPacs008(testPacs002 as unknown as Pacs008)).toEqual('MOCK-SAVE');
+    expect(await dbManager.saveTransactionHistoryPacs002(testPacs002)).toEqual('MOCK-SAVE');
     expect(await dbManager.insertTransaction('testID', testPacs002, testNetworkMap, {})).toEqual('MOCK-SAVE');
   });
 
