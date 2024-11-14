@@ -43,8 +43,8 @@ export async function transactionBuilder(manager: DatabaseManagerType, transacti
     return await (await manager._transaction?.query(query))?.batches.all();
   };
 
-  manager.getReportByMessageId = async (collection: string, messageid: string) => {
-    const db = manager._transaction?.collection(collection);
+  manager.getReportByMessageId = async (messageid: string) => {
+    const db = manager._transaction?.collection(dbEvaluateResults.transactions);
     const messageidAql = aql`${messageid}`;
 
     const query: AqlQuery = aql`

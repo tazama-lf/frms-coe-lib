@@ -35,7 +35,7 @@ export interface TransactionDB {
    *
    * @memberof TransactionHistoryDB
    */
-  getReportByMessageId: (collection: string, messageid: string) => Promise<unknown>;
+  getReportByMessageId: (messageid: string) => Promise<unknown>;
 
   /* ```
    * const query = aql`

@@ -753,7 +753,7 @@ describe('CreateDatabaseManager', () => {
     const dbManager: typeof testTypes = localManager as any;
 
     expect(dbManager.getReportByMessageId).toBeDefined();
-    expect(await dbManager.getReportByMessageId('testCollection', 'MSGID')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getReportByMessageId('MSGID')).toEqual(['MOCK-QUERY']);
   });
 
   it('should error gracefully on isReadyCheck for database builders', async () => {
