@@ -205,4 +205,32 @@ export interface TransactionHistoryDB {
    * @memberof TransactionHistoryDB
    */
   saveTransactionHistory: (transaction: Pain001 | Pain013 | Pacs008 | Pacs002, transactionhistorycollection: string) => Promise<unknown>;
+
+  /**
+   * @param transaction Transaction of Type Pain001 to store
+   *
+   * @memberof TransactionHistoryDB
+   */
+  saveTransactionHistoryPain001: (transaction: Pain001) => Promise<unknown>;
+
+  /**
+   * @param transaction Transaction of Type Pain013 to store
+   *
+   * @memberof TransactionHistoryDB
+   */
+  saveTransactionHistoryPain013: (transaction: Pain013) => Promise<unknown>;
+
+  /**
+   * @param transaction Transaction of Type Pacs008 to store
+   *
+   * @memberof TransactionHistoryDB
+   */
+  saveTransactionHistoryPacs008: (transaction: Pacs008) => Promise<unknown>;
+
+  /**
+   * @param transaction Transaction of Type Pacs002 to store
+   *
+   * @memberof TransactionHistoryDB
+   */
+  saveTransactionHistoryPacs002: (transaction: Pacs002) => Promise<unknown>;
 }
