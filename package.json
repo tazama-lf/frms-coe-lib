@@ -11,7 +11,8 @@
     "lib"
   ],
   "publishConfig": {
-    "@tazama-lf:registry": "https://npm.pkg.github.com/"
+    "@tazama-lf:registry": "https://npm.pkg.github.com/",
+    "access": "public"
   },
   "scripts": {
     "build": "npx rimraf lib && tsc --project tsconfig.json && copyfiles -f src/helpers/proto/*.proto lib/helpers/proto",
