@@ -146,4 +146,14 @@ interface Envlp {
 
 interface Doc {
   Xprtn: Date;
+  InitgPty: DocInitgPty;
+}
+
+interface DocInitgPty {
+  Glctn: Glctn;
+}
+
+interface Glctn {
+  Lat: string;
+  Long: string;
 }

@@ -50,6 +50,6 @@ export const Pacs008Sample: Pacs008 = {
     },
     RgltryRptg: { Dtls: { Tp: 'BALANCE OF PAYMENTS', Cd: '100' } },
     RmtInf: { Ustrd: 'Payment of USD 30713.75 from April to Felicia' },
-    SplmtryData: { Envlp: { Doc: { Xprtn: new Date('2023-02-03T07:17:52.216Z') } } },
+    SplmtryData: { Envlp: { Doc: { Xprtn: new Date('2023-02-03T07:17:52.216Z'), InitgPty: { Glctn: { Lat: '20', Long: '20' } } } } },
   },
 };
