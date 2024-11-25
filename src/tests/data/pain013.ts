@@ -36,7 +36,7 @@ export const Pain013Sample: Pain013 = {
         },
         CtctDtls: { MobNb: '+58-210165155' },
       },
-      DbtrAcct: { Id: { Othr: [{ Id: '+58-210165155', SchmeNm: { Prtry: '+58-210165155' }, Nm: 'PASSPORT' }] } },
+      DbtrAcct: { Nm: 'Test', Id: { Othr: [{ Id: '+58-210165155', SchmeNm: { Prtry: '+58-210165155' }, Nm: 'PASSPORT' }] } },
       DbtrAgt: { FinInstnId: { ClrSysMmbId: { MmbId: 'Horatio Ford' } } },
       CdtTrfTxInf: {
         PmtId: { EndToEndId: '02d5-dd5d-4995-a643-bd31c0a89e7a' },
