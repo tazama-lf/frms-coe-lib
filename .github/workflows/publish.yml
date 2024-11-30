@@ -15,7 +15,7 @@ jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     env:
-      GITHUB_TOKEN: ${{ secrets.GH_TOKEN_LIB }}
+      GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
     permissions:
       packages: write
       contents: read
@@ -31,11 +31,6 @@ jobs:
           registry-url: https://npm.pkg.github.com/
           # Defaults to the user or organization that owns the workflow file
           scope: '@frmscoe'
-
-      - name: Set up NPM authentication
-        run: |
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_TOKEN_LIB }}" > ~/.npmrc
-          cat .npmrc
 
       - name: Configure Git
         run: |
@@ -79,16 +74,16 @@ jobs:
       - name: Push Changes in package.json and make PRs
         run: |
           export GH_USERNAME=${{ secrets.GH_USERNAME }}
-          export GH_TOKEN=${{ secrets.GH_TOKEN_LIB }}
+          export GH_TOKEN=${{ secrets.GH_TOKEN }}
           git config --global user.name ${{ secrets.GH_USERNAME }}
 
           # Clear the GITHUB_TOKEN environment variable and use a temporary file for gh authentication
-          echo "${{ secrets.GH_TOKEN_LIB }}" > /tmp/gh_token
+          echo "${{ secrets.GH_TOKEN }}" > /tmp/gh_token
           unset GITHUB_TOKEN
           unset GH_TOKEN
           gh auth login --with-token < /tmp/gh_token
 
-          git clone https://${{ secrets.GH_USERNAME }}:${{ secrets.GH_TOKEN_LIB }}@github.com/${{ github.repository }}.git
+          git clone https://${{ secrets.GH_USERNAME }}:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
           REPO_NAME=$(basename -s .git https://github.com/${{ github.repository }}.git)
           cd $REPO_NAME
           echo "Currently in repository directory: $(pwd)"
