@@ -6,6 +6,7 @@ import { type DBConfig, type DatabaseManagerType, readyChecks } from '../service
 import { isDatabaseReady } from '../helpers/readyCheck';
 import { type AqlQuery, aql } from 'arangojs/aql';
 import { type NetworkMap } from '../interfaces';
+import { dbEvaluateResults } from '../interfaces/ArangoCollections';
 
 export async function transactionBuilder(manager: DatabaseManagerType, transactionHistoryConfig: DBConfig, redis: boolean): Promise<void> {
   manager._transaction = new Database({
@@ -42,8 +43,8 @@ export async function transactionBuilder(manager: DatabaseManagerType, transacti
     return await (await manager._transaction?.query(query))?.batches.all();
   };
 
-  manager.getReportByMessageId = async (collection: string, messageid: string) => {
-    const db = manager._transaction?.collection(collection);
+  manager.getReportByMessageId = async (messageid: string) => {
+    const db = manager._transaction?.collection(dbEvaluateResults.transactions);
     const messageidAql = aql`${messageid}`;
 
     const query: AqlQuery = aql`
@@ -63,6 +64,6 @@ export async function transactionBuilder(manager: DatabaseManagerType, transacti
       report: alert,
     };
 
-    return await manager._transaction?.collection('transactions').save(data, { overwriteMode: 'ignore' });
+    return await manager._transaction?.collection(dbEvaluateResults.transactions).save(data, { overwriteMode: 'ignore' });
   };
 }

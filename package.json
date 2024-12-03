@@ -1,6 +1,6 @@
 {
   "name": "@tazama-lf/frms-coe-lib",
-  "version": "5.0.0-rc.4",
+  "version": "5.0.0",
   "description": "FRMS Center of Excellence package library",
   "main": "lib/index.js",
   "repository": {
@@ -11,7 +11,8 @@
     "lib"
   ],
   "publishConfig": {
-    "@tazama-lf:registry": "https://npm.pkg.github.com/"
+    "@tazama-lf:registry": "https://npm.pkg.github.com/",
+    "access": "public"
   },
   "scripts": {
     "build": "npx rimraf lib && tsc --project tsconfig.json && copyfiles -f src/helpers/proto/*.proto lib/helpers/proto",
