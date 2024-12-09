@@ -89,6 +89,7 @@ interface Amt {
 interface EqvtAmt {
   Amt: DbtrFinSvcsPrvdrFeesClass;
   CcyOfTrf: string;
+  XchgRate?: number;
 }
 
 interface DbtrFinSvcsPrvdrFeesClass {

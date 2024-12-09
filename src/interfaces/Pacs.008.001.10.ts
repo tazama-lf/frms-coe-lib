@@ -22,6 +22,7 @@ interface CdtTrfTxInf {
   IntrBkSttlmAmt: InstdAmtClass;
   InstdAmt: InstdAmtClass;
   ChrgBr: string;
+  XchgRate?: number;
   ChrgsInf: ChrgsInf;
   InitgPty: Cdtr;
   Dbtr: Cdtr;
@@ -145,4 +146,14 @@ interface Envlp {
 
 interface Doc {
   Xprtn: Date;
+  InitgPty: DocInitgPty;
+}
+
+interface DocInitgPty {
+  Glctn: Glctn;
+}
+
+interface Glctn {
+  Lat: string;
+  Long: string;
 }

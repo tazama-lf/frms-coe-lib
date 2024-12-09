@@ -15,4 +15,5 @@ export class TypologyResult {
 export class WorkFlow {
   alertThreshold = 0;
   interdictionThreshold? = 0;
+  flowProcessor?: string;
 }

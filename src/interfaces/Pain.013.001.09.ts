@@ -163,6 +163,7 @@ interface PurpleDoc {
 
 interface DbtrAcct {
   Id: DbtrAcctID;
+  Nm: string;
 }
 
 interface DbtrAcctID {

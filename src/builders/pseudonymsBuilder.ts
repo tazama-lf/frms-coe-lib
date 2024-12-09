@@ -5,9 +5,11 @@ import { join, type AqlQuery, type GeneratedAqlQuery } from 'arangojs/aql';
 import * as fs from 'fs';
 import { formatError } from '../helpers/formatter';
 import { isDatabaseReady } from '../helpers/readyCheck';
-import { type TransactionRelationship } from '../interfaces';
+import { type AccountCondition, type ConditionEdge, type EntityCondition, type TransactionRelationship } from '../interfaces';
 import { dbPseudonyms } from '../interfaces/ArangoCollections';
 import { readyChecks, type DatabaseManagerType, type DBConfig } from '../services/dbManager';
+import { type RawConditionResponse } from '../interfaces/event-flow/EntityConditionEdge';
+import { v4 } from 'uuid';
 
 export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig: DBConfig): Promise<void> {
   manager._pseudonymsDb = new Database({
@@ -283,5 +285,322 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     const _to = `accounts/${accountId}`;
 
     return await db?.save({ _key, _from, _to, CreDtTm }, { overwriteMode: 'ignore' });
+  };
+
+  manager.getConditionsByEntity = async (entityId: string, SchemeProprietary: string) => {
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.conditions);
+    const date: string = new Date().toISOString();
+    const nttyPrtry = SchemeProprietary;
+    const nttyId = entityId;
+    const nttyPrtryAql = aql`AND doc.ntty.schmeNm.prtry == ${nttyPrtry}`;
+    const nttyIdAql = aql`FILTER doc.ntty.id == ${nttyId}`;
+
+    const query = aql`FOR doc IN ${db}
+    ${nttyIdAql}
+    ${nttyPrtryAql}
+    AND (doc.xprtnDtTm > ${date}
+    OR doc.xprtnDtTm == null)
+    RETURN doc`;
+
+    return await (await manager._pseudonymsDb?.query(query))?.batches.all();
+  };
+
+  manager.getEntityConditionsByGraph = async (id: string, proprietary: string) => {
+    const date: string = new Date().toISOString();
+
+    const filterAql = aql`
+      LET fromVertex = DOCUMENT(edge._from)
+      LET toVertex = DOCUMENT(edge._to)
+      FILTER toVertex.ntty.id == ${id}
+      AND toVertex.ntty.schmeNm.prtry == ${proprietary}
+      AND (edge.xprtnDtTm > ${date}
+        OR edge.xprtnDtTm == null)`;
+
+    const result = await (
+      await manager._pseudonymsDb?.query<RawConditionResponse>(aql`
+      LET gov_cred = (
+          FOR edge IN governed_as_creditor_by
+          ${filterAql}
+          RETURN {
+              edge: edge,
+              result: fromVertex,
+              condition: toVertex
+          }
+      )
+
+      LET gov_debtor = (
+          FOR edge IN governed_as_debtor_by
+          ${filterAql}
+          RETURN {
+              edge: edge,
+              result: fromVertex,
+              condition: toVertex
+          }
+      )
+
+      RETURN {
+          "governed_as_creditor_by": gov_cred,
+          "governed_as_debtor_by": gov_debtor
+      }
+    `)
+    )?.batches.all();
+
+    return result;
+  };
+
+  manager.getAccountConditionsByGraph = async (id: string, proprietary: string, agt: string) => {
+    const date: string = new Date().toISOString();
+
+    const filterAql = aql`
+      LET fromVertex = DOCUMENT(edge._from)
+      LET toVertex = DOCUMENT(edge._to)
+      FILTER toVertex.acct.id == ${id}
+      AND toVertex.acct.schmeNm.prtry == ${proprietary}
+      AND toVertex.acct.agt.finInstnId.clrSysMmbId.mmbId == ${agt}
+      AND (edge.xprtnDtTm > ${date}
+        OR edge.xprtnDtTm == null)`;
+
+    const result = await (
+      await manager._pseudonymsDb?.query<RawConditionResponse>(aql`
+      LET gov_cred = (
+          FOR edge IN governed_as_creditor_account_by
+          ${filterAql}
+          RETURN {
+              edge: edge,
+              result: fromVertex,
+              condition: toVertex
+          }
+      )
+
+      LET gov_debtor = (
+          FOR edge IN governed_as_debtor_account_by
+          ${filterAql}
+          RETURN {
+              edge: edge,
+              result: fromVertex,
+              condition: toVertex
+          }
+      )
+
+      RETURN {
+          "governed_as_creditor_account_by": gov_cred,
+          "governed_as_debtor_account_by": gov_debtor
+      }
+    `)
+    )?.batches.all();
+
+    return result;
+  };
+
+  manager.getConditionsByGraph = async (activeOnly: boolean) => {
+    const date: string = new Date().toISOString();
+    let filter;
+    if (activeOnly) {
+      filter = `FILTER edge.xprtnDtTm < ${date}`;
+    }
+
+    const filterAql = aql`
+      LET fromVertex = DOCUMENT(edge._from)
+      LET toVertex = DOCUMENT(edge._to)
+      ${filter}`;
+
+    const result = await (
+      await manager._pseudonymsDb?.query<RawConditionResponse>(aql`
+      LET gov_acct_cred = (
+          FOR edge IN governed_as_creditor_account_by
+          ${filterAql}
+          RETURN {
+              edge: edge,
+              result: fromVertex,
+              condition: toVertex
+          }
+      )
+
+      LET gov_acct_debtor = (
+          FOR edge IN governed_as_debtor_account_by
+          ${filterAql}
+          RETURN {
+              edge: edge,
+              result: fromVertex,
+              condition: toVertex
+          }
+      )
+
+      LET gov_cred = (
+          FOR edge IN governed_as_creditor_by
+          ${filterAql}
+          RETURN {
+              edge: edge,
+              result: fromVertex,
+              condition: toVertex
+          }
+      )
+
+      LET gov_debtor = (
+          FOR edge IN governed_as_debtor_by
+          ${filterAql}
+          RETURN {
+              edge: edge,
+              result: fromVertex,
+              condition: toVertex
+          }
+      )
+
+      RETURN {
+          "governed_as_creditor_account_by": gov_acct_cred,
+          "governed_as_debtor_account_by": gov_acct_debtor,
+          "governed_as_creditor_by": gov_cred,
+          "governed_as_debtor_by": gov_debtor
+      }
+    `)
+    )?.batches.all();
+
+    return result;
+  };
+
+  manager.getConditionsByAccount = async (accountId: string, SchemeProprietary: string, agtMemberId: string) => {
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.conditions);
+    const date: string = new Date().toISOString();
+    const acctPrtry = SchemeProprietary;
+    const acctId = accountId;
+    const conditionAgtMemberId = agtMemberId;
+    const acctIdAql = aql`FILTER doc.acct.id == ${acctId}`;
+    const acctPrtryAql = aql`AND doc.acct.schmeNm.prtry == ${acctPrtry}`;
+    const agtMemberIdAql = aql`AND doc.acct.agt.finInstnId.clrSysMmbId.mmbId == ${conditionAgtMemberId}`;
+    const query = aql`FOR doc IN ${db}
+    ${acctIdAql}
+    ${acctPrtryAql}
+    ${agtMemberIdAql}
+    AND (doc.xprtnDtTm > ${date}
+    OR doc.xprtnDtTm == null)
+    RETURN doc`;
+
+    return await (await manager._pseudonymsDb?.query(query))?.batches.all();
+  };
+
+  manager.getConditions = async (activeOnly: boolean) => {
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.conditions);
+    const date: string = new Date().toISOString();
+
+    let filter;
+    if (activeOnly) {
+      filter = `FILTER doc.xprtnDtTm < ${date}`;
+    }
+
+    const query = aql`FOR doc IN ${db}
+      ${filter}
+      RETURN doc`;
+
+    return await (await manager._pseudonymsDb?.query(query))?.batches.all();
+  };
+
+  manager.getEntity = async (entityId: string, SchemeProprietary: string) => {
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.entities);
+    const entityIdentity = `${entityId}${SchemeProprietary}`;
+    const entityIdAql = aql`FILTER doc._key == ${entityIdentity}`;
+
+    const query = aql`FOR doc IN ${db}
+      ${entityIdAql}
+      RETURN doc`;
+
+    return await (await manager._pseudonymsDb?.query(query))?.batches.all();
+  };
+
+  manager.getAccount = async (accountId: string, SchemeProprietary: string, agtMemberId: string) => {
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.accounts);
+    const accountIdentity = `${accountId}${SchemeProprietary}${agtMemberId}`;
+    const accountIdAql = aql`FILTER doc._key == ${accountIdentity}`;
+
+    const query = aql`FOR doc IN ${db}
+      ${accountIdAql}
+      RETURN doc`;
+
+    return await (await manager._pseudonymsDb?.query(query))?.batches.all();
+  };
+
+  manager.saveCondition = async (condition: EntityCondition | AccountCondition) => {
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.conditions);
+    const uuid = v4();
+    return await db?.save({ ...condition, _key: uuid, condId: uuid }, { overwriteMode: 'ignore' });
+  };
+
+  manager.saveGovernedAsCreditorByEdge = async (conditionId: string, accountEntityId: string, conditionEdge: ConditionEdge) => {
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.governed_as_creditor_by);
+    const _from = accountEntityId;
+    const _to = conditionId;
+
+    return await db?.save(
+      { _from, _to, evtTp: conditionEdge.evtTp, incptnDtTm: conditionEdge.incptnDtTm, xprtnDtTm: conditionEdge?.xprtnDtTm },
+      { overwriteMode: 'ignore' },
+    );
+  };
+
+  manager.saveGovernedAsDebtorByEdge = async (conditionId: string, accountEntityId: string, conditionEdge: ConditionEdge) => {
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.governed_as_debtor_by);
+    const _from = accountEntityId;
+    const _to = conditionId;
+
+    return await db?.save(
+      { _from, _to, evtTp: conditionEdge.evtTp, incptnDtTm: conditionEdge.incptnDtTm, xprtnDtTm: conditionEdge?.xprtnDtTm },
+      { overwriteMode: 'ignore' },
+    );
+  };
+
+  manager.saveGovernedAsCreditorAccountByEdge = async (conditionId: string, accountEntityId: string, conditionEdge: ConditionEdge) => {
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.governed_as_creditor_account_by);
+    const _from = accountEntityId;
+    const _to = conditionId;
+
+    return await db?.save(
+      { _from, _to, evtTp: conditionEdge.evtTp, incptnDtTm: conditionEdge.incptnDtTm, xprtnDtTm: conditionEdge?.xprtnDtTm },
+      { overwriteMode: 'ignore' },
+    );
+  };
+
+  manager.saveGovernedAsDebtorAccountByEdge = async (conditionId: string, accountEntityId: string, conditionEdge: ConditionEdge) => {
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.governed_as_debtor_account_by);
+    const _from = accountEntityId;
+    const _to = conditionId;
+
+    return await db?.save(
+      { _from, _to, evtTp: conditionEdge.evtTp, incptnDtTm: conditionEdge.incptnDtTm, xprtnDtTm: conditionEdge?.xprtnDtTm },
+      { overwriteMode: 'ignore' },
+    );
+  };
+
+  manager.updateExpiryDateOfAccountEdges = async (edgeCreditorByKey: string, edgeDebtorByKey: string, expireDateTime: string) => {
+    return await Promise.all([
+      edgeDebtorByKey
+        ? manager._pseudonymsDb
+            ?.collection(dbPseudonyms.governed_as_debtor_account_by)
+            ?.update(edgeDebtorByKey, { xprtnDtTm: expireDateTime }, { returnNew: true })
+        : undefined,
+      edgeCreditorByKey
+        ? manager._pseudonymsDb
+            ?.collection(dbPseudonyms.governed_as_creditor_account_by)
+            ?.update(edgeCreditorByKey, { xprtnDtTm: expireDateTime }, { returnNew: true })
+        : undefined,
+    ]);
+  };
+
+  manager.updateExpiryDateOfEntityEdges = async (edgeCreditorByKey: string, edgeDebtorByKey: string, expireDateTime: string) => {
+    return await Promise.all([
+      edgeDebtorByKey
+        ? manager._pseudonymsDb
+            ?.collection(dbPseudonyms.governed_as_debtor_by)
+            ?.update(edgeDebtorByKey, { xprtnDtTm: expireDateTime }, { returnNew: true })
+        : undefined,
+      edgeCreditorByKey
+        ? manager._pseudonymsDb
+            ?.collection(dbPseudonyms.governed_as_creditor_by)
+            ?.update(edgeCreditorByKey, { xprtnDtTm: expireDateTime }, { returnNew: true })
+        : undefined,
+    ]);
+  };
+
+  manager.updateCondition = async (conditionId: string, expireDateTime: string) => {
+    const db = manager._pseudonymsDb?.collection(dbPseudonyms.conditions);
+
+    return await db?.update(conditionId, { xprtnDtTm: expireDateTime }, { returnNew: true });
   };
 }
