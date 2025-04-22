@@ -192,7 +192,7 @@ databaseManager = await CreateDatabaseManager(dbConfig);
 3. **Database Manager**
 
   - **Class**: `DatabaseManager`
-    - **Description**: Manages database connections and interactions, including configuration and pseudonyms databases.
+    - **Description**: Manages database connections and interactions, including configuration, pseudonyms, historical transactions and evaluation databases.
     - **Methods**:
       - `CreateDatabaseManager<T>(config: T): Promise<DatabaseManagerInstance<T>>`: Creates a database manager instance.
       - `isReadyCheck(): any`: Checks if the database services are ready.
@@ -276,12 +276,12 @@ To see what are the variables required for each service please refer to VARIABLE
 ### Configuration Options
 The ManagerConfig interface allows you to define which databases and services you wish to use. Each service can be optionally included in the configuration:
 
-- **Pseudonyms Database**: Manage user pseudonyms. `Optional`
+- **Pseudonyms Database**: Access and manage  pseudonyms data. `Optional`
 - **Transaction History Database**: Access and manage transaction histories. `Optional`
-- **Transaction Database**: Handle transactional operations. `Optional`
+- **Transaction Database**: Evaluation Result data management object. `Optional`
 - **Configuration Database**: Store and retrieve application configurations. `Optional`
 - **Redis Cache**: Use Redis for caching to improve performance. `Optional`
-- **Local Cache**: Options for using local cache to improve performance. `Optional` Note: This object is heavily used by configuration builder
+- **Local Cache**: Option for using local cache (Node cache) to improve performance. `Optional` Note: This object is heavily used by configuration builder
 
 ### Usage Example
 The JSON object example for dbManage configuration

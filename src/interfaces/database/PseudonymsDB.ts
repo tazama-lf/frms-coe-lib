@@ -325,19 +325,30 @@ export interface PseudonymsDB {
   /**
    * @param entityId string of identifier for entity being retrieved
    * @param schemeProprietary string of scheme proprietary of the entity being retrieved
+   * @param retrieveAll (Optional) boolean to retrieve all conditions or only active ones
    *
    * @memberof PseudonymsDB
    */
-  getEntityConditionsByGraph: (entityId: string, schemeProprietary: string) => Promise<RawConditionResponse[][] | unknown>;
+  getEntityConditionsByGraph: (
+    entityId: string,
+    schemeProprietary: string,
+    retrieveAll?: boolean,
+  ) => Promise<RawConditionResponse[][] | unknown>;
 
   /**
    * @param entityId string of identifier for entity being retrieved
    * @param schemeProprietary string of scheme proprietary of the entity being retrieved
    * @param agt agt name
+   * @param retrieveAll (Optional) boolean to retrieve all conditions or only active ones
    *
    * @memberof PseudonymsDB
    */
-  getAccountConditionsByGraph: (entityId: string, schemeProprietary: string, agt: string) => Promise<RawConditionResponse[][] | unknown>;
+  getAccountConditionsByGraph: (
+    entityId: string,
+    schemeProprietary: string,
+    agt: string,
+    retrieveAll?: boolean,
+  ) => Promise<RawConditionResponse[][] | unknown>;
 
   /**
    * @param activeOnly Only active conditions
