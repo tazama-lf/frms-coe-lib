@@ -301,12 +301,16 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
   };
 
   manager.getEntityConditionsByGraph = async (id: string, proprietary: string, retrieveAll?: boolean) => {
+    const nowDateTime = new Date().toISOString();
     const filterAql = aql`
       LET fromVertex = DOCUMENT(edge._from)
       LET toVertex = DOCUMENT(edge._to)
       FILTER toVertex.ntty.id == ${id}
+      ${!retrieveAll ? aql`AND toVertex.incptnDtTm < ${nowDateTime}` : aql``}
+      ${!retrieveAll ? aql`AND toVertex.xprtnDtTm > ${nowDateTime}` : aql``}
       AND toVertex.ntty.schmeNm.prtry == ${proprietary}
-      ${!retrieveAll ? aql`AND (edge.xprtnDtTm > ${new Date().toISOString()} OR edge.xprtnDtTm == null)` : aql``}`;
+      ${!retrieveAll ? aql`AND edge.incptnDtTm < ${nowDateTime}` : aql``}
+      ${!retrieveAll ? aql`AND (edge.xprtnDtTm > ${nowDateTime} OR edge.xprtnDtTm == null)` : aql``}`;
 
     const result = await (
       await manager._pseudonymsDb?.query<RawConditionResponse>(aql`
@@ -341,12 +345,17 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
   };
 
   manager.getAccountConditionsByGraph = async (id: string, proprietary: string, agt: string, retrieveAll?: boolean) => {
+    const nowDateTime = new Date().toISOString();
+
     const filterAql = aql`
       LET fromVertex = DOCUMENT(edge._from)
       LET toVertex = DOCUMENT(edge._to)
       FILTER toVertex.acct.id == ${id}
+      ${!retrieveAll ? aql`AND toVertex.incptnDtTm < ${nowDateTime}` : aql``}
+      ${!retrieveAll ? aql`AND toVertex.xprtnDtTm > ${nowDateTime}` : aql``}
       AND toVertex.acct.schmeNm.prtry == ${proprietary}
       AND toVertex.acct.agt.finInstnId.clrSysMmbId.mmbId == ${agt}
+      ${!retrieveAll ? aql`AND (edge.incptnDtTm < ${new Date().toISOString()}` : aql``}
       ${!retrieveAll ? aql`AND (edge.xprtnDtTm > ${new Date().toISOString()} OR edge.xprtnDtTm == null)` : aql``}`;
 
     const result = await (
