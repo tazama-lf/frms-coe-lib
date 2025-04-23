@@ -3,25 +3,20 @@
 import { aql, Database } from 'arangojs';
 import { join, type AqlQuery, type GeneratedAqlQuery } from 'arangojs/aql';
 import * as fs from 'fs';
+import { v4 } from 'uuid';
 import { formatError } from '../helpers/formatter';
 import { isDatabaseReady } from '../helpers/readyCheck';
 import { type AccountCondition, type ConditionEdge, type EntityCondition, type TransactionRelationship } from '../interfaces';
 import { dbPseudonyms } from '../interfaces/ArangoCollections';
-import { readyChecks, type DatabaseManagerType, type DBConfig } from '../services/dbManager';
 import { type RawConditionResponse } from '../interfaces/event-flow/EntityConditionEdge';
-import { v4 } from 'uuid';
+import { readyChecks, type DatabaseManagerType, type DBConfig } from '../services/dbManager';
 
 export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig: DBConfig): Promise<void> {
   manager._pseudonymsDb = new Database({
     url: pseudonymsConfig.url,
     databaseName: pseudonymsConfig.databaseName,
-    auth: {
-      username: pseudonymsConfig.user,
-      password: pseudonymsConfig.password,
-    },
-    agentOptions: {
-      ca: fs.existsSync(pseudonymsConfig.certPath) ? [fs.readFileSync(pseudonymsConfig.certPath)] : [],
-    },
+    auth: { username: pseudonymsConfig.user, password: pseudonymsConfig.password },
+    agentOptions: { ca: fs.existsSync(pseudonymsConfig.certPath) ? [fs.readFileSync(pseudonymsConfig.certPath)] : [] },
   });
 
   try {
@@ -305,16 +300,17 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
-  manager.getEntityConditionsByGraph = async (id: string, proprietary: string) => {
-    const date: string = new Date().toISOString();
-
+  manager.getEntityConditionsByGraph = async (id: string, proprietary: string, retrieveAll?: boolean) => {
+    const nowDateTime = new Date().toISOString();
     const filterAql = aql`
       LET fromVertex = DOCUMENT(edge._from)
       LET toVertex = DOCUMENT(edge._to)
       FILTER toVertex.ntty.id == ${id}
+      ${!retrieveAll ? aql`AND toVertex.incptnDtTm < ${nowDateTime}` : aql``}
+      ${!retrieveAll ? aql`AND toVertex.xprtnDtTm > ${nowDateTime}` : aql``}
       AND toVertex.ntty.schmeNm.prtry == ${proprietary}
-      AND (edge.xprtnDtTm > ${date}
-        OR edge.xprtnDtTm == null)`;
+      ${!retrieveAll ? aql`AND edge.incptnDtTm < ${nowDateTime}` : aql``}
+      ${!retrieveAll ? aql`AND (edge.xprtnDtTm > ${nowDateTime} OR edge.xprtnDtTm == null)` : aql``}`;
 
     const result = await (
       await manager._pseudonymsDb?.query<RawConditionResponse>(aql`
@@ -348,17 +344,19 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     return result;
   };
 
-  manager.getAccountConditionsByGraph = async (id: string, proprietary: string, agt: string) => {
-    const date: string = new Date().toISOString();
+  manager.getAccountConditionsByGraph = async (id: string, proprietary: string, agt: string, retrieveAll?: boolean) => {
+    const nowDateTime = new Date().toISOString();
 
     const filterAql = aql`
       LET fromVertex = DOCUMENT(edge._from)
       LET toVertex = DOCUMENT(edge._to)
       FILTER toVertex.acct.id == ${id}
+      ${!retrieveAll ? aql`AND toVertex.incptnDtTm < ${nowDateTime}` : aql``}
+      ${!retrieveAll ? aql`AND toVertex.xprtnDtTm > ${nowDateTime}` : aql``}
       AND toVertex.acct.schmeNm.prtry == ${proprietary}
       AND toVertex.acct.agt.finInstnId.clrSysMmbId.mmbId == ${agt}
-      AND (edge.xprtnDtTm > ${date}
-        OR edge.xprtnDtTm == null)`;
+      ${!retrieveAll ? aql`AND (edge.incptnDtTm < ${nowDateTime}` : aql``}
+      ${!retrieveAll ? aql`AND (edge.xprtnDtTm > ${nowDateTime} OR edge.xprtnDtTm == null)` : aql``}`;
 
     const result = await (
       await manager._pseudonymsDb?.query<RawConditionResponse>(aql`
