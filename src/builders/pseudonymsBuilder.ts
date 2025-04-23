@@ -355,8 +355,8 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       ${!retrieveAll ? aql`AND toVertex.xprtnDtTm > ${nowDateTime}` : aql``}
       AND toVertex.acct.schmeNm.prtry == ${proprietary}
       AND toVertex.acct.agt.finInstnId.clrSysMmbId.mmbId == ${agt}
-      ${!retrieveAll ? aql`AND (edge.incptnDtTm < ${new Date().toISOString()}` : aql``}
-      ${!retrieveAll ? aql`AND (edge.xprtnDtTm > ${new Date().toISOString()} OR edge.xprtnDtTm == null)` : aql``}`;
+      ${!retrieveAll ? aql`AND (edge.incptnDtTm < ${nowDateTime}` : aql``}
+      ${!retrieveAll ? aql`AND (edge.xprtnDtTm > ${nowDateTime} OR edge.xprtnDtTm == null)` : aql``}`;
 
     const result = await (
       await manager._pseudonymsDb?.query<RawConditionResponse>(aql`
