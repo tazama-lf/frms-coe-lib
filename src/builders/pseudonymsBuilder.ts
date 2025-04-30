@@ -307,7 +307,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       LET toVertex = DOCUMENT(edge._to)
       FILTER toVertex.ntty.id == ${id}
       ${!retrieveAll ? aql`AND toVertex.incptnDtTm < ${nowDateTime}` : aql``}
-      ${!retrieveAll ? aql`AND toVertex.xprtnDtTm > ${nowDateTime}` : aql``}
+      ${!retrieveAll ? aql`AND (toVertex.xprtnDtTm > ${nowDateTime} OR toVertex.xprtnDtTm == null)` : aql``}
       AND toVertex.ntty.schmeNm.prtry == ${proprietary}
       ${!retrieveAll ? aql`AND edge.incptnDtTm < ${nowDateTime}` : aql``}
       ${!retrieveAll ? aql`AND (edge.xprtnDtTm > ${nowDateTime} OR edge.xprtnDtTm == null)` : aql``}`;
@@ -352,10 +352,10 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       LET toVertex = DOCUMENT(edge._to)
       FILTER toVertex.acct.id == ${id}
       ${!retrieveAll ? aql`AND toVertex.incptnDtTm < ${nowDateTime}` : aql``}
-      ${!retrieveAll ? aql`AND toVertex.xprtnDtTm > ${nowDateTime}` : aql``}
+      ${!retrieveAll ? aql`AND (toVertex.xprtnDtTm > ${nowDateTime} OR toVertex.xprtnDtTm == null)` : aql``}
       AND toVertex.acct.schmeNm.prtry == ${proprietary}
       AND toVertex.acct.agt.finInstnId.clrSysMmbId.mmbId == ${agt}
-      ${!retrieveAll ? aql`AND (edge.incptnDtTm < ${nowDateTime}` : aql``}
+      ${!retrieveAll ? aql`AND edge.incptnDtTm < ${nowDateTime}` : aql``}
       ${!retrieveAll ? aql`AND (edge.xprtnDtTm > ${nowDateTime} OR edge.xprtnDtTm == null)` : aql``}`;
 
     const result = await (
