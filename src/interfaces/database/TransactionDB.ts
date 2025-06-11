@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { type Database } from 'arangojs';
-import { type NetworkMap } from '..';
+import type { DataCache, NetworkMap } from '..';
 
 export interface TransactionDB {
   _transaction: Database;
@@ -43,11 +43,18 @@ export interface TransactionDB {
    *   "transactionID": ${JSON.stringify(transactionID)},
    *   "transaction": ${JSON.stringify(transaction)},
    *   "networkMap": ${JSON.stringify(networkMap)},
-   *   "report": ${JSON.stringify(alert)}
+   *   "report": ${JSON.stringify(alert)},
+   *   "dataCache": ${JSON.stringify(dataCache)}
     } INTO ${collection}`
    * ```
    *
    * @memberof TransactionDB
    */
-  insertTransaction: (transactionID: string, transaction: unknown, networkMap: NetworkMap, alert: unknown) => Promise<unknown>;
+  insertTransaction: (
+    transactionID: string,
+    transaction: unknown,
+    networkMap: NetworkMap,
+    alert: unknown,
+    dataCache?: DataCache,
+  ) => Promise<unknown>;
 }
