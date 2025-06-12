@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import { type DBConfig, type DatabaseManagerType, readyChecks } from '../services/dbManager';
 import { isDatabaseReady } from '../helpers/readyCheck';
 import { type AqlQuery, aql } from 'arangojs/aql';
-import { type NetworkMap } from '../interfaces';
+import type { DataCache, NetworkMap } from '../interfaces';
 import { dbEvaluateResults } from '../interfaces/ArangoCollections';
 
 export async function transactionBuilder(manager: DatabaseManagerType, transactionHistoryConfig: DBConfig, redis: boolean): Promise<void> {
@@ -56,12 +56,19 @@ export async function transactionBuilder(manager: DatabaseManagerType, transacti
     return await (await manager._transaction?.query(query))?.batches.all();
   };
 
-  manager.insertTransaction = async (transactionID: string, transaction: unknown, networkMap: NetworkMap, alert: unknown) => {
+  manager.insertTransaction = async (
+    transactionID: string,
+    transaction: unknown,
+    networkMap: NetworkMap,
+    alert: unknown,
+    dataCache?: DataCache,
+  ) => {
     const data = {
       transactionID,
       transaction,
       networkMap,
       report: alert,
+      dataCache,
     };
 
     return await manager._transaction?.collection(dbEvaluateResults.transactions).save(data, { overwriteMode: 'ignore' });
