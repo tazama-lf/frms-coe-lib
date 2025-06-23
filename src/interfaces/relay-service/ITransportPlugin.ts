@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
+import { Apm } from "../../services/apm";
+import { LoggerService } from "../../services/logger";
+
 
 /**
  * Interface for transport plugins used in the relay service.
@@ -13,9 +16,11 @@ export interface ITransportPlugin {
    * Initializes the transport plugin.
    * This function is called to set up the transport mechanism (i.e., connecting to a server, setting up listeners, etc.).
    * It should prepare the plugin to relay data.
+   * @param loggerService - Optional logger service for logging operations.
+   * @param apm - Optional APM service for performance monitoring.
    * @returns A promise that resolves when initialization is complete.
    */
-  init: () => Promise<void>;
+  init: (loggerService?: LoggerService, apm?: Apm) => Promise<void>;
   
   /**
    * Relays data through the transport mechanism.
