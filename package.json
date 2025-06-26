@@ -34,7 +34,7 @@
     "@grpc/grpc-js": "^1.11.1",
     "@grpc/proto-loader": "^0.7.13",
     "@types/uuid": "^10.0.0",
-    "arangojs": "^8.8.1",
+    "arangojs": "^10.1.1",
     "dotenv": "^16.4.5",
     "elastic-apm-node": "^4.6.0",
     "ioredis": "^5.4.1",
