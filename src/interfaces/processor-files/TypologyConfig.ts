@@ -1,4 +1,4 @@
-import { type WorkFlow } from './TypologyResult';
+import type { WorkFlow } from './TypologyResult';
 
 // SPDX-License-Identifier: Apache-2.0
 export interface IRuleValue {

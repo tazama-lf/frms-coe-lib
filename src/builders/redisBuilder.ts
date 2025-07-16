@@ -2,7 +2,7 @@
 
 import { RedisService } from '..';
 import { formatError } from '../helpers/formatter';
-import { type RedisConfig } from '../interfaces';
+import type { RedisConfig } from '../interfaces';
 import { readyChecks, type DatabaseManagerType } from '../services/dbManager';
 
 export async function redisBuilder(manager: DatabaseManagerType, redisConfig: RedisConfig): Promise<RedisService | undefined> {

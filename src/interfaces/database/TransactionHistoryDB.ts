@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { type Database } from 'arangojs';
-import { type NetworkMap, type AccountType, type Pain001, type Pain013, type Pacs008, type Pacs002 } from '..';
+import type { Database } from 'arangojs';
+import type { NetworkMap, AccountType, Pain001, Pain013, Pacs008, Pacs002 } from '..';
 
 export interface TransactionHistoryDB {
   _transactionHistory: Database;

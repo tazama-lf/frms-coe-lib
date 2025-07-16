@@ -8,7 +8,7 @@ import type {
   LumberjackDefinition as _lumberjack_LumberjackDefinition,
 } from './lumberjack/Lumberjack';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- W
 type SubtypeConstructor<Constructor extends new (...args: any) => any, Subtype> = new (
   ...args: ConstructorParameters<Constructor>
 ) => Subtype;

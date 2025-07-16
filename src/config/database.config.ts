@@ -1,5 +1,5 @@
 import { validateEnvVar } from '.';
-import { type ManagerConfig } from '../services/dbManager';
+import type { ManagerConfig } from '../services/dbManager';
 
 /**
  * Enum representing different database types.
@@ -47,20 +47,18 @@ export const validateDatabaseConfig = (authEnabled: boolean, database: Database)
     case Database.EVALUATION:
       prefix = 'EVALUATION_DATABASE';
       break;
-    default:
-      throw Error('Database selected is invalid.');
   }
 
-  const password = validateEnvVar<string>(`${prefix}_PASSWORD`, 'string', !authEnabled);
-  const user = validateEnvVar<string>(`${prefix}_USER`, 'string', !authEnabled);
+  const password = validateEnvVar(`${prefix}_PASSWORD`, 'string', !authEnabled).toString();
+  const user = validateEnvVar(`${prefix}_USER`, 'string', !authEnabled).toString();
 
   const result: ManagerConfig = {
     [database]: {
-      databaseName: validateEnvVar(prefix, 'string'),
+      databaseName: validateEnvVar(prefix, 'string').toString(),
       password,
-      url: validateEnvVar(`${prefix}_URL`, 'string'),
+      url: validateEnvVar(`${prefix}_URL`, 'string').toString(),
       user,
-      certPath: validateEnvVar(`${prefix}_CERT_PATH`, 'string'),
+      certPath: validateEnvVar(`${prefix}_CERT_PATH`, 'string').toString(),
     },
   };
   return result;

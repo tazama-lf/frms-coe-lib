@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { type Apm } from '../../services/apm';
-import { type LoggerService } from '../../services/logger';
+import type { Apm } from '../../services/apm';
+import type { LoggerService } from '../../services/logger';
 
 /**
  * Interface for transport plugins used in the relay service.

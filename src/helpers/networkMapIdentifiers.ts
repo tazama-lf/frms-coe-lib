@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-import { type DatabaseManagerInstance, type ManagerConfig } from '..';
-import { type NetworkMap } from '../interfaces';
+import type { DatabaseManagerInstance, ManagerConfig } from '..';
+import type { NetworkMap } from '../interfaces';
 import { unwrap } from './unwrap';
 
 function getRuleMap(networkMap: NetworkMap | undefined): { rulesIds: string[]; typologyCfg: string[] } {
@@ -27,10 +25,11 @@ function getRuleMap(networkMap: NetworkMap | undefined): { rulesIds: string[]; t
 }
 
 export const getIdsFromNetworkMap = async (
-  databaseManager: DatabaseManagerInstance<ManagerConfig>,
+  databaseManager: DatabaseManagerInstance<Required<ManagerConfig>>,
 ): Promise<{ rulesIds: string[]; typologyCfg: string[] }> => {
-  const networkConfigurationList = await databaseManager.getNetworkMap();
-  const unwrappedNetworkMap = unwrap<NetworkMap>(networkConfigurationList as NetworkMap[][]);
+  const networkConfigurationList = (await databaseManager.getNetworkMap()) as NetworkMap[][];
+  const unwrappedNetworkMap = unwrap<NetworkMap>(networkConfigurationList);
+
   const networkMap = getRuleMap(unwrappedNetworkMap);
   return {
     rulesIds: networkMap.rulesIds,
@@ -39,7 +38,7 @@ export const getIdsFromNetworkMap = async (
 };
 
 export const getRoutesFromNetworkMap = async (
-  databaseManager: DatabaseManagerInstance<ManagerConfig>,
+  databaseManager: DatabaseManagerInstance<Required<ManagerConfig>>,
   processor: string,
 ): Promise<{ consumers: string[] }> => {
   const { typologyCfg, rulesIds } = await getIdsFromNetworkMap(databaseManager);

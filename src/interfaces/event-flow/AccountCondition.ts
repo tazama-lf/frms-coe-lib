@@ -1,4 +1,4 @@
-import { type Condition } from './Condition';
+import type { Condition } from './Condition';
 
 export interface AccountCondition extends Condition {
   acct: {

@@ -1,17 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-import { type RedisService } from '..';
-import { type RedisConfig } from '../interfaces';
-import { type PseudonymsDB } from '../interfaces/database/PseudonymsDB';
-import { type TransactionHistoryDB } from '../interfaces/database/TransactionHistoryDB';
-import { type ConfigurationDB } from '../interfaces/database/ConfigurationDB';
+import type { RedisService } from '..';
+import type { RedisConfig } from '../interfaces';
+import type { PseudonymsDB } from '../interfaces/database/PseudonymsDB';
+import type { TransactionHistoryDB } from '../interfaces/database/TransactionHistoryDB';
+import type { ConfigurationDB } from '../interfaces/database/ConfigurationDB';
 import { redisBuilder } from '../builders/redisBuilder';
 import { pseudonymsBuilder } from '../builders/pseudonymsBuilder';
 import { transactionHistoryBuilder } from '../builders/transactionHistoryBuilder';
 import { configurationBuilder } from '../builders/configurationBuilder';
-import { type TransactionDB } from '../interfaces/database/TransactionDB';
+import type { TransactionDB } from '../interfaces/database/TransactionDB';
 import { transactionBuilder } from '../builders/transactionBuilder';
 import { validateLocalCacheConfig } from '../config/index';
 import { type Database, validateDatabaseConfig } from '../config/database.config';
@@ -47,7 +45,7 @@ interface ManagerStatus {
    *
    * @returns {string | Error} Key-value pair of service and their status
    */
-  isReadyCheck: () => any;
+  isReadyCheck: () => unknown;
 }
 
 export type DatabaseManagerType = Partial<
@@ -55,11 +53,11 @@ export type DatabaseManagerType = Partial<
 >;
 
 type DatabaseManagerInstance<T extends ManagerConfig> = ManagerStatus &
-  (T extends { pseudonyms: DBConfig } ? PseudonymsDB : Record<string, any>) &
-  (T extends { transactionHistory: DBConfig } ? TransactionHistoryDB : Record<string, any>) &
-  (T extends { transaction: DBConfig } ? TransactionDB : Record<string, any>) &
-  (T extends { configuration: DBConfig } ? ConfigurationDB : Record<string, any>) &
-  (T extends { redisConfig: RedisConfig } ? RedisService : Record<string, any>);
+  (T extends { pseudonyms: DBConfig } ? PseudonymsDB : Record<string, unknown>) &
+  (T extends { transactionHistory: DBConfig } ? TransactionHistoryDB : Record<string, unknown>) &
+  (T extends { transaction: DBConfig } ? TransactionDB : Record<string, unknown>) &
+  (T extends { configuration: DBConfig } ? ConfigurationDB : Record<string, unknown>) &
+  (T extends { redisConfig: RedisConfig } ? RedisService : Record<string, unknown>);
 
 /**
  * Creates a DatabaseManagerInstance which consists of all optionally configured databases and a redis cache

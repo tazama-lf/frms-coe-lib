@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { type RuleResult } from '..';
+import type { RuleResult } from '..';
 
 export class TypologyResult {
   id = '';

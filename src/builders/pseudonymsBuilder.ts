@@ -2,13 +2,13 @@
 
 import { aql, Database } from 'arangojs';
 import { join, type AqlQuery, type GeneratedAqlQuery } from 'arangojs/aql';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import { v4 } from 'uuid';
 import { formatError } from '../helpers/formatter';
 import { isDatabaseReady } from '../helpers/readyCheck';
-import { type AccountCondition, type ConditionEdge, type EntityCondition, type TransactionRelationship } from '../interfaces';
+import type { AccountCondition, ConditionEdge, EntityCondition, TransactionRelationship } from '../interfaces';
 import { dbPseudonyms } from '../interfaces/ArangoCollections';
-import { type RawConditionResponse } from '../interfaces/event-flow/EntityConditionEdge';
+import type { RawConditionResponse } from '../interfaces/event-flow/EntityConditionEdge';
 import { readyChecks, type DatabaseManagerType, type DBConfig } from '../services/dbManager';
 
 export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig: DBConfig): Promise<void> {
@@ -341,7 +341,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     `)
     )?.batches.all();
 
-    return result;
+    return result!;
   };
 
   manager.getAccountConditionsByGraph = async (id: string, proprietary: string, agt: string, retrieveAll?: boolean) => {
@@ -387,7 +387,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     `)
     )?.batches.all();
 
-    return result;
+    return result!;
   };
 
   manager.getConditionsByGraph = async (activeOnly: boolean) => {
@@ -453,7 +453,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     `)
     )?.batches.all();
 
-    return result;
+    return result!;
   };
 
   manager.getConditionsByAccount = async (accountId: string, SchemeProprietary: string, agtMemberId: string) => {
@@ -566,8 +566,8 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     );
   };
 
-  manager.updateExpiryDateOfAccountEdges = async (edgeCreditorByKey: string, edgeDebtorByKey: string, expireDateTime: string) => {
-    return await Promise.all([
+  manager.updateExpiryDateOfAccountEdges = async (edgeCreditorByKey: string, edgeDebtorByKey: string, expireDateTime: string) =>
+    await Promise.all([
       edgeDebtorByKey
         ? manager._pseudonymsDb
             ?.collection(dbPseudonyms.governed_as_debtor_account_by)
@@ -579,10 +579,9 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
             ?.update(edgeCreditorByKey, { xprtnDtTm: expireDateTime }, { returnNew: true })
         : undefined,
     ]);
-  };
 
-  manager.updateExpiryDateOfEntityEdges = async (edgeCreditorByKey: string, edgeDebtorByKey: string, expireDateTime: string) => {
-    return await Promise.all([
+  manager.updateExpiryDateOfEntityEdges = async (edgeCreditorByKey: string, edgeDebtorByKey: string, expireDateTime: string) =>
+    await Promise.all([
       edgeDebtorByKey
         ? manager._pseudonymsDb
             ?.collection(dbPseudonyms.governed_as_debtor_by)
@@ -594,7 +593,6 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
             ?.update(edgeCreditorByKey, { xprtnDtTm: expireDateTime }, { returnNew: true })
         : undefined,
     ]);
-  };
 
   manager.updateCondition = async (conditionId: string, expireDateTime: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.conditions);

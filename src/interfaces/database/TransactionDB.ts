@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { type Database } from 'arangojs';
+import type { Database } from 'arangojs';
 import type { DataCache, NetworkMap } from '..';
 
 export interface TransactionDB {
