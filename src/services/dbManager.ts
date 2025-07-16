@@ -46,6 +46,7 @@ interface ManagerStatus {
    * @returns {string | Error} Key-value pair of service and their status
    */
   isReadyCheck: () => unknown;
+  quit: () => unknown;
 }
 
 export type DatabaseManagerType = Partial<
