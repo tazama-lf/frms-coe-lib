@@ -25,7 +25,7 @@ function getRuleMap(networkMap: NetworkMap | undefined): { rulesIds: string[]; t
 }
 
 export const getIdsFromNetworkMap = async (
-  databaseManager: DatabaseManagerInstance<Required<ManagerConfig>>,
+  databaseManager: DatabaseManagerInstance<Required<Pick<ManagerConfig, 'configuration' | 'localCacheConfig' | 'redisConfig'>>>,
 ): Promise<{ rulesIds: string[]; typologyCfg: string[] }> => {
   const networkConfigurationList = (await databaseManager.getNetworkMap()) as NetworkMap[][];
   const unwrappedNetworkMap = unwrap<NetworkMap>(networkConfigurationList);
@@ -38,7 +38,7 @@ export const getIdsFromNetworkMap = async (
 };
 
 export const getRoutesFromNetworkMap = async (
-  databaseManager: DatabaseManagerInstance<Required<ManagerConfig>>,
+  databaseManager: DatabaseManagerInstance<Required<Pick<ManagerConfig, 'configuration' | 'localCacheConfig' | 'redisConfig'>>>,
   processor: string,
 ): Promise<{ consumers: string[] }> => {
   const { typologyCfg, rulesIds } = await getIdsFromNetworkMap(databaseManager);
