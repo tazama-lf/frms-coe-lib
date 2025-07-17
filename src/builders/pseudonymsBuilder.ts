@@ -313,7 +313,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       ${!retrieveAll ? aql`AND (edge.xprtnDtTm > ${nowDateTime} OR edge.xprtnDtTm == null)` : aql``}`;
 
     const result = await (
-      await manager._pseudonymsDb?.query<RawConditionResponse>(aql`
+      await manager._pseudonymsDb!.query<RawConditionResponse>(aql`
       LET gov_cred = (
           FOR edge IN governed_as_creditor_by
           ${filterAql}
@@ -339,9 +339,9 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
           "governed_as_debtor_by": gov_debtor
       }
     `)
-    )?.batches.all();
+    ).batches.all();
 
-    return result!;
+    return result;
   };
 
   manager.getAccountConditionsByGraph = async (id: string, proprietary: string, agt: string, retrieveAll?: boolean) => {
@@ -359,7 +359,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       ${!retrieveAll ? aql`AND (edge.xprtnDtTm > ${nowDateTime} OR edge.xprtnDtTm == null)` : aql``}`;
 
     const result = await (
-      await manager._pseudonymsDb?.query<RawConditionResponse>(aql`
+      await manager._pseudonymsDb!.query<RawConditionResponse>(aql`
       LET gov_cred = (
           FOR edge IN governed_as_creditor_account_by
           ${filterAql}
@@ -385,9 +385,9 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
           "governed_as_debtor_account_by": gov_debtor
       }
     `)
-    )?.batches.all();
+    ).batches.all();
 
-    return result!;
+    return result;
   };
 
   manager.getConditionsByGraph = async (activeOnly: boolean) => {
@@ -403,7 +403,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       ${filter}`;
 
     const result = await (
-      await manager._pseudonymsDb?.query<RawConditionResponse>(aql`
+      await manager._pseudonymsDb!.query<RawConditionResponse>(aql`
       LET gov_acct_cred = (
           FOR edge IN governed_as_creditor_account_by
           ${filterAql}
@@ -451,9 +451,9 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
           "governed_as_debtor_by": gov_debtor
       }
     `)
-    )?.batches.all();
+    ).batches.all();
 
-    return result!;
+    return result;
   };
 
   manager.getConditionsByAccount = async (accountId: string, SchemeProprietary: string, agtMemberId: string) => {

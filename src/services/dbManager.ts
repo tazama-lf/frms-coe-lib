@@ -74,19 +74,19 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
   const redis = config.redisConfig ? await redisBuilder(manager, config.redisConfig) : null;
 
   if (config.pseudonyms) {
-    await pseudonymsBuilder(manager, config.pseudonyms);
+    await pseudonymsBuilder(manager as PseudonymsDB, config.pseudonyms);
   }
 
   if (config.transactionHistory) {
-    await transactionHistoryBuilder(manager, config.transactionHistory, redis !== null);
+    await transactionHistoryBuilder(manager as TransactionHistoryDB, config.transactionHistory, redis !== null);
   }
 
   if (config.transaction) {
-    await transactionBuilder(manager, config.transaction, redis !== null);
+    await transactionBuilder(manager as TransactionDB, config.transaction, redis !== null);
   }
 
   if (config.configuration) {
-    await configurationBuilder(manager, config.configuration, config.localCacheConfig);
+    await configurationBuilder(manager as ConfigurationDB, config.configuration, config.localCacheConfig);
   }
 
   manager.isReadyCheck = () => readyChecks;
