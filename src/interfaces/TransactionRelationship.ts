@@ -4,6 +4,7 @@ export interface TransactionRelationship {
   from: string;
   to: string;
   TxTp: string;
+  TenantId: string;
   MsgId: string;
   CreDtTm: string;
   Amt?: string;

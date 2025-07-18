@@ -344,6 +344,7 @@ message FRMSMessage {
     // Report
     message Transaction {
         string TxTp = 1;
+        string TenantId = 6;
         Fitofipmtsts FIToFIPmtSts = 2;
         Fitoficstmrcdttrf FIToFICstmrCdtTrf = 3;
         Cstmrcdttrfinitn CstmrCdtTrfInitn = 4;
@@ -526,6 +527,7 @@ message FRMSMessage {
     Report report = 6;
     // Pacs002
     string TxTp = 7;
+    string TenantId = 16;
     Fitofipmtsts FIToFIPmtSts = 8;
     // Pacs008
     Fitoficstmrcdttrf FIToFICstmrCdtTrf = 9;

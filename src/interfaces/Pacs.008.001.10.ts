@@ -4,6 +4,7 @@ import { type DataCache } from './rule/DataCache';
 
 export interface Pacs008 {
   TxTp: string;
+  TenantId: string;
   FIToFICstmrCdtTrf: FIToFICstmrCdtTrf;
   _key?: string;
   DataCache?: DataCache;
