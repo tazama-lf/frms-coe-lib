@@ -58,7 +58,7 @@ export const validateDatabaseConfig = (authEnabled: boolean, database: Database)
       password,
       url: validateEnvVar(`${prefix}_URL`, 'string').toString(),
       user,
-      certPath: validateEnvVar(`${prefix}_CERT_PATH`, 'string').toString(),
+      certPath: validateEnvVar(`${prefix}_CERT_PATH`, 'string', true).toString(),
     },
   };
   return result;
