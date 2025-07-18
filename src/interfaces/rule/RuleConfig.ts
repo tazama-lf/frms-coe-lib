@@ -29,7 +29,7 @@ export interface Band extends OutcomeResult {
 }
 
 export interface Case extends OutcomeResult {
-  value: number;
+  value: string;
 }
 
 export interface Timeframe {
