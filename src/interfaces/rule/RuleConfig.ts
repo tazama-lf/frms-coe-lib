@@ -14,7 +14,7 @@ export interface Config {
   parameters?: Record<string | number, unknown>;
   exitConditions?: OutcomeResult[];
   bands?: Band[];
-  case?: Case[];
+  cases?: Case[];
   timeframes?: Timeframe[];
 }
 
