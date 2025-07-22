@@ -422,7 +422,7 @@ message FRMSMessage {
         string evaluationID = 1;
         Metadata metaData = 2;
         string status = 4;
-        Timestamp timestamp = 5;
+        string timestamp = 5;
         Tadpresult tadpResult = 6;
     }
     // Pacs008

@@ -2,10 +2,10 @@
 
 import { type DestinationStream, pino, type Logger } from 'pino';
 import { LumberjackGRPCService } from './lumberjackGRPCService';
-import { type LogLevel } from '../helpers/proto/lumberjack/LogLevel';
+import type { LogLevel } from '../helpers/proto/lumberjack/LogLevel';
 import { type LogCallback, createElasticStream } from '../helpers/logUtilities';
 import { validateLogConfig } from '../config/index';
-import { type ProcessorConfig } from '../config/processor.config';
+import type { ProcessorConfig } from '../config/processor.config';
 
 const config = validateLogConfig();
 
@@ -25,12 +25,12 @@ const pinoStream = (): DestinationStream | undefined => {
 
 const LOGLEVEL = config.logstashLevel.toLowerCase();
 
-
 type LogFunc = (message: string, serviceOperation?: string, id?: string, callback?: LogCallback) => void;
 type ErrorFunc = (message: string | Error, innerError?: unknown, serviceOperation?: string, id?: string, callback?: LogCallback) => void;
 
-const createErrorFn = (logger: Console | Logger<never>, grpcClient?: LumberjackGRPCService): ErrorFunc => {
-  return (message: string | Error, innerError?: unknown, serviceOperation?: string, id?: string, callback?: LogCallback): void => {
+const createErrorFn =
+  (logger: Console | Logger, grpcClient?: LumberjackGRPCService): ErrorFunc =>
+  (message: string | Error, innerError?: unknown, serviceOperation?: string, id?: string, callback?: LogCallback): void => {
     let errMessage = typeof message === 'string' ? message : (message.stack ?? message.message);
 
     if (innerError) {
@@ -45,9 +45,8 @@ const createErrorFn = (logger: Console | Logger<never>, grpcClient?: LumberjackG
       logger.error({ message: errMessage, serviceOperation, id });
     }
   };
-};
 
-const createLogCallback = (level: LogLevel, logger: Console | Logger<never>, grpcClient?: LumberjackGRPCService): LogFunc => {
+const createLogCallback = (level: LogLevel, logger: Console | Logger, grpcClient?: LumberjackGRPCService): LogFunc => {
   switch (level) {
     case 'trace':
       return (message: string, serviceOperation?: string, id?: string, callback?: LogCallback): void => {
@@ -103,7 +102,7 @@ export class LoggerService {
   warn: LogFunc = () => null;
   error: (message: string | Error, innerError?: unknown, serviceOperation?: string, id?: string, callback?: LogCallback) => void = () =>
     null;
-  logger: Console | Logger<never>;
+  logger: Console | Logger;
   /* for enabling logging through the sidecar */
 
   lumberjackService: LumberjackGRPCService | undefined = undefined;

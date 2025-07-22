@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { aql, Database } from 'arangojs';
-import { type AqlQuery } from 'arangojs/aql';
-import * as fs from 'fs';
+import type { AqlQuery } from 'arangojs/aql';
+import * as fs from 'node:fs';
 import { formatError } from '../helpers/formatter';
 import { isDatabaseReady } from '../helpers/readyCheck';
 import { AccountType, type NetworkMap, type Pacs002, type Pacs008, type Pain001, type Pain013 } from '../interfaces';

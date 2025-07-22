@@ -25,15 +25,9 @@ export class Apm {
     }
   }
 
-  startTransaction = (name: string, options?: TransactionOptions): apm.Transaction | null => {
-    return this.#transaction(name, options);
-  };
+  startTransaction = (name: string, options?: TransactionOptions): apm.Transaction | null => this.#transaction(name, options);
 
-  startSpan = (name: string): apm.Span | null => {
-    return this.#span(name);
-  };
+  startSpan = (name: string): apm.Span | null => this.#span(name);
 
-  getCurrentTraceparent = (): string | null => {
-    return this.#traceParent();
-  };
+  getCurrentTraceparent = (): string | null => this.#traceParent();
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { type Pacs008 } from '../../interfaces';
+import type { Pacs008 } from '../../interfaces';
 
 export const Pacs008Sample: Pacs008 = {
   TxTp: 'pacs.008.001.10',

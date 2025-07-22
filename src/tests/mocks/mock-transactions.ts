@@ -30,26 +30,20 @@ export const CacheDatabaseClientMocks = (cacheDatabaseClient: any): any => {
 export const DatabaseManagerMocks = (databaseManager: any, cacheString?: any): void => {
   // Arango Database Transaction History Mocks
   if (databaseManager.isReadyCheck()?.transactionHistory === 'Ok') {
-    jest.spyOn(databaseManager, 'getTransactionPain001').mockImplementation(async () => {
-      return await Promise.resolve([[Pain001Sample]]);
-    });
+    jest.spyOn(databaseManager, 'getTransactionPain001').mockImplementation(async () => await Promise.resolve([[Pain001Sample]]));
 
-    jest.spyOn(databaseManager, 'getTransactionPacs008').mockImplementation(async (pseudonym: any) => {
-      return await Promise.resolve([[Pacs008Sample]]);
-    });
+    jest
+      .spyOn(databaseManager, 'getTransactionPacs008')
+      .mockImplementation(async (pseudonym: any) => await Promise.resolve([[Pacs008Sample]]));
   }
 
   // Arango Database Network Map Mocks
   if (databaseManager.isReadyCheck()?.networkMap === 'Ok') {
-    jest.spyOn(databaseManager, 'getNetworkMap').mockImplementation(async () => {
-      return await Promise.resolve(NetworkMapSample);
-    });
+    jest.spyOn(databaseManager, 'getNetworkMap').mockImplementation(async () => await Promise.resolve(NetworkMapSample));
   }
 
   if (databaseManager.isReadyCheck()?.configuration === 'Ok') {
-    jest.spyOn(databaseManager, 'getNetworkMap').mockImplementation(async () => {
-      return await Promise.resolve(NetworkMapSample);
-    });
+    jest.spyOn(databaseManager, 'getNetworkMap').mockImplementation(async () => await Promise.resolve(NetworkMapSample));
   }
 
   // Redis Mocks

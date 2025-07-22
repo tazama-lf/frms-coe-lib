@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { type DataCache } from '../../interfaces';
+import type { DataCache } from '../../interfaces';
 
 export const DataCacheSample: DataCache = {
   dbtrId: 'dbtr_11f7c7310fb84649b9fe52672d3e2047',
