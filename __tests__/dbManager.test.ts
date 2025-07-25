@@ -300,7 +300,6 @@ describe('CreateDatabaseManager', () => {
 
     expect(dbManager.queryPseudonymDB).toBeDefined();
     expect(dbManager.getPseudonyms).toBeDefined();
-    expect(dbManager.addAccount).toBeDefined();
     expect(dbManager.saveTransactionRelationship).toBeDefined();
     expect(dbManager.getPacs008Edge).toBeDefined();
     expect(dbManager.getPacs008Edges).toBeDefined();
@@ -333,52 +332,51 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.updateExpiryDateOfAccountEdges).toBeDefined();
     expect(dbManager.updateExpiryDateOfEntityEdges).toBeDefined();
 
-    expect(await dbManager.queryPseudonymDB('testCollection', 'testFilter')).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.queryPseudonymDB('testCollection', 'testFilter', 10)).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.queryPseudonymDB('testCollection', 'tenantId', 'testFilter')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.queryPseudonymDB('testCollection', 'tenantId', 'testFilter', 10)).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getPseudonyms('test')).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.addAccount('test')).toEqual('MOCK-SAVE');
     expect(await dbManager.saveTransactionRelationship(mockTR)).toEqual('MOCK-SAVE');
-    expect(await dbManager.getPacs008Edge(['test'])).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getPacs008Edges('test', 'test', 1000)).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getPacs002Edge(['test'])).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getDebtorPacs002Edges('test')).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getSuccessfulPacs002Edges(['test'], 'test', ['test'])).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getDebtorPacs008Edges('test', 'test')).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getCreditorPacs008Edges('test')).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getPreviousPacs008Edges('test')).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getPreviousPacs008Edges('test', 2, ['to-test-1', 'to-test-2'])).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getCreditorPacs002Edges('test', 50)).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getIncomingPacs002Edges('test')).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getIncomingPacs002Edges('test', 50)).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getOutgoingPacs002Edges('test')).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getOutgoingPacs002Edges('test', 50)).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.saveAccount('test')).toEqual('MOCK-SAVE');
-    expect(await dbManager.saveAccountHolder('test', 'testID', 'testTime')).toEqual('MOCK-SAVE');
-    expect(await dbManager.saveEntity('test', 'testTime')).toEqual('MOCK-SAVE');
+    expect(await dbManager.getPacs008Edge(['test'], 'tenantId')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getPacs008Edges('test', 'tenantId', 'test', 1000)).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getPacs002Edge(['test'], 'tenantId')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getDebtorPacs002Edges('test', 'tenantId')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getSuccessfulPacs002Edges(['test'], 'test', ['test'], 'tenantId')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getDebtorPacs008Edges('test', 'tenantId', 'test')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getCreditorPacs008Edges('test', 'tenantId')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getPreviousPacs008Edges('test', 'tenantId')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getPreviousPacs008Edges('test', 'tenantId', 2, ['to-test-1', 'to-test-2'])).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getCreditorPacs002Edges('test', 'tenantId', 50)).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getIncomingPacs002Edges('test', 'tenantId')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getIncomingPacs002Edges('test', 'tenantId', 50)).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getOutgoingPacs002Edges('test', 'tenantId')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getOutgoingPacs002Edges('test', 'tenantId', 50)).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.saveAccount('test', 'tenantId')).toEqual('MOCK-SAVE');
+    expect(await dbManager.saveAccountHolder('test', 'testID', 'testTime', 'tenantId')).toEqual('MOCK-SAVE');
+    expect(await dbManager.saveEntity('test', 'tenantId', 'testTime')).toEqual('MOCK-SAVE');
     expect(await dbManager.saveCondition({} as EntityCondition)).toEqual('MOCK-SAVE');
     expect(await dbManager.saveGovernedAsCreditorByEdge('test1', 'test2', {} as ConditionEdge)).toEqual('MOCK-SAVE');
     expect(await dbManager.saveGovernedAsDebtorByEdge('test1', 'test2', {} as ConditionEdge)).toEqual('MOCK-SAVE');
     expect(await dbManager.saveGovernedAsCreditorAccountByEdge('test1', 'test2', {} as ConditionEdge)).toEqual('MOCK-SAVE');
     expect(await dbManager.saveGovernedAsDebtorAccountByEdge('test1', 'test2', {} as ConditionEdge)).toEqual('MOCK-SAVE');
-    expect(await dbManager.getConditionsByEntity('test1', 'test2')).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getEntityConditionsByGraph('test1', 'test2')).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getEntityConditionsByGraph('test1', 'test2', true)).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getConditionsByGraph(true)).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getConditions(true)).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getAccountConditionsByGraph('test1', 'test2', 'ntty')).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getAccountConditionsByGraph('test1', 'test2', 'ntty', true)).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getEntity('test1', 'test2')).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getAccount('test1', 'test2', 'test3')).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getConditionsByAccount('test1', 'test2', 'test3')).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.updateExpiryDateOfAccountEdges('_testkey1', '_testkey2', '2024-09-05T21:00:00.999Z')).toEqual([
+    expect(await dbManager.getConditionsByEntity('test1', 'test2', 'tenantId')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getEntityConditionsByGraph('test1', 'test2', 'tenantId')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getEntityConditionsByGraph('test1', 'test2', 'tenantId', true)).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getConditionsByGraph(true, 'tenantId')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getConditions(true, 'tenantId')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getAccountConditionsByGraph('test1', 'test2', 'tenantId', 'ntty')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getAccountConditionsByGraph('test1', 'test2', 'tenantId', 'ntty', true)).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getEntity('test1', 'test2', 'tenantId')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getAccount('test1', 'test2', 'test3', 'tenantId')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getConditionsByAccount('test1', 'test2', 'tenantId', 'test3')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.updateExpiryDateOfAccountEdges('_testkey1', '_testkey2', '2024-09-05T21:00:00.999Z', 'tenantId')).toEqual([
       'MOCK-UPDATE',
       'MOCK-UPDATE',
     ]);
-    expect(await dbManager.updateExpiryDateOfEntityEdges('_testkey1', '_testkey2', '2024-09-05T21:00:00.999Z')).toEqual([
+    expect(await dbManager.updateExpiryDateOfEntityEdges('_testkey1', '_testkey2', '2024-09-05T21:00:00.999Z', 'tenantId')).toEqual([
       'MOCK-UPDATE',
       'MOCK-UPDATE',
     ]);
-    expect(await dbManager.updateCondition('_testkey1', '2024-09-05T21:00:00.999Z')).toEqual('MOCK-UPDATE');
+    expect(await dbManager.updateCondition('_testkey1', '2024-09-05T21:00:00.999Z', 'tenantId')).toEqual('MOCK-UPDATE');
   });
 
   it('should create a manager with redis methods', async () => {
@@ -433,7 +431,6 @@ describe('CreateDatabaseManager', () => {
     // pseudonyms
     expect(dbManager.queryPseudonymDB).toBeDefined();
     expect(dbManager.getPseudonyms).toBeDefined();
-    expect(dbManager.addAccount).toBeDefined();
     expect(dbManager.saveTransactionRelationship).toBeDefined();
     expect(dbManager.getPacs008Edge).toBeDefined();
     expect(dbManager.getPacs008Edges).toBeDefined();
@@ -631,7 +628,6 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.getRuleConfig).toBeDefined();
 
     // pseudonyms
-    expect(dbManager.addAccount).toBeDefined();
     expect(dbManager.getPseudonyms).toBeDefined();
     expect(dbManager.saveTransactionRelationship).toBeDefined();
 

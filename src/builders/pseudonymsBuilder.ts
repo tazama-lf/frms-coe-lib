@@ -10,6 +10,7 @@ import { type AccountCondition, type ConditionEdge, type EntityCondition, type T
 import { dbPseudonyms } from '../interfaces/ArangoCollections';
 import { type RawConditionResponse } from '../interfaces/event-flow/EntityConditionEdge';
 import { readyChecks, type DatabaseManagerType, type DBConfig } from '../services/dbManager';
+import { type DocumentMetadata } from 'arangojs/documents';
 
 export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig: DBConfig): Promise<void> {
   manager._pseudonymsDb = new Database({
@@ -27,14 +28,15 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     readyChecks.PseudonymsDB = `err, ${formatError(err)}`;
   }
 
-  manager.queryPseudonymDB = async (collection: string, filter: string, limit?: number) => {
+  manager.queryPseudonymDB = async (collection: string, filter: string, tenantId: string, limit?: number) => {
     const db = manager._pseudonymsDb?.collection(collection);
     const aqlFilter = aql`${filter}`;
+    const aqlTenantId = aql`${tenantId}`;
     const aqlLimit = limit ? aql`LIMIT ${limit}` : undefined;
 
     const query: AqlQuery = aql`
       FOR doc IN ${db}
-      FILTER ${aqlFilter}
+      FILTER ${aqlFilter} && doc.TenantId == ${aqlTenantId}
       ${aqlLimit}
       RETURN doc
     `;
@@ -54,18 +56,13 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
-  manager.addAccount = async (hash: string) => {
-    const data = { _key: hash };
-
-    return await manager._pseudonymsDb?.collection(dbPseudonyms.accounts).save(data, { overwriteMode: 'ignore' });
-  };
-
   manager.saveTransactionRelationship = async (tR: TransactionRelationship) => {
     const data = {
       _key: tR.MsgId,
       _from: tR.from,
       _to: tR.to,
       TxTp: tR.TxTp,
+      TenantId: tR.TenantId,
       TxSts: tR.TxSts,
       CreDtTm: tR.CreDtTm,
       Amt: tR.Amt,
@@ -78,22 +75,26 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     return await manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship).save(data, { overwriteMode: 'ignore' });
   };
 
-  manager.getPacs008Edge = async (endToEndIds: string[]) => {
+  manager.getPacs008Edge = async (endToEndIds: string[], tenantId: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship);
+    const aqltenantId = aql`${tenantId}`;
 
     const query = aql`
       FOR doc IN ${db}
-      FILTER doc.EndToEndId IN ${endToEndIds} && doc.TxTp == 'pacs.008.001.10'
+      FILTER doc.EndToEndId IN ${endToEndIds} && doc.TxTp == 'pacs.008.001.10' && doc.TenantId == ${aqltenantId}
       RETURN doc
     `;
 
     return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
-  manager.getPacs008Edges = async (accountId: string, threshold?: string, amount?: number) => {
+  manager.getPacs008Edges = async (accountId: string, tenantId: string, threshold?: string, amount?: number) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship);
     const account = `accounts/${accountId}`;
-    const filters: GeneratedAqlQuery[] = [aql`FILTER doc.TxTp == 'pacs.008.001.10' && doc._to == ${account}`];
+    const aqltenantId = aql`${tenantId}`;
+    const filters: GeneratedAqlQuery[] = [
+      aql`FILTER doc.TxTp == 'pacs.008.001.10' && doc._to == ${account} && doc.TenantId == ${aqltenantId}`,
+    ];
 
     if (threshold !== undefined) filters.push(aql`FILTER doc.CreDtTm < ${threshold}`);
     if (amount !== undefined) filters.push(aql`FILTER doc.Amt == ${amount}`);
@@ -107,44 +108,47 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
-  manager.getPacs002Edge = async (endToEndIds: string[]) => {
+  manager.getPacs002Edge = async (endToEndIds: string[], tenantId: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship);
+    const aqltenantId = aql`${tenantId}`;
 
     const query = aql`
       FOR doc IN ${db}
-      FILTER doc.EndToEndId IN ${endToEndIds} && doc.TxTp == 'pacs.002.001.12'
+      FILTER doc.EndToEndId IN ${endToEndIds} && doc.TxTp == 'pacs.002.001.12' && doc.TenantId == ${aqltenantId}
       RETURN doc
     `;
 
     return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
-  manager.getDebtorPacs002Edges = async (debtorId: string): Promise<unknown> => {
+  manager.getDebtorPacs002Edges = async (debtorId: string, tenantId: string): Promise<unknown> => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship);
     const debtorAccount = `accounts/${debtorId}`;
     const debtorAccountAql = aql`${debtorAccount}`;
+    const aqltenantId = aql`${tenantId}`;
 
     const query = aql`
       FOR doc IN ${db}
       FILTER doc._from == ${debtorAccountAql}
-      FILTER doc.TxTp == 'pacs.002.001.12' && doc.TxSts == 'ACCC'
+      FILTER doc.TxTp == 'pacs.002.001.12' && doc.TxSts == 'ACCC' && doc.TenantId == ${aqltenantId}
       RETURN doc
     `;
 
     return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
-  manager.getIncomingPacs002Edges = async (accountId: string, limit?: number): Promise<unknown> => {
+  manager.getIncomingPacs002Edges = async (accountId: string, tenantId: string, limit?: number): Promise<unknown> => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship);
     const account = `accounts/${accountId}`;
     const accountAql = aql`${account}`;
+    const aqltenantId = aql`${tenantId}`;
 
     const aqlLimit = limit ? aql`LIMIT ${limit}` : undefined;
 
     const query = aql`
       FOR doc IN ${db}
       FILTER doc._to == ${accountAql}
-      FILTER doc.TxTp == 'pacs.002.001.12' && doc.TxSts == 'ACCC'
+      FILTER doc.TxTp == 'pacs.002.001.12' && doc.TxSts == 'ACCC' && doc.TenantId == ${aqltenantId}
       ${aqlLimit}
       RETURN doc
     `;
@@ -152,17 +156,18 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
-  manager.getOutgoingPacs002Edges = async (accountId: string, limit?: number): Promise<unknown> => {
+  manager.getOutgoingPacs002Edges = async (accountId: string, tenantId: string, limit?: number): Promise<unknown> => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship);
     const account = `accounts/${accountId}`;
     const accountAql = aql`${account}`;
+    const aqltenantId = aql`${tenantId}`;
 
     const aqlLimit = limit ? aql`LIMIT ${limit}` : undefined;
 
     const query = aql`
       FOR doc IN ${db}
       FILTER doc._from == ${accountAql}
-      FILTER doc.TxTp == 'pacs.002.001.12' && doc.TxSts == 'ACCC'
+      FILTER doc.TxTp == 'pacs.002.001.12' && doc.TxSts == 'ACCC' && doc.TenantId == ${aqltenantId}
       ${aqlLimit}
       RETURN doc
     `;
@@ -170,16 +175,23 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
-  manager.getSuccessfulPacs002Edges = async (creditorId: string[], debtorId: string, endToEndId: string[]): Promise<unknown> => {
+  manager.getSuccessfulPacs002Edges = async (
+    creditorId: string[],
+    debtorId: string,
+    endToEndId: string[],
+    tenantId: string,
+  ): Promise<unknown> => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship);
     const debtorAccount = `accounts/${debtorId}`;
     const debtorAccountAql = aql`${debtorAccount}`;
+    const aqltenantId = aql`${tenantId}`;
 
     const query = aql`
       FOR doc IN ${db}
       FILTER doc._to IN ${creditorId}
       FILTER doc._from == ${debtorAccountAql}
       FILTER doc.TxTp == 'pacs.002.001.12'
+      FILTER doc.TenantId == ${aqltenantId}
       FILTER doc.EndToEndId IN ${endToEndId}
       FILTER doc.TxSts == 'ACCC'
       SORT   doc.CreDtTm DESC
@@ -190,15 +202,17 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
-  manager.getDebtorPacs008Edges = async (debtorId: string, endToEndId = '') => {
+  manager.getDebtorPacs008Edges = async (debtorId: string, tenantId: string, endToEndId = '') => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship);
     const debtorAccount = `accounts/${debtorId}`;
     const debtorAccountAql = aql`${debtorAccount}`;
+    const aqltenantId = aql`${tenantId}`;
 
     const query = aql`
       FOR doc IN ${db}
       FILTER doc._from == ${debtorAccountAql}
       FILTER doc.TxTp == 'pacs.008.001.10'
+      FILTER doc.TenantId == ${aqltenantId}
       SORT   doc.CreDtTm DESC
       LIMIT 2
       RETURN doc
@@ -207,15 +221,17 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
-  manager.getCreditorPacs008Edges = async (creditorId: string) => {
+  manager.getCreditorPacs008Edges = async (creditorId: string, tenantId: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship);
     const creditorAccount = `accounts/${creditorId}`;
     const creditorAccountAql = aql`${creditorAccount}`;
+    const aqltenantId = aql`${tenantId}`;
 
     const query = aql`
       FOR doc IN ${db}
       FILTER doc._to == ${creditorAccountAql}
       FILTER doc.TxTp == 'pacs.008.001.10'
+      FILTER doc.TenantId == ${aqltenantId}
       SORT   doc.CreDtTm DESC
       LIMIT 2
       RETURN doc
@@ -224,11 +240,13 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
-  manager.getPreviousPacs008Edges = async (accountId: string, limit?: number, to?: string[]) => {
+  manager.getPreviousPacs008Edges = async (accountId: string, tenantId: string, limit?: number, to?: string[]) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship);
+    const aqltenantId = aql`${tenantId}`;
 
     const filters: GeneratedAqlQuery[] = [];
     filters.push(aql`FILTER doc.TxTp == 'pacs.008.001.10'`);
+    filters.push(aql`FILTER doc.TenantId == ${aqltenantId}`);
     if (to !== undefined) filters.push(aql`FILTER doc._to IN ${to}`);
 
     const aqlLimit = limit ? aql`${limit}` : aql`3`;
@@ -247,8 +265,9 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
-  manager.getCreditorPacs002Edges = async (creditorId: string, threshold: number) => {
+  manager.getCreditorPacs002Edges = async (creditorId: string, tenantId: string, threshold: number) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.transactionRelationship);
+    const aqltenantId = aql`${tenantId}`;
     const date: string = new Date(new Date().getTime() - threshold).toISOString();
 
     const creditorAccount = `accounts/${creditorId}`;
@@ -257,55 +276,77 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     const query = aql`
       FOR doc IN ${db}
       FILTER doc._from == '${creditorAccountAql}' && doc.TxTp == 'pacs.002.001.12' && doc.TxSts == 'ACCC' && doc.CreDtTm >= ${date}
+      FILTER doc.TenantId == ${aqltenantId}
         RETURN doc
     `;
 
     return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
-  manager.saveAccount = async (key: string) => {
+  manager.saveAccount = async (key: string, tenantId: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.accounts);
-    return await db?.save({ _key: key }, { overwriteMode: 'ignore' });
+    const data = {
+      _key: key,
+      TenantId: tenantId,
+    };
+    return await db?.save(data, { overwriteMode: 'ignore' });
   };
 
-  manager.saveEntity = async (entityId: string, CreDtTm: string) => {
+  manager.saveEntity = async (entityId: string, tenantId: string, CreDtTm: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.entities);
-    return await db?.save({ _key: entityId, Id: entityId, CreDtTm }, { overwriteMode: 'ignore' });
+    const data = {
+      _key: entityId,
+      Id: entityId,
+      TenantId: tenantId,
+      CreDtTm,
+    };
+    return await db?.save(data, { overwriteMode: 'ignore' });
   };
 
-  manager.saveAccountHolder = async (entityId: string, accountId: string, CreDtTm: string) => {
+  manager.saveAccountHolder = async (entityId: string, accountId: string, CreDtTm: string, tenantId: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.account_holder);
     const _key = `${accountId}${entityId}`;
     const _from = `entities/${entityId}`;
     const _to = `accounts/${accountId}`;
+    const data = {
+      _key,
+      _from,
+      _to,
+      CreDtTm,
+      TenantId: tenantId,
+    };
 
-    return await db?.save({ _key, _from, _to, CreDtTm }, { overwriteMode: 'ignore' });
+    return await db?.save(data, { overwriteMode: 'ignore' });
   };
 
-  manager.getConditionsByEntity = async (entityId: string, SchemeProprietary: string) => {
+  manager.getConditionsByEntity = async (entityId: string, SchemeProprietary: string, tenantId: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.conditions);
     const date: string = new Date().toISOString();
     const nttyPrtry = SchemeProprietary;
     const nttyId = entityId;
     const nttyPrtryAql = aql`AND doc.ntty.schmeNm.prtry == ${nttyPrtry}`;
     const nttyIdAql = aql`FILTER doc.ntty.id == ${nttyId}`;
+    const aqltenantId = aql`${tenantId}`;
 
     const query = aql`FOR doc IN ${db}
     ${nttyIdAql}
     ${nttyPrtryAql}
     AND (doc.xprtnDtTm > ${date}
     OR doc.xprtnDtTm == null)
+    FILTER doc.TenantId == ${aqltenantId}
     RETURN doc`;
 
     return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
-  manager.getEntityConditionsByGraph = async (id: string, proprietary: string, retrieveAll?: boolean) => {
+  manager.getEntityConditionsByGraph = async (id: string, proprietary: string, tenantId: string, retrieveAll?: boolean) => {
     const nowDateTime = new Date().toISOString();
+    const aqltenantId = aql`${tenantId}`;
     const filterAql = aql`
       LET fromVertex = DOCUMENT(edge._from)
       LET toVertex = DOCUMENT(edge._to)
       FILTER toVertex.ntty.id == ${id}
+      FILTER toVertex.tenantId == ${aqltenantId}
       ${!retrieveAll ? aql`AND toVertex.incptnDtTm < ${nowDateTime}` : aql``}
       ${!retrieveAll ? aql`AND (toVertex.xprtnDtTm > ${nowDateTime} OR toVertex.xprtnDtTm == null)` : aql``}
       AND toVertex.ntty.schmeNm.prtry == ${proprietary}
@@ -344,13 +385,15 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     return result;
   };
 
-  manager.getAccountConditionsByGraph = async (id: string, proprietary: string, agt: string, retrieveAll?: boolean) => {
+  manager.getAccountConditionsByGraph = async (id: string, proprietary: string, tenantId: string, agt: string, retrieveAll?: boolean) => {
     const nowDateTime = new Date().toISOString();
+    const aqltenantId = aql`${tenantId}`;
 
     const filterAql = aql`
       LET fromVertex = DOCUMENT(edge._from)
       LET toVertex = DOCUMENT(edge._to)
       FILTER toVertex.acct.id == ${id}
+      FILTER toVertex.tenantId == ${aqltenantId}
       ${!retrieveAll ? aql`AND toVertex.incptnDtTm < ${nowDateTime}` : aql``}
       ${!retrieveAll ? aql`AND (toVertex.xprtnDtTm > ${nowDateTime} OR toVertex.xprtnDtTm == null)` : aql``}
       AND toVertex.acct.schmeNm.prtry == ${proprietary}
@@ -390,11 +433,12 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     return result;
   };
 
-  manager.getConditionsByGraph = async (activeOnly: boolean) => {
+  manager.getConditionsByGraph = async (activeOnly: boolean, tenantId: string) => {
     const date: string = new Date().toISOString();
+
     let filter;
     if (activeOnly) {
-      filter = `FILTER edge.xprtnDtTm < ${date}`;
+      filter = `FILTER edge.xprtnDtTm < ${date} && edge.tenantId == ${tenantId}`;
     }
 
     const filterAql = aql`
@@ -456,11 +500,12 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     return result;
   };
 
-  manager.getConditionsByAccount = async (accountId: string, SchemeProprietary: string, agtMemberId: string) => {
+  manager.getConditionsByAccount = async (accountId: string, SchemeProprietary: string, tenantId: string, agtMemberId: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.conditions);
     const date: string = new Date().toISOString();
     const acctPrtry = SchemeProprietary;
     const acctId = accountId;
+    const aqltenantId = aql`FILTER doc.tenantId == ${tenantId}`;
     const conditionAgtMemberId = agtMemberId;
     const acctIdAql = aql`FILTER doc.acct.id == ${acctId}`;
     const acctPrtryAql = aql`AND doc.acct.schmeNm.prtry == ${acctPrtry}`;
@@ -469,6 +514,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     ${acctIdAql}
     ${acctPrtryAql}
     ${agtMemberIdAql}
+    ${aqltenantId}
     AND (doc.xprtnDtTm > ${date}
     OR doc.xprtnDtTm == null)
     RETURN doc`;
@@ -476,13 +522,13 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
-  manager.getConditions = async (activeOnly: boolean) => {
+  manager.getConditions = async (activeOnly: boolean, tenantId: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.conditions);
     const date: string = new Date().toISOString();
 
     let filter;
     if (activeOnly) {
-      filter = `FILTER doc.xprtnDtTm < ${date}`;
+      filter = `FILTER doc.xprtnDtTm < ${date} && doc.tenantId == ${tenantId}`;
     }
 
     const query = aql`FOR doc IN ${db}
@@ -492,10 +538,11 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
-  manager.getEntity = async (entityId: string, SchemeProprietary: string) => {
+  manager.getEntity = async (entityId: string, SchemeProprietary: string, tenantId: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.entities);
     const entityIdentity = `${entityId}${SchemeProprietary}`;
-    const entityIdAql = aql`FILTER doc._key == ${entityIdentity}`;
+    const aqltenantId = aql`${tenantId}`;
+    const entityIdAql = aql`FILTER doc._key == ${entityIdentity} && doc.TenantId == ${aqltenantId}`;
 
     const query = aql`FOR doc IN ${db}
       ${entityIdAql}
@@ -504,10 +551,11 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     return await (await manager._pseudonymsDb?.query(query))?.batches.all();
   };
 
-  manager.getAccount = async (accountId: string, SchemeProprietary: string, agtMemberId: string) => {
+  manager.getAccount = async (accountId: string, SchemeProprietary: string, agtMemberId: string, tenantId: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.accounts);
     const accountIdentity = `${accountId}${SchemeProprietary}${agtMemberId}`;
-    const accountIdAql = aql`FILTER doc._key == ${accountIdentity}`;
+    const aqltenantId = aql`${tenantId}`;
+    const accountIdAql = aql`FILTER doc._key == ${accountIdentity} && doc.TenantId == ${aqltenantId}`;
 
     const query = aql`FOR doc IN ${db}
       ${accountIdAql}
@@ -528,7 +576,14 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     const _to = conditionId;
 
     return await db?.save(
-      { _from, _to, evtTp: conditionEdge.evtTp, incptnDtTm: conditionEdge.incptnDtTm, xprtnDtTm: conditionEdge?.xprtnDtTm },
+      {
+        _from,
+        _to,
+        evtTp: conditionEdge.evtTp,
+        incptnDtTm: conditionEdge.incptnDtTm,
+        xprtnDtTm: conditionEdge?.xprtnDtTm,
+        tenantId: conditionEdge.tenantId,
+      },
       { overwriteMode: 'ignore' },
     );
   };
@@ -539,7 +594,14 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     const _to = conditionId;
 
     return await db?.save(
-      { _from, _to, evtTp: conditionEdge.evtTp, incptnDtTm: conditionEdge.incptnDtTm, xprtnDtTm: conditionEdge?.xprtnDtTm },
+      {
+        _from,
+        _to,
+        evtTp: conditionEdge.evtTp,
+        incptnDtTm: conditionEdge.incptnDtTm,
+        xprtnDtTm: conditionEdge?.xprtnDtTm,
+        tenantId: conditionEdge.tenantId,
+      },
       { overwriteMode: 'ignore' },
     );
   };
@@ -550,7 +612,14 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     const _to = conditionId;
 
     return await db?.save(
-      { _from, _to, evtTp: conditionEdge.evtTp, incptnDtTm: conditionEdge.incptnDtTm, xprtnDtTm: conditionEdge?.xprtnDtTm },
+      {
+        _from,
+        _to,
+        evtTp: conditionEdge.evtTp,
+        incptnDtTm: conditionEdge.incptnDtTm,
+        xprtnDtTm: conditionEdge?.xprtnDtTm,
+        tenantId: conditionEdge.tenantId,
+      },
       { overwriteMode: 'ignore' },
     );
   };
@@ -561,43 +630,93 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     const _to = conditionId;
 
     return await db?.save(
-      { _from, _to, evtTp: conditionEdge.evtTp, incptnDtTm: conditionEdge.incptnDtTm, xprtnDtTm: conditionEdge?.xprtnDtTm },
+      {
+        _from,
+        _to,
+        evtTp: conditionEdge.evtTp,
+        incptnDtTm: conditionEdge.incptnDtTm,
+        xprtnDtTm: conditionEdge?.xprtnDtTm,
+        tenantId: conditionEdge.tenantId,
+      },
       { overwriteMode: 'ignore' },
     );
   };
 
-  manager.updateExpiryDateOfAccountEdges = async (edgeCreditorByKey: string, edgeDebtorByKey: string, expireDateTime: string) => {
-    return await Promise.all([
-      edgeDebtorByKey
-        ? manager._pseudonymsDb
-            ?.collection(dbPseudonyms.governed_as_debtor_account_by)
-            ?.update(edgeDebtorByKey, { xprtnDtTm: expireDateTime }, { returnNew: true })
-        : undefined,
-      edgeCreditorByKey
-        ? manager._pseudonymsDb
-            ?.collection(dbPseudonyms.governed_as_creditor_account_by)
-            ?.update(edgeCreditorByKey, { xprtnDtTm: expireDateTime }, { returnNew: true })
-        : undefined,
-    ]);
+  manager.updateExpiryDateOfAccountEdges = async (
+    edgeCreditorByKey: string,
+    edgeDebtorByKey: string,
+    expireDateTime: string,
+    tenantId: string,
+  ) => {
+    const updateDebtorEdge = async (): Promise<DocumentMetadata | undefined> => {
+      if (!edgeDebtorByKey) return undefined;
+
+      const debtorCollection = manager._pseudonymsDb?.collection(dbPseudonyms.governed_as_debtor_account_by);
+      const debtorRecord = await debtorCollection?.document(edgeDebtorByKey);
+
+      if (!debtorRecord || debtorRecord.tenantId !== tenantId) {
+        throw new Error(`Unauthorized: Cannot update debtor edge ${edgeDebtorByKey}. Tenant mismatch or record not found.`);
+      }
+
+      return await debtorCollection?.update(edgeDebtorByKey, { xprtnDtTm: expireDateTime }, { returnNew: true });
+    };
+
+    const updateCreditorEdge = async (): Promise<DocumentMetadata | undefined> => {
+      if (!edgeCreditorByKey) return undefined;
+
+      const creditorCollection = manager._pseudonymsDb?.collection(dbPseudonyms.governed_as_creditor_account_by);
+      const creditorRecord = await creditorCollection?.document(edgeCreditorByKey);
+
+      if (!creditorRecord || creditorRecord.tenantId !== tenantId) {
+        throw new Error(`Unauthorized: Cannot update creditor edge ${edgeCreditorByKey}. Tenant mismatch or record not found.`);
+      }
+
+      return await creditorCollection?.update(edgeCreditorByKey, { xprtnDtTm: expireDateTime }, { returnNew: true });
+    };
+
+    return await Promise.all([updateDebtorEdge(), updateCreditorEdge()]);
   };
 
-  manager.updateExpiryDateOfEntityEdges = async (edgeCreditorByKey: string, edgeDebtorByKey: string, expireDateTime: string) => {
-    return await Promise.all([
-      edgeDebtorByKey
-        ? manager._pseudonymsDb
-            ?.collection(dbPseudonyms.governed_as_debtor_by)
-            ?.update(edgeDebtorByKey, { xprtnDtTm: expireDateTime }, { returnNew: true })
-        : undefined,
-      edgeCreditorByKey
-        ? manager._pseudonymsDb
-            ?.collection(dbPseudonyms.governed_as_creditor_by)
-            ?.update(edgeCreditorByKey, { xprtnDtTm: expireDateTime }, { returnNew: true })
-        : undefined,
-    ]);
+  manager.updateExpiryDateOfEntityEdges = async (
+    edgeCreditorByKey: string,
+    edgeDebtorByKey: string,
+    expireDateTime: string,
+    tenantId: string,
+  ) => {
+    const updateDebtorEdge = async (): Promise<DocumentMetadata | undefined> => {
+      if (!edgeDebtorByKey) return undefined;
+
+      const debtorCollection = manager._pseudonymsDb?.collection(dbPseudonyms.governed_as_debtor_by);
+      const debtorRecord = await debtorCollection?.document(edgeDebtorByKey);
+
+      if (!debtorRecord || debtorRecord.tenantId !== tenantId) {
+        throw new Error(`Unauthorized: Cannot update debtor edge ${edgeDebtorByKey}. Tenant mismatch or record not found.`);
+      }
+
+      return await debtorCollection?.update(edgeDebtorByKey, { xprtnDtTm: expireDateTime }, { returnNew: true });
+    };
+    const updateCreditorEdge = async (): Promise<DocumentMetadata | undefined> => {
+      if (!edgeCreditorByKey) return undefined;
+
+      const creditorCollection = manager._pseudonymsDb?.collection(dbPseudonyms.governed_as_creditor_by);
+      const creditorRecord = await creditorCollection?.document(edgeCreditorByKey);
+
+      if (!creditorRecord || creditorRecord.tenantId !== tenantId) {
+        throw new Error(`Unauthorized: Cannot update creditor edge ${edgeCreditorByKey}. Tenant mismatch or record not found.`);
+      }
+
+      return await creditorCollection?.update(edgeCreditorByKey, { xprtnDtTm: expireDateTime }, { returnNew: true });
+    };
+    return await Promise.all([updateDebtorEdge(), updateCreditorEdge()]);
   };
 
-  manager.updateCondition = async (conditionId: string, expireDateTime: string) => {
+  manager.updateCondition = async (conditionId: string, expireDateTime: string, tenantId: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.conditions);
+    const condition = await db?.document(conditionId);
+
+    if (!condition || condition.tenantId !== tenantId) {
+      throw new Error(`Unauthorized: Cannot update condition ${conditionId}. Tenant mismatch or record not found.`);
+    }
 
     return await db?.update(conditionId, { xprtnDtTm: expireDateTime }, { returnNew: true });
   };

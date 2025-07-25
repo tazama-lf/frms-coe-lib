@@ -9,6 +9,7 @@ export interface PseudonymsDB {
 
   /**
    * @param collection Collection name against which this query will be run
+   * @param tenantId Tenant ID to filter the collection by
    * @param filter String that will put next to the FILTER keyword to run against Arango
    *
    * ```
@@ -21,7 +22,7 @@ export interface PseudonymsDB {
    * Note, use "doc." in your query string, as we make use of "doc" as the query and return name.
    * @memberof PseudonymsDB
    */
-  queryPseudonymDB: (collection: string, filter: string, limit?: number) => Promise<unknown>;
+  queryPseudonymDB: (collection: string, tenantId: string, filter: string, limit?: number) => Promise<unknown>;
 
   /**
    * @param hash Hash String used to identify the pseudonym we are looking up
@@ -38,15 +39,6 @@ export interface PseudonymsDB {
   getPseudonyms: (hash: string) => Promise<unknown>;
 
   /**
-   * @deprecated use saveAccount instead
-   * @param hash Hash string used to identify the pseudonym we are storing
-   *
-   * This is a insert query to the accounts collection with overwrite mode set to `ignore`
-   * @memberof PseudonymsDB
-   */
-  addAccount: (hash: string) => Promise<unknown>;
-
-  /**
    * @param {TransactionRelationship} tR TransactionRelationship Object
    *
    * This is a insert query to the transactionRelationship collection with overwrite mode set to `ignore`
@@ -56,20 +48,23 @@ export interface PseudonymsDB {
 
   /**
    * @param endToEndIds An Array of endToEndIds Strings to find their related pacs.008 edge set
+   * @param tenantId Tenant ID to filter the collection by
    *
    * ```
    * const query = aql`
    * FOR doc IN ${collection}
    * FILTER doc.EndToEndId IN ${endToEndIds}
    * FILTER doc.TxTp == 'pacs.008.001.10'
+   * FILTER doc.TenantId == ${aqltenantId}
    * RETURN doc`
    * ```
    * @memberof PseudonymsDB
    */
-  getPacs008Edge: (endToEndIds: string[]) => Promise<unknown>;
+  getPacs008Edge: (endToEndIds: string[], tenantId: string) => Promise<unknown>;
 
   /**
    * @param accountId The accountId String to filter on the _to field
+   * @param tenantId The tenantId String to filter on the TenantId field
    * @param threshold The time String Threshold to return transactions newer that date threshold
    * @param amount The amount Number to filter on the Amt field
    *
@@ -78,6 +73,7 @@ export interface PseudonymsDB {
    * FOR doc IN ${collection}
    * FILTER doc._to == accounts/${accountId}
    * FILTER doc.TxTp == 'pacs.008.001.10'
+   * FILTER doc.TenantId == ${tenantId}
    * *FILTER doc.CreDtTm < ${threshold}
    * *FILTER doc.Amt == ${amount}
    * RETURN doc`
@@ -85,40 +81,45 @@ export interface PseudonymsDB {
    * \* Indicates filter is only applied when parameter is passed in
    * @memberof PseudonymsDB
    */
-  getPacs008Edges: (accountId: string, threshold?: string, amount?: number) => Promise<unknown>;
+  getPacs008Edges: (accountId: string, tenantId: string, threshold?: string, amount?: number) => Promise<unknown>;
 
   /**
    * @param endToEndIds An Array of endToEndIds Strings to find their related pacs.002 edge set
+   * @param tenantId The tenantId String to filter on the TenantId field
    *
    * ```
    * const query = aql`
    * FOR doc IN ${collection}
    * FILTER doc.EndToEndId IN ${endToEndIds}
    * FILTER doc.TxTp == 'pacs.002.001.12'
+   * FILTER doc.TenantId == ${aqltenantId}
    * RETURN doc`
    * ```
    * @memberof PseudonymsDB
    */
-  getPacs002Edge: (endToEndIds: string[]) => Promise<unknown>;
+  getPacs002Edge: (endToEndIds: string[], tenantId: string) => Promise<unknown>;
 
   /**
    * @param debtorId A debtorId String to filter on the _from field
+   * @param tenantId The tenantId String to filter on the TenantId field
    *
    * ```
    * const query = aql`
    * FOR doc IN ${collection}
    * FILTER doc._from == accounts/${debtorId}
    * FILTER doc.TxTp == 'pacs.002.001.12'
+   * FILTER doc.TenantId == ${aqltenantId}
    * FILTER doc.TxSts == 'ACCC'
    * RETURN doc`
    * ```
    * Returns only successful transactions as denoted by 'ACCC'
    * @memberof PseudonymsDB
    */
-  getDebtorPacs002Edges: (debtorId: string) => Promise<unknown>;
+  getDebtorPacs002Edges: (debtorId: string, tenantId: string) => Promise<unknown>;
 
   /**
    * @param accountId A accountId String to filter on the _to field
+   * @param tenantId The tenantId String to filter on the TenantId field
    * @param limit A limit Number to optionally limit results
    *
    * ```
@@ -126,6 +127,7 @@ export interface PseudonymsDB {
    * FOR doc IN ${collection}
    * FILTER doc._to == accounts/${accountId}
    * FILTER doc.TxTp == 'pacs.002.001.12'
+   * FILTER doc.TenantId == ${aqltenantId}
    * FILTER doc.TxSts == 'ACCC'
    * *LIMIT ${limit}
    * RETURN doc`
@@ -134,10 +136,11 @@ export interface PseudonymsDB {
    * \* Indicates filter is only applied when parameter is passed in
    * @memberof PseudonymsDB
    */
-  getIncomingPacs002Edges: (accountId: string, limit?: number) => Promise<unknown>;
+  getIncomingPacs002Edges: (accountId: string, tenantId: string, limit?: number) => Promise<unknown>;
 
   /**
    * @param accountId A accountId String to filter on the _from field
+   * @param tenantId The tenantId String to filter on the TenantId field
    * @param limit A limit Number to optionally limit results
    *
    * ```
@@ -145,6 +148,7 @@ export interface PseudonymsDB {
    * FOR doc IN ${collection}
    * FILTER doc._from == accounts/${accountId}
    * FILTER doc.TxTp == 'pacs.002.001.12'
+   * FILTER doc.TenantId == ${aqltenantId}
    * FILTER doc.TxSts == 'ACCC'
    * *LIMIT ${limit}
    * RETURN doc`
@@ -153,12 +157,13 @@ export interface PseudonymsDB {
    * \* Indicates filter is only applied when parameter is passed in
    * @memberof PseudonymsDB
    */
-  getOutgoingPacs002Edges: (accountId: string, limit?: number) => Promise<unknown>;
+  getOutgoingPacs002Edges: (accountId: string, tenantId: string, limit?: number) => Promise<unknown>;
 
   /**
    * @param creditorId A creditorId Array of String to filter on the _to field
    * @param debtorId A debtorId String to filter on the _from field
    * @param endToEndId A endToEndId Array of String to filter on the EndToEndId field
+   * @param tenantId The tenantId String to filter on the TenantId field
    *
    * ```
    * const query = aql`
@@ -166,6 +171,7 @@ export interface PseudonymsDB {
    * FILTER doc._to IN ${creditorId}
    * FILTER doc._from == accounts/${debtorId}
    * FILTER doc.TxTp == 'pacs.002.001.12'
+   * FILTER doc.TenantId == ${aqltenantId}
    * FILTER doc.EndToEndId IN ${endToEndId}
    * FILTER doc.TxSts == 'ACCC'
    * SORT doc.CreDtTm DESC
@@ -175,10 +181,11 @@ export interface PseudonymsDB {
    *
    * @memberof PseudonymsDB
    */
-  getSuccessfulPacs002Edges: (creditorId: string[], debtorId: string, endToEndId: string[]) => Promise<unknown>;
+  getSuccessfulPacs002Edges: (creditorId: string[], debtorId: string, endToEndId: string[], tenantId: string) => Promise<unknown>;
 
   /**
    * @param debtorId A debtorId String to filter on the _from field
+   * @param tenantId The tenantId String to filter on the TenantId field
    * @param @deprecated endToEndId no longer filters
    *
    * ```
@@ -193,26 +200,29 @@ export interface PseudonymsDB {
    *
    * @memberof PseudonymsDB
    */
-  getDebtorPacs008Edges: (debtorId: string, endToEndId: string) => Promise<unknown>;
+  getDebtorPacs008Edges: (debtorId: string, tenantId: string, endToEndId: string) => Promise<unknown>;
 
   /**
    * @param creditorId A creditorId String to filter on the _to field
+   * @param tenantId The tenantId String to filter on the TenantId field
    *
    * ```
    * const query = aql`
    * FOR doc IN ${collection}
    * FILTER doc._to == accounts/${creditorId}
    * FILTER doc.TxTp == 'pacs.008.001.10'
+   * FILTER doc.TenantId == ${aqltenantId}
    * SORT doc.CreDtTm DESC
    * LIMIT 2
    * RETURN doc`
    * ```
    * @memberof PseudonymsDB
    */
-  getCreditorPacs008Edges: (creditorId: string) => Promise<unknown>;
+  getCreditorPacs008Edges: (creditorId: string, tenantId: string) => Promise<unknown>;
 
   /**
    * @param debtorId A debtorId String to filter on the _from field
+   * @param tenantId The tenantId String to filter on the TenantId field
    * @param limit A limit Number to optionally limit results
    * @param to A to Array of String to filter on the _to field
    *
@@ -220,6 +230,7 @@ export interface PseudonymsDB {
    * const query = aql`
    * FOR doc IN ${collection}
    * FILTER doc._from == accounts/${accountId}
+   * FILTER doc.TenantId == ${aqltenantId}
    * *FILTER doc._to IN ${to}
    * SORT doc.CreDtTm DESC
    * LIMIT ${aqlLimit} (default 3)
@@ -229,10 +240,11 @@ export interface PseudonymsDB {
    * \* Indicates filter is only applied when parameter is passed in
    * @memberof PseudonymsDB
    */
-  getPreviousPacs008Edges: (debtorId: string, limit?: number, to?: string[]) => Promise<unknown>;
+  getPreviousPacs008Edges: (debtorId: string, tenantId: string, limit?: number, to?: string[]) => Promise<unknown>;
 
   /**
    * @param creditorId A creditorId String to filter on the _from field
+   * @param tenantId The tenantId String to filter on the TenantId field
    * @param threshold A threshold Number (in seconds) used to determine how far back to filter
    *
    * ```
@@ -240,37 +252,41 @@ export interface PseudonymsDB {
    * FOR doc IN ${collection}
    * FILTER doc._from == accounts/${creditorId}
    * FILTER doc.TxTp == 'pacs.002.001.12'
+   * FILTER doc.TenantId == ${aqltenantId}
    * FILTER doc.TxSts == 'ACCC'
    * FILTER doc.CreDtTm >= ${now - threshold}
    * RETURN doc`
    * ```
    * @memberof PseudonymsDB
    */
-  getCreditorPacs002Edges: (creditorId: string, threshold: number) => Promise<unknown>;
+  getCreditorPacs002Edges: (creditorId: string, tenantId: string, threshold: number) => Promise<unknown>;
 
   /**
    * @param key string account identifier we are storing
+   * @param tenantId string tenant identifier
    *
    * @memberof PseudonymsDB
    */
-  saveAccount: (key: string) => Promise<unknown>;
+  saveAccount: (key: string, tenantId: string) => Promise<unknown>;
 
   /**
    * @param entityId string entity identifier we are storing
+   * @param tenantId string tenant identifier
    * @param CreDtTm string timestamp
    *
    * @memberof PseudonymsDB
    */
-  saveEntity: (entityId: string, CreDtTm: string) => Promise<unknown>;
+  saveEntity: (entityId: string, tenantId: string, CreDtTm: string) => Promise<unknown>;
 
   /**
    * @param entityId string entity identifier we are storing
    * @param accountId string account identifier we are storing
    * @param CreDtTm string timestamp
+   * @param tenantId string tenant identifier
    *
    * @memberof PseudonymsDB
    */
-  saveAccountHolder: (entityId: string, accountId: string, CreDtTm: string) => Promise<unknown>;
+  saveAccountHolder: (entityId: string, accountId: string, CreDtTm: string, tenantId: string) => Promise<unknown>;
 
   /**
    * @param condition condition object we are storing of `EntityCondition` or `AccountCondition` type
@@ -317,14 +333,16 @@ export interface PseudonymsDB {
   /**
    * @param entityId string of identifier for entity being retrieved
    * @param SchemeProprietary string of scheme proprietary of the entity being retrieved
+   * @param tenantId The tenantId string to filter on TenantId field
    *
    * @memberof PseudonymsDB
    */
-  getConditionsByEntity: (entityId: string, SchemeProprietary: string) => Promise<unknown>;
+  getConditionsByEntity: (entityId: string, SchemeProprietary: string, tenantId: string) => Promise<unknown>;
 
   /**
    * @param entityId string of identifier for entity being retrieved
    * @param schemeProprietary string of scheme proprietary of the entity being retrieved
+   * @param tenantId The tenantId string to filter on TenantId field
    * @param retrieveAll (Optional) boolean to retrieve all conditions or only active ones
    *
    * @memberof PseudonymsDB
@@ -332,12 +350,14 @@ export interface PseudonymsDB {
   getEntityConditionsByGraph: (
     entityId: string,
     schemeProprietary: string,
+    tenantId: string,
     retrieveAll?: boolean,
   ) => Promise<RawConditionResponse[][] | unknown>;
 
   /**
    * @param entityId string of identifier for entity being retrieved
    * @param schemeProprietary string of scheme proprietary of the entity being retrieved
+   * @param tenantId The tenantId string to filter on TenantId field
    * @param agt agt name
    * @param retrieveAll (Optional) boolean to retrieve all conditions or only active ones
    *
@@ -346,66 +366,84 @@ export interface PseudonymsDB {
   getAccountConditionsByGraph: (
     entityId: string,
     schemeProprietary: string,
+    tenantId: string,
     agt: string,
     retrieveAll?: boolean,
   ) => Promise<RawConditionResponse[][] | unknown>;
 
   /**
    * @param activeOnly Only active conditions
+   * @param tenantId The tenantId string to filter on TenantId field
    *
    * @memberof PseudonymsDB
    */
-  getConditionsByGraph: (activeOnly: boolean) => Promise<RawConditionResponse[][] | unknown>;
+  getConditionsByGraph: (activeOnly: boolean, tenantId: string) => Promise<RawConditionResponse[][] | unknown>;
 
   /**
    * @param activeOnly Only active conditions
+   * @param tenantId The tenantId string to filter on TenantId field
    *
    * @memberof PseudonymsDB
    */
-  getConditions: (activeOnly: boolean) => Promise<unknown>;
+  getConditions: (activeOnly: boolean, tenantId: string) => Promise<unknown>;
 
   /**
    * @param entityId string of identifier for entity being retrieved
    * @param SchemeProprietary string of scheme proprietary of the entity being retrieved
+   * @param tenantId The tenantId string to filter on TenantId field
    *
    * @memberof PseudonymsDB
    */
-  getEntity: (entityId: string, SchemeProprietary: string) => Promise<unknown>;
+  getEntity: (entityId: string, SchemeProprietary: string, tenantId: string) => Promise<unknown>;
 
   /**
    * @param accountId string of identifier for account being retrieved
    * @param SchemeProprietary string of scheme proprietary of the account being retrieved
+   * @param tenantId The tenantId string to filter on TenantId field
    *
    * @memberof PseudonymsDB
    */
-  getAccount: (accountId: string, SchemeProprietary: string, agtMemberId: string) => Promise<unknown>;
+  getAccount: (accountId: string, SchemeProprietary: string, agtMemberId: string, tenantId: string) => Promise<unknown>;
 
   /**
    * @param accountId string of identifier for account being retrieved
    * @param SchemeProprietary string of scheme proprietary of the account being retrieved
+   * @param tenantId string of tenant identifier to filter on TenantId field
    * @param MemberId string of financial institution member id of the account being retrieved
    *
    * @memberof PseudonymsDB
    */
-  getConditionsByAccount: (accountId: string, SchemeProprietary: string, MemberId: string) => Promise<unknown>;
+  getConditionsByAccount: (accountId: string, SchemeProprietary: string, tenantId: string, MemberId: string) => Promise<unknown>;
 
   /**
    * @param edgeCreditorByKey string _key of identifier for creditor by edge
    * @param edgeDebtorByKey string _key of identifier for debtor by edge
    * @param expireDateTime new date to use for expire timedate in edges
+   * @param tenantId string tenant identifier for authorization
    *
    * @memberof PseudonymsDB
    */
-  updateExpiryDateOfAccountEdges: (edgeCreditorByKey: string, edgeDebtorByKey: string, expireDateTime: string) => Promise<unknown>;
+  updateExpiryDateOfAccountEdges: (
+    edgeCreditorByKey: string,
+    edgeDebtorByKey: string,
+    expireDateTime: string,
+    tenantId: string,
+  ) => Promise<unknown>;
 
   /**
    * @param edgeCreditorByKey string _key of identifier for creditor by edge
    * @param edgeDebtorByKey string _key of identifier for debtor by edge
    * @param expireDateTime new date to use for expire timedate in edges
+   * @param tenantId string tenant identifier for authorization
    *
    * @memberof PseudonymsDB
    */
-  updateExpiryDateOfEntityEdges: (edgeCreditorByKey: string, edgeDebtorByKey: string, expireDateTime: string) => Promise<unknown>;
+  updateExpiryDateOfEntityEdges: (
+    edgeCreditorByKey: string,
+    edgeDebtorByKey: string,
+    expireDateTime: string,
+    tenantId: string,
+  ) => Promise<unknown>;
 
   /**
    * @param conditionId string _key of identifier for condition being updated
@@ -413,5 +451,5 @@ export interface PseudonymsDB {
    *
    * @memberof PseudonymsDB
    */
-  updateCondition: (conditionId: string, expireDateTime: string) => Promise<unknown>;
+  updateCondition: (conditionId: string, expireDateTime: string, tenantId: string) => Promise<unknown>;
 }

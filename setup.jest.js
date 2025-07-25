@@ -15,6 +15,9 @@ class MockDatabase {
       update: () => {
         return 'MOCK-UPDATE';
       },
+      document: () => {
+        return { tenantId: 'tenantId' };
+      },
     };
   }
 

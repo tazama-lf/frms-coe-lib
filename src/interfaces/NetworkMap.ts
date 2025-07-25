@@ -36,5 +36,6 @@ export class Message {
 export class NetworkMap {
   active = false;
   cfg = '';
+  tenantId = 'DEFAULT';
   messages: Message[] = [];
 }

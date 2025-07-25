@@ -21,6 +21,7 @@ export interface Edge extends EntityMetaData {
   _from: string;
   _to: string;
   evtTp: string[];
+  tenantId: string;
   incptnDtTm: string;
   xprtnDtTm: string;
 }
@@ -28,14 +29,16 @@ export interface Edge extends EntityMetaData {
 export interface Entity extends EntityMetaData {
   Id: string;
   CreDtTm: string;
+  TenantId: string;
 }
 
 export interface Account extends EntityMetaData {
-  // no extra fields sent in with accounts
+  TenantId: string;
 }
 
 export interface Condition extends EntityMetaData {
   evtTp: string[];
+  tenantId: string;
   condTp: string;
   prsptv: string;
   incptnDtTm: string;
