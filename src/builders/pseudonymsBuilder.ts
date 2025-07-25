@@ -2,15 +2,14 @@
 
 import { aql, Database } from 'arangojs';
 import { join, type AqlQuery, type GeneratedAqlQuery } from 'arangojs/aql';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import { v4 } from 'uuid';
 import { formatError } from '../helpers/formatter';
 import { isDatabaseReady } from '../helpers/readyCheck';
-import { type AccountCondition, type ConditionEdge, type EntityCondition, type TransactionRelationship } from '../interfaces';
+import type { AccountCondition, ConditionEdge, EntityCondition, TransactionRelationship } from '../interfaces';
 import { dbPseudonyms } from '../interfaces/ArangoCollections';
-import { type RawConditionResponse } from '../interfaces/event-flow/EntityConditionEdge';
+import type { RawConditionResponse } from '../interfaces/event-flow/EntityConditionEdge';
 import { readyChecks, type DatabaseManagerType, type DBConfig } from '../services/dbManager';
-import { type DocumentMetadata } from 'arangojs/documents';
 
 export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig: DBConfig): Promise<void> {
   manager._pseudonymsDb = new Database({
@@ -354,7 +353,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       ${!retrieveAll ? aql`AND (edge.xprtnDtTm > ${nowDateTime} OR edge.xprtnDtTm == null)` : aql``}`;
 
     const result = await (
-      await manager._pseudonymsDb?.query<RawConditionResponse>(aql`
+      await manager._pseudonymsDb!.query<RawConditionResponse>(aql`
       LET gov_cred = (
           FOR edge IN governed_as_creditor_by
           ${filterAql}
@@ -380,7 +379,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
           "governed_as_debtor_by": gov_debtor
       }
     `)
-    )?.batches.all();
+    ).batches.all();
 
     return result;
   };
@@ -402,7 +401,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       ${!retrieveAll ? aql`AND (edge.xprtnDtTm > ${nowDateTime} OR edge.xprtnDtTm == null)` : aql``}`;
 
     const result = await (
-      await manager._pseudonymsDb?.query<RawConditionResponse>(aql`
+      await manager._pseudonymsDb!.query<RawConditionResponse>(aql`
       LET gov_cred = (
           FOR edge IN governed_as_creditor_account_by
           ${filterAql}
@@ -428,7 +427,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
           "governed_as_debtor_account_by": gov_debtor
       }
     `)
-    )?.batches.all();
+    ).batches.all();
 
     return result;
   };
@@ -447,7 +446,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       ${filter}`;
 
     const result = await (
-      await manager._pseudonymsDb?.query<RawConditionResponse>(aql`
+      await manager._pseudonymsDb!.query<RawConditionResponse>(aql`
       LET gov_acct_cred = (
           FOR edge IN governed_as_creditor_account_by
           ${filterAql}
@@ -495,7 +494,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
           "governed_as_debtor_by": gov_debtor
       }
     `)
-    )?.batches.all();
+    ).batches.all();
 
     return result;
   };
@@ -648,11 +647,11 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     expireDateTime: string,
     tenantId: string,
   ) => {
-    const updateDebtorEdge = async (): Promise<DocumentMetadata | undefined> => {
+    const updateDebtorEdge = async (): Promise<unknown> => {
       if (!edgeDebtorByKey) return undefined;
 
       const debtorCollection = manager._pseudonymsDb?.collection(dbPseudonyms.governed_as_debtor_account_by);
-      const debtorRecord = await debtorCollection?.document(edgeDebtorByKey);
+      const debtorRecord = (await debtorCollection?.document(edgeDebtorByKey)) as { tenantId: string } | undefined;
 
       if (!debtorRecord || debtorRecord.tenantId !== tenantId) {
         throw new Error(`Unauthorized: Cannot update debtor edge ${edgeDebtorByKey}. Tenant mismatch or record not found.`);
@@ -661,11 +660,11 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
       return await debtorCollection?.update(edgeDebtorByKey, { xprtnDtTm: expireDateTime }, { returnNew: true });
     };
 
-    const updateCreditorEdge = async (): Promise<DocumentMetadata | undefined> => {
+    const updateCreditorEdge = async (): Promise<unknown> => {
       if (!edgeCreditorByKey) return undefined;
 
       const creditorCollection = manager._pseudonymsDb?.collection(dbPseudonyms.governed_as_creditor_account_by);
-      const creditorRecord = await creditorCollection?.document(edgeCreditorByKey);
+      const creditorRecord = (await creditorCollection?.document(edgeCreditorByKey)) as { tenantId: string } | undefined;
 
       if (!creditorRecord || creditorRecord.tenantId !== tenantId) {
         throw new Error(`Unauthorized: Cannot update creditor edge ${edgeCreditorByKey}. Tenant mismatch or record not found.`);
@@ -683,11 +682,11 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     expireDateTime: string,
     tenantId: string,
   ) => {
-    const updateDebtorEdge = async (): Promise<DocumentMetadata | undefined> => {
+    const updateDebtorEdge = async (): Promise<unknown> => {
       if (!edgeDebtorByKey) return undefined;
 
       const debtorCollection = manager._pseudonymsDb?.collection(dbPseudonyms.governed_as_debtor_by);
-      const debtorRecord = await debtorCollection?.document(edgeDebtorByKey);
+      const debtorRecord = (await debtorCollection?.document(edgeDebtorByKey)) as { tenantId: string } | undefined;
 
       if (!debtorRecord || debtorRecord.tenantId !== tenantId) {
         throw new Error(`Unauthorized: Cannot update debtor edge ${edgeDebtorByKey}. Tenant mismatch or record not found.`);
@@ -695,11 +694,11 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
 
       return await debtorCollection?.update(edgeDebtorByKey, { xprtnDtTm: expireDateTime }, { returnNew: true });
     };
-    const updateCreditorEdge = async (): Promise<DocumentMetadata | undefined> => {
+    const updateCreditorEdge = async (): Promise<unknown> => {
       if (!edgeCreditorByKey) return undefined;
 
       const creditorCollection = manager._pseudonymsDb?.collection(dbPseudonyms.governed_as_creditor_by);
-      const creditorRecord = await creditorCollection?.document(edgeCreditorByKey);
+      const creditorRecord = (await creditorCollection?.document(edgeCreditorByKey)) as { tenantId: string } | undefined;
 
       if (!creditorRecord || creditorRecord.tenantId !== tenantId) {
         throw new Error(`Unauthorized: Cannot update creditor edge ${edgeCreditorByKey}. Tenant mismatch or record not found.`);
@@ -712,7 +711,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
 
   manager.updateCondition = async (conditionId: string, expireDateTime: string, tenantId: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.conditions);
-    const condition = await db?.document(conditionId);
+    const condition = (await db?.document(conditionId)) as { tenantId: string } | undefined;
 
     if (!condition || condition.tenantId !== tenantId) {
       throw new Error(`Unauthorized: Cannot update condition ${conditionId}. Tenant mismatch or record not found.`);

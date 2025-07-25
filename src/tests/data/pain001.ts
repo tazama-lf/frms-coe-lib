@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { type Pain001 } from '../../interfaces';
+import type { Pain001 } from '../../interfaces';
 
 export const Pain001Sample: Pain001 = {
   TxTp: 'pain.001.001.11',

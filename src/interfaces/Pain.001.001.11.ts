@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { type DataCache } from './rule/DataCache';
+import type { DataCache } from './rule/DataCache';
 
 export interface Pain001 {
   TxTp: string;

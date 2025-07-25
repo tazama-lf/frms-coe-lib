@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export const formatError = (error: Error, additionalInfo?: Record<string, any>): string => {
+export const formatError = (error: Error, additionalInfo?: Record<string, unknown>): string => {
   const { name, message, stack } = error;
   const timestamp = new Date().toISOString();
 

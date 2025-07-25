@@ -1,5 +1,5 @@
 import { validateEnvVar } from '.';
-import { type ManagerConfig } from '../services/dbManager';
+import type { ManagerConfig } from '../services/dbManager';
 
 export enum Cache {
   /** Distributed cache system. */
@@ -20,16 +20,21 @@ export enum Cache {
  * const redisConfig = validateRedisConfig(true);
  */
 export const validateRedisConfig = (authEnabled: boolean): ManagerConfig => {
-  const password = validateEnvVar<string>('REDIS_AUTH', 'string', !authEnabled);
+  const password = validateEnvVar('REDIS_AUTH', 'string', !authEnabled).toString();
 
   return {
     redisConfig: {
-      db: validateEnvVar('REDIS_DATABASE', 'string'),
+      db: Number(validateEnvVar('REDIS_DATABASE', 'number')),
       password,
-      servers: JSON.parse(validateEnvVar('REDIS_SERVERS', 'string')),
-      isCluster: validateEnvVar('REDIS_IS_CLUSTER', 'boolean'),
-      distributedCacheEnabled: validateEnvVar('DISTRIBUTED_CACHE_ENABLED', 'boolean', true),
-      distributedCacheTTL: validateEnvVar('DISTRIBUTED_CACHETTL', 'number', true),
+      servers: JSON.parse(validateEnvVar('REDIS_SERVERS', 'string').toString()) as [
+        {
+          host: string;
+          port: number;
+        },
+      ],
+      isCluster: Boolean(validateEnvVar('REDIS_IS_CLUSTER', 'boolean')),
+      distributedCacheEnabled: Boolean(validateEnvVar('DISTRIBUTED_CACHE_ENABLED', 'boolean', true)),
+      distributedCacheTTL: Number(validateEnvVar('DISTRIBUTED_CACHETTL', 'number', true)),
     },
   };
 };

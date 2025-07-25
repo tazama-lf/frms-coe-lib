@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { type NetworkMap, type Pacs002 } from '..';
-import { type TypologyResult } from './TypologyResult';
+import type { NetworkMap, Pacs002 } from '..';
+import type { TypologyResult } from './TypologyResult';
 
 export class TADPRequest {
   typologyResult: TypologyResult;

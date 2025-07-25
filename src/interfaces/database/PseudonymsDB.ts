@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { type Database } from 'arangojs';
-import { type AccountCondition, type ConditionEdge, type EntityCondition, type TransactionRelationship } from '..';
-import { type RawConditionResponse } from '../event-flow/EntityConditionEdge';
+import type { Database } from 'arangojs';
+import type { AccountCondition, ConditionEdge, EntityCondition, TransactionRelationship } from '..';
+import type { RawConditionResponse } from '../event-flow/EntityConditionEdge';
 
 export interface PseudonymsDB {
   _pseudonymsDb: Database;
@@ -352,7 +352,7 @@ export interface PseudonymsDB {
     schemeProprietary: string,
     tenantId: string,
     retrieveAll?: boolean,
-  ) => Promise<RawConditionResponse[][] | unknown>;
+  ) => Promise<RawConditionResponse[][]>;
 
   /**
    * @param entityId string of identifier for entity being retrieved
@@ -369,7 +369,7 @@ export interface PseudonymsDB {
     tenantId: string,
     agt: string,
     retrieveAll?: boolean,
-  ) => Promise<RawConditionResponse[][] | unknown>;
+  ) => Promise<RawConditionResponse[][]>;
 
   /**
    * @param activeOnly Only active conditions
@@ -377,7 +377,7 @@ export interface PseudonymsDB {
    *
    * @memberof PseudonymsDB
    */
-  getConditionsByGraph: (activeOnly: boolean, tenantId: string) => Promise<RawConditionResponse[][] | unknown>;
+  getConditionsByGraph: (activeOnly: boolean, tenantId: string) => Promise<RawConditionResponse[][]>;
 
   /**
    * @param activeOnly Only active conditions

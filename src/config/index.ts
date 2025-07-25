@@ -6,11 +6,10 @@ import { validateRedisConfig } from './redis.config';
 /**
  * Validates and retrieves the specified environment variable.
  *
- * @template T - The expected type of the environment variable.
  * @param {string} name - The name of the environment variable to validate.
  * @param {'string' | 'number' | 'boolean'} type - The expected type of the environment variable.
  * @param {boolean} optional - Is this variable optional (Defaults to false)
- * @returns {T} - The value of the environment variable, cast to the specified type.
+ * @returns {'string' | 'number' | 'boolean'} - The value of the environment variable, cast to the specified type.
  * @throws {Error} - Throws an error if the environment variable is not defined, or if the value cannot be converted to the specified type.
  *
  * @example
@@ -18,10 +17,14 @@ import { validateRedisConfig } from './redis.config';
  * const env = validateEnvVar<string>('NODE_ENV', 'string');
  * const apiKey = validateEnvVar<string>('API_KEY', 'string', true);
  */
-export function validateEnvVar<T>(name: string, type: 'string' | 'number' | 'boolean', optional: boolean = false): T {
-  const value = process.env[name];
+export function validateEnvVar(name: string, type: 'string' | 'number' | 'boolean', optional = false): string | number | boolean {
+  const value = process.env[name] ?? '';
 
-  if (value === undefined && !optional) {
+  if (value === '' && optional) {
+    return '';
+  }
+
+  if (value === '') {
     throw new Error(`Environment variable ${name} is not defined.`);
   }
 
@@ -30,29 +33,22 @@ export function validateEnvVar<T>(name: string, type: 'string' | 'number' | 'boo
   }
 
   let numValue;
-
   switch (type) {
     case 'string':
-      return value as T;
+      return value;
     case 'number':
       numValue = Number(value);
-      if (isNaN(numValue) && !optional) {
+      if (isNaN(numValue)) {
         throw new Error(`Environment variable ${name} is not a valid number.`);
       }
-      return numValue as T;
+      return numValue;
     case 'boolean':
-      if (value === undefined) return undefined as T; // Handle optional
       if (value.toLowerCase() === 'true') {
-        return true as T;
+        return true;
       } else if (value.toLowerCase() === 'false') {
-        return false as T;
+        return false;
       }
-      if (!optional) {
-        throw new Error(`Environment variable ${name} is not a valid boolean.`);
-      }
-      return undefined as T;
-    default:
-      throw new Error('Unsupported type');
+      throw new Error(`Environment variable ${name} is not a valid boolean.`);
   }
 }
 

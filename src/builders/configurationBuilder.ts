@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { aql, Database } from 'arangojs';
-import { type AqlQuery } from 'arangojs/aql';
-import * as fs from 'fs';
+import type { AqlQuery } from 'arangojs/aql';
+import * as fs from 'node:fs';
 import NodeCache from 'node-cache';
 import { formatError } from '../helpers/formatter';
 import { isDatabaseReady } from '../helpers/readyCheck';
-import { type Typology } from '../interfaces';
+import type { Typology } from '../interfaces';
 import { dbConfiguration } from '../interfaces/ArangoCollections';
 import { type LocalCacheConfig, readyChecks, type DatabaseManagerType, type DBConfig } from '../services/dbManager';
 
@@ -70,7 +70,7 @@ export async function configurationBuilder(
     `;
 
     const toReturn = await (await manager._configuration?.query(query))?.batches.all();
-    if (cacheConfig?.localCacheEnabled && toReturn && toReturn[0] && toReturn[0].length === 1) {
+    if (cacheConfig?.localCacheEnabled && toReturn?.[0] && toReturn[0].length === 1) {
       manager.nodeCache?.set(cacheKey, toReturn, cacheConfig?.localCacheTTL ?? 3000);
     }
     return toReturn;
@@ -92,7 +92,7 @@ export async function configurationBuilder(
     `;
 
     const toReturn = await (await manager._configuration?.query(query))?.batches.all();
-    if (cacheConfig?.localCacheEnabled && toReturn && toReturn[0] && toReturn[0].length === 1) {
+    if (cacheConfig?.localCacheEnabled && toReturn?.[0] && toReturn[0].length === 1) {
       manager.nodeCache?.set(cacheKey, toReturn, cacheConfig?.localCacheTTL ?? 3000);
     }
     return toReturn;
@@ -112,7 +112,7 @@ export async function configurationBuilder(
     `;
 
     const toReturn = await (await manager._configuration?.query(query))?.batches.all();
-    if (cacheConfig?.localCacheEnabled && toReturn && toReturn[0] && toReturn[0].length === 1) {
+    if (cacheConfig?.localCacheEnabled && toReturn?.[0] && toReturn[0].length === 1) {
       manager.nodeCache?.set(cacheKey, toReturn, cacheConfig?.localCacheTTL ?? 3000);
     }
     return toReturn;
