@@ -10,7 +10,6 @@ import type { AccountCondition, ConditionEdge, EntityCondition, TransactionRelat
 import { dbPseudonyms } from '../interfaces/ArangoCollections';
 import type { RawConditionResponse } from '../interfaces/event-flow/EntityConditionEdge';
 import { readyChecks, type DatabaseManagerType, type DBConfig } from '../services/dbManager';
-import { updateEdgeExpiry } from '../helpers/updateEdgeExpiry';
 
 export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonymsConfig: DBConfig): Promise<void> {
   manager._pseudonymsDb = new Database({
@@ -647,22 +646,68 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     edgeDebtorByKey: string,
     expireDateTime: string,
     tenantId: string,
-  ) =>
-    await Promise.all([
-      updateEdgeExpiry(manager, dbPseudonyms.governed_as_debtor_account_by, edgeDebtorByKey, expireDateTime, tenantId),
-      updateEdgeExpiry(manager, dbPseudonyms.governed_as_creditor_account_by, edgeCreditorByKey, expireDateTime, tenantId),
-    ]);
+  ) => {
+    const updateDebtorEdge = async (): Promise<unknown> => {
+      if (!edgeDebtorByKey) return undefined;
+
+      const debtorCollection = manager._pseudonymsDb?.collection(dbPseudonyms.governed_as_debtor_account_by);
+      const debtorRecord = (await debtorCollection?.document(edgeDebtorByKey)) as { tenantId: string } | undefined;
+
+      if (!debtorRecord || debtorRecord.tenantId !== tenantId) {
+        throw new Error(`Unauthorized: Cannot update debtor edge ${edgeDebtorByKey}. Tenant mismatch or record not found.`);
+      }
+
+      return await debtorCollection?.update(edgeDebtorByKey, { xprtnDtTm: expireDateTime }, { returnNew: true });
+    };
+
+    const updateCreditorEdge = async (): Promise<unknown> => {
+      if (!edgeCreditorByKey) return undefined;
+
+      const creditorCollection = manager._pseudonymsDb?.collection(dbPseudonyms.governed_as_creditor_account_by);
+      const creditorRecord = (await creditorCollection?.document(edgeCreditorByKey)) as { tenantId: string } | undefined;
+
+      if (!creditorRecord || creditorRecord.tenantId !== tenantId) {
+        throw new Error(`Unauthorized: Cannot update creditor edge ${edgeCreditorByKey}. Tenant mismatch or record not found.`);
+      }
+
+      return await creditorCollection?.update(edgeCreditorByKey, { xprtnDtTm: expireDateTime }, { returnNew: true });
+    };
+
+    return await Promise.all([updateDebtorEdge(), updateCreditorEdge()]);
+  };
 
   manager.updateExpiryDateOfEntityEdges = async (
     edgeCreditorByKey: string,
     edgeDebtorByKey: string,
     expireDateTime: string,
     tenantId: string,
-  ) =>
-    await Promise.all([
-      updateEdgeExpiry(manager, dbPseudonyms.governed_as_debtor_by, edgeDebtorByKey, expireDateTime, tenantId),
-      updateEdgeExpiry(manager, dbPseudonyms.governed_as_creditor_by, edgeCreditorByKey, expireDateTime, tenantId),
-    ]);
+  ) => {
+    const updateDebtorEdge = async (): Promise<unknown> => {
+      if (!edgeDebtorByKey) return undefined;
+
+      const debtorCollection = manager._pseudonymsDb?.collection(dbPseudonyms.governed_as_debtor_by);
+      const debtorRecord = (await debtorCollection?.document(edgeDebtorByKey)) as { tenantId: string } | undefined;
+
+      if (!debtorRecord || debtorRecord.tenantId !== tenantId) {
+        throw new Error(`Unauthorized: Cannot update debtor edge ${edgeDebtorByKey}. Tenant mismatch or record not found.`);
+      }
+
+      return await debtorCollection?.update(edgeDebtorByKey, { xprtnDtTm: expireDateTime }, { returnNew: true });
+    };
+    const updateCreditorEdge = async (): Promise<unknown> => {
+      if (!edgeCreditorByKey) return undefined;
+
+      const creditorCollection = manager._pseudonymsDb?.collection(dbPseudonyms.governed_as_creditor_by);
+      const creditorRecord = (await creditorCollection?.document(edgeCreditorByKey)) as { tenantId: string } | undefined;
+
+      if (!creditorRecord || creditorRecord.tenantId !== tenantId) {
+        throw new Error(`Unauthorized: Cannot update creditor edge ${edgeCreditorByKey}. Tenant mismatch or record not found.`);
+      }
+
+      return await creditorCollection?.update(edgeCreditorByKey, { xprtnDtTm: expireDateTime }, { returnNew: true });
+    };
+    return await Promise.all([updateDebtorEdge(), updateCreditorEdge()]);
+  };
 
   manager.updateCondition = async (conditionId: string, expireDateTime: string, tenantId: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.conditions);
