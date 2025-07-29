@@ -329,8 +329,10 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.getAccount).toBeDefined();
     expect(dbManager.getConditionsByAccount).toBeDefined();
     expect(dbManager.updateCondition).toBeDefined();
-    expect(dbManager.updateExpiryDateOfAccountEdges).toBeDefined();
-    expect(dbManager.updateExpiryDateOfEntityEdges).toBeDefined();
+    expect(dbManager.updateExpiryDateOfDebtorAccountEdges).toBeDefined();
+    expect(dbManager.updateExpiryDateOfCreditorAccountEdges).toBeDefined();
+    expect(dbManager.updateExpiryDateOfDebtorEntityEdges).toBeDefined();
+    expect(dbManager.updateExpiryDateOfCreditorEntityEdges).toBeDefined();
 
     expect(await dbManager.queryPseudonymDB('testCollection', 'tenantId', 'testFilter')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.queryPseudonymDB('testCollection', 'tenantId', 'testFilter', 10)).toEqual(['MOCK-QUERY']);
@@ -368,14 +370,16 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.getEntity('test1', 'test2', 'tenantId')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getAccount('test1', 'test2', 'test3', 'tenantId')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getConditionsByAccount('test1', 'test2', 'tenantId', 'test3')).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.updateExpiryDateOfAccountEdges('_testkey1', '_testkey2', '2024-09-05T21:00:00.999Z', 'tenantId')).toEqual([
+    expect(await dbManager.updateExpiryDateOfDebtorAccountEdges('_testkey1', '2024-09-05T21:00:00.999Z', 'tenantId')).toEqual(
       'MOCK-UPDATE',
+    );
+    expect(await dbManager.updateExpiryDateOfCreditorAccountEdges('_testkey1', '2024-09-05T21:00:00.999Z', 'tenantId')).toEqual(
       'MOCK-UPDATE',
-    ]);
-    expect(await dbManager.updateExpiryDateOfEntityEdges('_testkey1', '_testkey2', '2024-09-05T21:00:00.999Z', 'tenantId')).toEqual([
+    );
+    expect(await dbManager.updateExpiryDateOfDebtorEntityEdges('_testkey1', '2024-09-05T21:00:00.999Z', 'tenantId')).toEqual('MOCK-UPDATE');
+    expect(await dbManager.updateExpiryDateOfCreditorEntityEdges('_testkey1', '2024-09-05T21:00:00.999Z', 'tenantId')).toEqual(
       'MOCK-UPDATE',
-      'MOCK-UPDATE',
-    ]);
+    );
     expect(await dbManager.updateCondition('_testkey1', '2024-09-05T21:00:00.999Z', 'tenantId')).toEqual('MOCK-UPDATE');
   });
 
