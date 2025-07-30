@@ -1,7 +1,7 @@
 {
   "name": "@tazama-lf/frms-coe-lib",
-  "version": "5.1.0-rc.7",
-  "description": "FRMS Center of Excellence package library",
+  "version": "5.1.0",
+  "description": "Tazama package library",
   "main": "lib/index.js",
   "repository": {
     "type": "git",
@@ -45,7 +45,7 @@
     "uuid": "^11.1.0"
   },
   "keywords": [],
-  "author": "",
+  "author": "Tazama.org",
   "license": "Apache-2.0",
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^4.5.0",
