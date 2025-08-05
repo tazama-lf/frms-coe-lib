@@ -28,14 +28,16 @@ export async function transactionBuilder(manager: DatabaseManagerType, transacti
     readyChecks.TransactionDB = err;
   }
 
-  manager.queryTransactionDB = async (collection: string, filter: string, limit?: number) => {
+  manager.queryTransactionDB = async (collection: string, tenantId: string, filter: string, limit?: number) => {
     const db = manager._transaction?.collection(collection);
     const aqlFilter = aql`${filter}`;
+    const aqlTenantId = aql`${tenantId}`;
     const aqlLimit = limit ? aql`LIMIT ${limit}` : undefined;
 
     const query: AqlQuery = aql`
       FOR doc IN ${db}
       FILTER ${aqlFilter}
+      FILTER doc.TenantId == ${aqlTenantId}
       ${aqlLimit}
       RETURN doc
     `;
@@ -43,13 +45,15 @@ export async function transactionBuilder(manager: DatabaseManagerType, transacti
     return await (await manager._transaction?.query(query))?.batches.all();
   };
 
-  manager.getReportByMessageId = async (messageid: string) => {
+  manager.getReportByMessageId = async (messageid: string, tenantId: string) => {
     const db = manager._transaction?.collection(dbEvaluateResults.transactions);
     const messageidAql = aql`${messageid}`;
+    const aqlTenantId = aql`${tenantId}`;
 
     const query: AqlQuery = aql`
       FOR doc IN ${db}
       FILTER doc.transaction.FIToFIPmtSts.GrpHdr.MsgId == ${messageidAql}
+      FILTER doc.transaction.TenantId == ${aqlTenantId}
       RETURN doc
     `;
 

@@ -8,19 +8,21 @@ export interface TransactionHistoryDB {
 
   /**
    * @param collection: Collection name against which this query will be run
+   * @param tenantId: Tenant ID to filter the documents
    * @param filter: A String that will put next to the FILTER keyword to run against Arango
    *
    * ```
    * const query = aql`
    * FOR doc IN ${collection}
    * FILTER ${filter}
+   * FILTER doc.TenantId == ${tenantId}
    * RETURN doc`;
    * ```
    *
    * Note, use "doc." in your query string, as we make use of "doc" as the query and return name.
    * @memberof TransactionHistoryDB
    */
-  queryTransactionDB: (collection: string, filter: string, limit?: number) => Promise<unknown>;
+  queryTransactionDB: (collection: string, tenantId: string, filter: string, limit?: number) => Promise<unknown>;
 
   /**
    * @param endToEndId An endToEndId String used to filter on the EndToEndId field

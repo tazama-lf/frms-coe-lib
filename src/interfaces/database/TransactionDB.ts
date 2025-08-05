@@ -8,34 +8,38 @@ export interface TransactionDB {
 
   /**
    * @param collection: Collection name against which this query will be run
+   * @param tenantId: Tenant ID to filter the documents
    * @param filter: A String that will put next to the FILTER keyword to run against Arango
    *
    * ```
    * const query = aql`
    * FOR doc IN ${collection}
    * FILTER ${filter}
+   * FILTER doc.TenantId == ${tenantId}
    * RETURN doc`;
    * ```
    *
    * Note, use "doc." in your query string, as we make use of "doc" as the query and return name.
    * @memberof TransactionHistoryDB
    */
-  queryTransactionDB: (collection: string, filter: string, limit?: number) => Promise<unknown>;
+  queryTransactionDB: (collection: string, tenantId: string, filter: string, limit?: number) => Promise<unknown>;
 
   /**
    * @param collection: Collection name against which this query will be run
+   * @param tenantId: Tenant ID to filter the documents
    * @param messageid: A String value that will be used to compare with Msgid from reports stored
    *
    * ```
    * const query = aql`
    * FOR doc IN ${collection}
    * FILTER doc.transaction.FIToFIPmtSts.GrpHdr.MsgId == ${messageid}
+   * FILTER doc.transaction.TenantId == ${aqlTenantId}
    * RETURN doc`;
    * ```
    *
    * @memberof TransactionHistoryDB
    */
-  getReportByMessageId: (messageid: string) => Promise<unknown>;
+  getReportByMessageId: (messageid: string, tenantId: string) => Promise<unknown>;
 
   /* ```
    * const query = aql`

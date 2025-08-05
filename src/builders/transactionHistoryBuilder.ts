@@ -34,14 +34,16 @@ export async function transactionHistoryBuilder(
     readyChecks.TransactionHistoryDB = `err, ${formatError(err)}`;
   }
 
-  manager.queryTransactionDB = async (collection: string, filter: string, limit?: number) => {
+  manager.queryTransactionDB = async (collection: string, tenantId: string, filter: string, limit?: number) => {
     const db = manager._transactionHistory?.collection(collection);
     const aqlFilter = aql`${filter}`;
+    const aqlTenantId = aql`${tenantId}`;
     const aqlLimit = limit ? aql`LIMIT ${limit}` : undefined;
 
     const query: AqlQuery = aql`
       FOR doc IN ${db}
       FILTER ${aqlFilter}
+      FILTER doc.TenantId == ${aqlTenantId}
       ${aqlLimit}
       RETURN doc
     `;

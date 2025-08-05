@@ -211,8 +211,8 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.saveTransactionHistoryPacs008).toBeDefined();
     expect(dbManager.saveTransactionHistoryPacs002).toBeDefined();
 
-    expect(await dbManager.queryTransactionDB('testCollection', 'testFilter')).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.queryTransactionDB('testCollection', 'testFilter', 10)).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.queryTransactionDB('testCollection', 'tenantId', 'testFilter')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.queryTransactionDB('testCollection', 'tenantId', 'testFilter', 10)).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getTransactionPacs008('test')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getTransactionPain001('test')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getDebtorPain001Msgs('test')).toEqual(['MOCK-QUERY']);
@@ -728,8 +728,8 @@ describe('CreateDatabaseManager', () => {
 
     expect(dbManager.insertTransaction).toBeDefined();
 
-    expect(await dbManager.queryTransactionDB('testCollection', 'testFilter')).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.queryTransactionDB('testCollection', 'testFilter', 10)).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.queryTransactionDB('testCollection', 'tenantId', 'testFilter')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.queryTransactionDB('testCollection', 'tenantId', 'testFilter', 10)).toEqual(['MOCK-QUERY']);
     expect(await dbManager.insertTransaction('testID', testPacs002, testNetworkMap, {})).toEqual('MOCK-SAVE');
   });
 
@@ -756,7 +756,7 @@ describe('CreateDatabaseManager', () => {
     const dbManager: typeof testTypes = localManager as any;
 
     expect(dbManager.getReportByMessageId).toBeDefined();
-    expect(await dbManager.getReportByMessageId('MSGID')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getReportByMessageId('MSGID', 'tenantId')).toEqual(['MOCK-QUERY']);
   });
 
   it('should error gracefully on isReadyCheck for database builders', async () => {
