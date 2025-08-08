@@ -8,6 +8,6 @@ export class Alert {
   evaluationID = v4();
   metaData? = new MetaData();
   status = ''; // eg ALRT
-  timestamp: Date = new Date();
+  timestamp: string = new Date().toISOString();
   tadpResult: TADPResult = new TADPResult();
 }
