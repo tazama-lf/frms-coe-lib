@@ -21,7 +21,7 @@ export interface IRule {
 
 export type ExpressionMathJSON = Array<string | number | ExpressionMathJSON>;
 
-export interface ITypologyExpression {
+export interface TypologyConfig {
   id: string;
   cfg: string;
   desc?: string;

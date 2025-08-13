@@ -230,11 +230,6 @@ databaseManager = await CreateDatabaseManager(dbConfig);
     - `createLogBuffer(data: Record<string, unknown>): Buffer | undefined`: Creates a log buffer from a data object.
     - `decodeLogBuffer(buffer: Buffer): LogMessageType | undefined`: Decodes a log buffer into a `LogMessageType`.
 
-7. **Unwrap Utility**
-
-  - **Functions**:
-    - `unwrap<T>(type: T[][]): T | undefined`: Unwraps a 2D array and returns the item at `[0][0]`.
-
 ## Configuration
 
 ### Environment Variables

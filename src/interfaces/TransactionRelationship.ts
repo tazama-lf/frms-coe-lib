@@ -8,7 +8,6 @@ export interface TransactionRelationship {
   CreDtTm: string;
   Amt?: string;
   Ccy?: string;
-  PmtInfId: string;
   EndToEndId: string;
   lat?: string;
   long?: string;

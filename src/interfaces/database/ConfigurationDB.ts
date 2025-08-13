@@ -1,32 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import type { Database } from 'arangojs';
 import type NodeCache from 'node-cache';
-import type { DBConfig } from '../../services/dbManager';
-import type { Typology } from '..';
+import type { Pool } from 'pg';
+import type { NetworkMap, RuleConfig, Typology } from '..';
+import type { TypologyConfig } from '../processor-files/TypologyConfig';
 
 export interface ConfigurationDB {
-  _configuration: Database;
-  setupConfig: DBConfig;
-  nodeCache: NodeCache;
-
-  /**
-   * @param collection: Collection name against which this query will be run
-   * @param filter: String that will put next to the FILTER keyword to run against Arango
-   *
-   * This is what the query looks like internally:
-   *
-   * ```
-   * const query = aql`
-   * FOR doc IN ${collection}
-   * FILTER ${filter}F
-   * RETURN doc`;
-   * ```
-   *
-   * Note, use "doc." in your query string, as we make use of "doc" as the query and return name.
-   * @memberof ConfigurationDB
-   */
-  queryConfigurationDB: (collection: string, filter: string, limit?: number) => Promise<unknown>;
+  _configuration: Pool;
+  nodeCache?: NodeCache;
 
   /**
    * Returns rule config
@@ -45,18 +26,7 @@ export interface ConfigurationDB {
    * \* Indicates filter is only applied when parameter is passed in
    * @memberof ConfigurationDB
    */
-  getRuleConfig: (ruleId: string, cfg: string, limit?: number) => Promise<unknown>;
-
-  /**
-   * Returns transaction configuration
-   * ```
-   * const query = aql`
-   * FOR doc IN ${collection}
-   * RETURN doc`
-   * ```
-   * @memberof ConfigurationDB
-   */
-  getTransactionConfig: (transactionId: string, cfg: string) => Promise<unknown>;
+  getRuleConfig: (ruleId: string, cfg: string, limit?: number) => Promise<RuleConfig | undefined>;
 
   /**
    * Returns typology expression
@@ -68,7 +38,7 @@ export interface ConfigurationDB {
    * ```
    * @memberof ConfigurationDB
    */
-  getTypologyConfig: (typology: Typology) => Promise<unknown>;
+  getTypologyConfig: (typology: Typology) => Promise<TypologyConfig | undefined>;
 
   /**
    * Finds all active networkmaps
@@ -82,5 +52,5 @@ export interface ConfigurationDB {
    *
    * @memberof ConfigurationDB
    */
-  getNetworkMap: () => Promise<unknown>;
+  getNetworkMap: () => Promise<NetworkMap[]>;
 }

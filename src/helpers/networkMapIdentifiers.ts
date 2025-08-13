@@ -2,7 +2,6 @@
 
 import type { DatabaseManagerInstance, ManagerConfig } from '..';
 import type { NetworkMap } from '../interfaces';
-import { unwrap } from './unwrap';
 
 function getRuleMap(networkMap: NetworkMap | undefined): { rulesIds: string[]; typologyCfg: string[] } {
   const rulesIds: string[] = new Array<string>();
@@ -27,10 +26,10 @@ function getRuleMap(networkMap: NetworkMap | undefined): { rulesIds: string[]; t
 export const getIdsFromNetworkMap = async (
   databaseManager: DatabaseManagerInstance<Required<Pick<ManagerConfig, 'configuration' | 'localCacheConfig' | 'redisConfig'>>>,
 ): Promise<{ rulesIds: string[]; typologyCfg: string[] }> => {
-  const networkConfigurationList = (await databaseManager.getNetworkMap()) as NetworkMap[][];
-  const unwrappedNetworkMap = unwrap<NetworkMap>(networkConfigurationList);
+  const networkConfigurationList = await databaseManager.getNetworkMap();
+  const [firstNetworkMap] = networkConfigurationList;
 
-  const networkMap = getRuleMap(unwrappedNetworkMap);
+  const networkMap = getRuleMap(firstNetworkMap);
   return {
     rulesIds: networkMap.rulesIds,
     typologyCfg: networkMap.typologyCfg,
