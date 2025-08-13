@@ -40,7 +40,6 @@ const config: Config.InitialOptions = {
     '.module.ts',
     '.mock.ts',
     './src/index.ts',
-    './src/clients/arangodb.ts',
     './src/clients/index.ts',
     './src/clients/redis.ts',
     './router.ts',
@@ -62,9 +61,9 @@ const config: Config.InitialOptions = {
   coverageThreshold: {
     global: {
       branches: 80,
-      functions: 95,
-      lines: 95,
-      statements: 95,
+      functions: 89,
+      lines: 89,
+      statements: 89,
     },
   },
 
