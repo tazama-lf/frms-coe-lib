@@ -1,24 +1,23 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import * as fs from 'node:fs';
+import * as util from 'node:util';
 import { Pool, type PoolConfig } from 'pg';
 import { isDatabaseReady } from '../helpers/readyCheck';
 import type { DataCache, NetworkMap, Pacs002 } from '../interfaces';
+import type { PgQueryConfig } from '../interfaces/database';
 import type { Alert } from '../interfaces/processor-files/Alert';
 import type { Evaluation } from '../interfaces/processor-files/TADPReport';
 import { type DBConfig, type EvaluationDB, readyChecks } from '../services/dbManager';
-import type { PgQueryConfig } from '../interfaces/database';
+import { getSSLConfig } from './utils';
 
 export async function evaluationBuilder(manager: EvaluationDB, evaluationConfig: DBConfig): Promise<void> {
   const conf: PoolConfig = {
-    host: evaluationConfig.url,
-    // port:
+    host: evaluationConfig.host,
+    port: evaluationConfig.port,
     database: evaluationConfig.databaseName,
     user: evaluationConfig.user,
     password: evaluationConfig.password,
-    ssl: {
-      ca: fs.existsSync(evaluationConfig.certPath) ? [fs.readFileSync(evaluationConfig.certPath).toString()] : [],
-    },
+    ssl: getSSLConfig(evaluationConfig.certPath),
   } as const;
 
   manager._evaluation = new Pool(conf);
@@ -27,7 +26,7 @@ export async function evaluationBuilder(manager: EvaluationDB, evaluationConfig:
     const dbReady = await isDatabaseReady(manager._evaluation);
     readyChecks.EvaluationDB = dbReady ? 'Ok' : 'err';
   } catch (err) {
-    readyChecks.EvaluationDB = err;
+    readyChecks.EvaluationDB = `err, ${util.inspect(err)}`;
   }
 
   manager.getReportByMessageId = async (messageid: string): Promise<Evaluation | undefined> => {

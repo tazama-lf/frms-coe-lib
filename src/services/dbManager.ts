@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
+import * as util from 'node:util';
 import type { RedisService } from '..';
 import { configurationBuilder } from '../builders/configurationBuilder';
 import { evaluationBuilder } from '../builders/evaluationBuilder';
@@ -18,7 +19,8 @@ import type { RawHistoryDB } from '../interfaces/database/RawHistoryDB';
 export let readyChecks: Record<string, unknown> = {};
 
 export interface DBConfig {
-  url: string;
+  host: string;
+  port?: number;
   user: string;
   password: string;
   databaseName: string;
@@ -99,7 +101,7 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
 
   if (Object.values(readyChecks).some((status) => status !== 'Ok')) {
     manager.quit();
-    throw new Error(JSON.stringify(readyChecks));
+    throw new Error(util.inspect(readyChecks));
   }
 
   return manager as DatabaseManagerInstance<T>;
@@ -107,7 +109,7 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
 
 export async function CreateStorageManager<T extends ManagerConfig>(
   requiredStorages: Array<Database | Cache>,
-  requireAuth?: boolean,
+  requireAuth = false,
 ): Promise<{ db: DatabaseManagerInstance<T>; config: ManagerConfig }> {
   let config: ManagerConfig = {};
 
@@ -116,11 +118,11 @@ export async function CreateStorageManager<T extends ManagerConfig>(
       throw Error(`${currentStorage} was already defined.`);
     }
     if (currentStorage === Cache.DISTRIBUTED) {
-      config = { ...config, ...validateRedisConfig(requireAuth ?? false) };
+      config = { ...config, ...validateRedisConfig(requireAuth) };
     } else if (currentStorage === Cache.LOCAL) {
       config = { ...config, ...validateLocalCacheConfig() };
     } else {
-      config = { ...config, ...validateDatabaseConfig(requireAuth ?? false, currentStorage as Database) };
+      config = { ...config, ...validateDatabaseConfig(requireAuth, currentStorage as Database) };
     }
   }
 

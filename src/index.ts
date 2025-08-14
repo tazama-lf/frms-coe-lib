@@ -2,7 +2,7 @@
 
 import type { ConfigurationDB } from './interfaces/database/ConfigurationDB';
 import type { EventHistoryDB } from './interfaces/database/EventHistoryDB';
-import type { PgQueryConfig } from './interfaces/database/Query';
+import type { PgQueryConfig } from './builders/utils';
 import type { EvaluationDB } from './interfaces/database/EvaluationDB';
 import type { RawHistoryDB } from './interfaces/database/RawHistoryDB';
 import { CreateDatabaseManager, type DatabaseManagerInstance, type ManagerConfig } from './services/dbManager';

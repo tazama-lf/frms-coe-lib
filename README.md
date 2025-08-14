@@ -192,7 +192,7 @@ databaseManager = await CreateDatabaseManager(dbConfig);
 3. **Database Manager**
 
   - **Class**: `DatabaseManager`
-    - **Description**: Manages database connections and interactions, including configuration, pseudonyms, historical transactions and evaluation databases.
+    - **Description**: Manages database connections and interactions, including configuration, event history, raw transactions and evaluation databases.
     - **Methods**:
       - `CreateDatabaseManager<T>(config: T): Promise<DatabaseManagerInstance<T>>`: Creates a database manager instance.
       - `isReadyCheck(): any`: Checks if the database services are ready.
@@ -271,9 +271,9 @@ To see what are the variables required for each service please refer to VARIABLE
 ### Configuration Options
 The ManagerConfig interface allows you to define which databases and services you wish to use. Each service can be optionally included in the configuration:
 
-- **Pseudonyms Database**: Access and manage  pseudonyms data. `Optional`
-- **Transaction History Database**: Access and manage transaction histories. `Optional`
-- **Transaction Database**: Evaluation Result data management object. `Optional`
+- **Event History Database**: Access and manage event history data. `Optional`
+- **Raw History Database**: Access and manage raw transaction histories. `Optional`
+- **Evaluation Database**: Evaluation Result data management object. `Optional`
 - **Configuration Database**: Store and retrieve application configurations. `Optional`
 - **Redis Cache**: Use Redis for caching to improve performance. `Optional`
 - **Local Cache**: Option for using local cache (Node cache) to improve performance. `Optional` Note: This object is heavily used by configuration builder
@@ -282,15 +282,17 @@ The ManagerConfig interface allows you to define which databases and services yo
 The JSON object example for dbManage configuration
 ```typescript
 {
-    pseudonyms: {
-      url: 'your-pseudonyms-db-url',
+    eventHistory: {
+      host: 'your-event-history-db-host',
+      port: 'your-event-history-db-port',
       user: 'your-user',
       password: 'your-password',
       databaseName: 'your-db-name',
       certPath: 'path-to-cert',
     },
-    transactionHistory: {
-      url: 'your-transaction-history-db-url',
+    rawHistory: {
+      host: 'your-raw-history-db-host',
+      port: 'your-raw-history-db-port',
       user: 'your-user',
       password: 'your-password',
       databaseName: 'your-db-name',

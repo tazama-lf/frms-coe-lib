@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import NodeCache from 'node-cache';
-import * as fs from 'node:fs';
+import * as util from 'node:util';
 import { Pool, type PoolConfig } from 'pg';
-import { formatError } from '../helpers/formatter';
 import { isDatabaseReady } from '../helpers/readyCheck';
 import type { NetworkMap, RuleConfig, Typology } from '../interfaces';
 import type { PgQueryConfig } from '../interfaces/database';
 import type { TypologyConfig } from '../interfaces/processor-files/TypologyConfig';
 import type { ConfigurationDB, DBConfig, LocalCacheConfig } from '../services/dbManager';
 import { readyChecks } from '../services/dbManager';
+import { getSSLConfig } from './utils';
 
 export async function configurationBuilder(
   manager: ConfigurationDB,
@@ -17,14 +17,12 @@ export async function configurationBuilder(
   cacheConfig?: LocalCacheConfig,
 ): Promise<void> {
   const conf: PoolConfig = {
-    host: configurationConfig.url,
-    // port:
+    host: configurationConfig.host,
+    port: configurationConfig.port,
     database: configurationConfig.databaseName,
     user: configurationConfig.user,
     password: configurationConfig.password,
-    ssl: {
-      ca: fs.existsSync(configurationConfig.certPath) ? [fs.readFileSync(configurationConfig.certPath).toString()] : [],
-    },
+    ssl: getSSLConfig(configurationConfig.certPath),
   } as const;
 
   manager._configuration = new Pool(conf);
@@ -34,7 +32,7 @@ export async function configurationBuilder(
     readyChecks.ConfigurationDB = dbReady ? 'Ok' : 'err';
   } catch (error) {
     const err = error as Error;
-    readyChecks.ConfigurationDB = `err, ${formatError(err)}`;
+    readyChecks.ConfigurationDB = `err, ${util.inspect(err)}`;
   }
 
   manager.nodeCache = cacheConfig?.localCacheEnabled ? new NodeCache() : undefined;

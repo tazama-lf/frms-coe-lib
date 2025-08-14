@@ -1,23 +1,21 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import * as fs from 'node:fs';
+import * as util from 'node:util';
 import { Pool, type PoolConfig } from 'pg';
-import { formatError } from '../helpers/formatter';
 import { isDatabaseReady } from '../helpers/readyCheck';
 import type { Pacs002, Pacs008, Pain001, Pain013 } from '../interfaces';
 import type { PgQueryConfig } from '../interfaces/database';
 import { readyChecks, type DBConfig, type RawHistoryDB } from '../services/dbManager';
+import { getSSLConfig } from './utils';
 
 export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig: DBConfig): Promise<void> {
   const conf: PoolConfig = {
-    host: rawHistoryConfig.url,
-    // port:
+    host: rawHistoryConfig.host,
+    port: rawHistoryConfig.port,
     database: rawHistoryConfig.databaseName,
     user: rawHistoryConfig.user,
     password: rawHistoryConfig.password,
-    ssl: {
-      ca: fs.existsSync(rawHistoryConfig.certPath) ? [fs.readFileSync(rawHistoryConfig.certPath).toString()] : [],
-    },
+    ssl: getSSLConfig(rawHistoryConfig.certPath),
   } as const;
 
   manager._rawHistory = new Pool(conf);
@@ -27,7 +25,7 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
     readyChecks.RawHistoryDB = dbReady ? 'Ok' : 'err';
   } catch (error) {
     const err = error as Error;
-    readyChecks.RawHistoryDB = `err, ${formatError(err)}`;
+    readyChecks.RawHistoryDB = `err, ${util.inspect(err)}`;
   }
 
   manager.getTransactionPacs008 = async (endToEndId: string): Promise<Pacs008 | undefined> => {

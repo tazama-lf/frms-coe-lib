@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import * as fs from 'node:fs';
+import * as util from 'node:util';
 import { Pool, type PoolConfig } from 'pg';
 import { v4 } from 'uuid';
-import { formatError } from '../helpers/formatter';
 import { isDatabaseReady } from '../helpers/readyCheck';
 import type { AccountCondition, ConditionEdge, EntityCondition, TransactionRelationship } from '../interfaces';
 import type { PgQueryConfig } from '../interfaces/database';
@@ -11,17 +10,16 @@ import type { Condition } from '../interfaces/event-flow/Condition';
 import type { Account, Edge, Entity } from '../interfaces/event-flow/EntityConditionEdge';
 import type { DBConfig, EventHistoryDB } from '../services/dbManager';
 import { readyChecks } from '../services/dbManager';
+import { getSSLConfig } from './utils';
 
 export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryConfig: DBConfig): Promise<void> {
   const conf: PoolConfig = {
-    host: eventHistoryConfig.url,
-    // port:
+    host: eventHistoryConfig.host,
+    port: eventHistoryConfig.port,
     database: eventHistoryConfig.databaseName,
     user: eventHistoryConfig.user,
     password: eventHistoryConfig.password,
-    ssl: {
-      ca: fs.existsSync(eventHistoryConfig.certPath) ? [fs.readFileSync(eventHistoryConfig.certPath).toString()] : [],
-    },
+    ssl: getSSLConfig(eventHistoryConfig.certPath),
   } as const;
 
   manager._eventHistory = new Pool(conf);
@@ -31,7 +29,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
     readyChecks.EventHistoryDB = dbReady ? 'Ok' : 'err';
   } catch (error) {
     const err = error as Error;
-    readyChecks.EventHistoryDB = `err, ${formatError(err)}`;
+    readyChecks.EventHistoryDB = `err, ${util.inspect(err)}`;
   }
 
   manager.saveTransactionRelationship = async (tr: TransactionRelationship): Promise<void> => {

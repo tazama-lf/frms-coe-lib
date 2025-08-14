@@ -8,10 +8,10 @@ function getRuleMap(networkMap: NetworkMap | undefined): { rulesIds: string[]; t
   const typologyCfg: string[] = new Array<string>();
   if (networkMap) {
     for (const Message of networkMap.messages) {
-      if (Message.typologies?.length) {
+      if (Message.typologies.length) {
         for (const typology of Message.typologies) {
           if (!typologyCfg.includes(typology.cfg)) typologyCfg.push(typology.cfg);
-          if (typology.rules?.length) {
+          if (typology.rules.length) {
             for (const rule of typology.rules) {
               if (!rulesIds.includes(rule.id)) rulesIds.push(rule.id);
             }

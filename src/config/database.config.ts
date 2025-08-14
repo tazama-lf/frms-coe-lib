@@ -20,6 +20,8 @@ export enum Database {
   EVALUATION = 'evaluation',
 }
 
+const DEFAULT_DATABASE_PORT = 5432;
+
 /**
  * Validates and retrieves the Redis configuration for a specified database type.
  *
@@ -56,7 +58,8 @@ export const validateDatabaseConfig = (authEnabled: boolean, database: Database)
     [database]: {
       databaseName: validateEnvVar(prefix, 'string').toString(),
       password,
-      url: validateEnvVar(`${prefix}_URL`, 'string').toString(),
+      host: validateEnvVar(`${prefix}_HOST`, 'string').toString(),
+      port: Number(validateEnvVar(`${prefix}_PORT`, 'number', true)) || DEFAULT_DATABASE_PORT,
       user,
       certPath: validateEnvVar(`${prefix}_CERT_PATH`, 'string', true).toString(),
     },

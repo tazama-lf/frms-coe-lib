@@ -36,7 +36,7 @@ const rawHistoryConfig = {
   databaseName: 'TestHistory',
   user: 'TestHistory',
   password: 'TestHistory',
-  url: 'TestHistory',
+  host: 'TestHistory',
 };
 
 const configurationConfig = {
@@ -44,7 +44,7 @@ const configurationConfig = {
   databaseName: 'TestConfiguration',
   user: 'TestConfiguration',
   password: 'TestConfiguration',
-  url: 'TestConfiguration',
+  host: 'TestConfiguration',
 };
 
 const configurationConfigNoTTL = {
@@ -52,7 +52,7 @@ const configurationConfigNoTTL = {
   databaseName: 'TestConfiguration',
   user: 'TestConfiguration',
   password: 'TestConfiguration',
-  url: 'TestConfiguration',
+  host: 'TestConfiguration',
 };
 
 const configurationConfigNoCache = {
@@ -60,7 +60,7 @@ const configurationConfigNoCache = {
   databaseName: 'TestConfiguration',
   user: 'TestConfiguration',
   password: 'TestConfiguration',
-  url: 'TestConfiguration',
+  host: 'TestConfiguration',
 };
 
 const eventHistoryConfig = {
@@ -68,7 +68,7 @@ const eventHistoryConfig = {
   databaseName: 'TestEventHistory',
   user: 'TestEventHistory',
   password: 'TestEventHistory',
-  url: 'TestEventHistory',
+  host: 'TestEventHistory',
 };
 
 const evaluationConfig = {
@@ -76,7 +76,7 @@ const evaluationConfig = {
   databaseName: 'TestTransaction',
   user: 'TestTransaction',
   password: 'TestTransaction',
-  url: 'TestTransaction',
+  host: 'TestTransaction',
 };
 
 const networkMapConfig = {
@@ -84,7 +84,7 @@ const networkMapConfig = {
   databaseName: 'TestNetworkMap',
   user: 'TestNetworkMap',
   password: 'TestNetworkMap',
-  url: 'TestNetworkMap',
+  host: 'TestNetworkMap',
 };
 
 const mockTR: TransactionRelationship = {
@@ -282,14 +282,10 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.getEntity('test1', 'test2')).toEqual('MOCK-QUERY');
     expect(await dbManager.getAccount('test1', 'test2', 'test3')).toEqual('MOCK-QUERY');
     expect(await dbManager.getConditionsByAccount('test1', 'test2', 'test3')).toContainEqual('MOCK-QUERY');
-    // expect(await dbManager.updateExpiryDateOfAccountEdges('_testkey1', '_testkey2', '2024-09-05T21:00:00.999Z')).toEqual([
-    //   'MOCK-UPDATE',
-    //   'MOCK-UPDATE',
-    // ]);
-    // expect(await dbManager.updateExpiryDateOfEntityEdges('_testkey1', '_testkey2', '2024-09-05T21:00:00.999Z')).toEqual([
-    //   'MOCK-UPDATE',
-    //   'MOCK-UPDATE',
-    // ]);
+    expect(await dbManager.updateExpiryDateOfDebtorAccountEdges('_testkey1', '2024-09-05T21:00:00.999Z', 'tenantId')).toEqual(undefined);
+    expect(await dbManager.updateExpiryDateOfCreditorAccountEdges('_testkey1', '2024-09-05T21:00:00.999Z', 'tenantId')).toEqual(undefined);
+    expect(await dbManager.updateExpiryDateOfDebtorEntityEdges('_testkey1', '2024-09-05T21:00:00.999Z', 'tenantId')).toEqual(undefined);
+    expect(await dbManager.updateExpiryDateOfCreditorEntityEdges('_testkey1', '2024-09-05T21:00:00.999Z', 'tenantId')).toEqual(undefined);
     expect(await dbManager.updateCondition('_testkey1', '2024-09-05T21:00:00.999Z')).toEqual(undefined);
   });
 

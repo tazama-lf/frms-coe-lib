@@ -187,12 +187,7 @@ export interface EventHistoryDB {
    *
    * @memberof EventHistoryDB
    */
-  updateExpiryDateOfDebtorEntityEdges: (
-    edgeCreditorByKey: string,
-    edgeDebtorByKey: string,
-    expireDateTime: string,
-    tenantId: string,
-  ) => Promise<void>;
+  updateExpiryDateOfDebtorEntityEdges: (edgeDebtorByKey: string, expireDateTime: string, tenantId: string) => Promise<void>;
 
   /**
    * @param edgeCreditorByKey string _key of identifier for creditor by edge
@@ -202,12 +197,7 @@ export interface EventHistoryDB {
    *
    * @memberof EventHistoryDB
    */
-  updateExpiryDateOfCreditorEntityEdges: (
-    edgeCreditorByKey: string,
-    edgeDebtorByKey: string,
-    expireDateTime: string,
-    tenantId: string,
-  ) => Promise<void>;
+  updateExpiryDateOfCreditorEntityEdges: (edgeDebtorByKey: string, expireDateTime: string, tenantId: string) => Promise<void>;
 
   /**
    * @param conditionId string _key of identifier for condition being updated
