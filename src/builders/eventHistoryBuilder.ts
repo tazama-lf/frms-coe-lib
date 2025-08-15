@@ -2,12 +2,10 @@
 
 import * as util from 'node:util';
 import { Pool, type PoolConfig } from 'pg';
-import { v4 } from 'uuid';
-import { isDatabaseReady } from '../helpers/readyCheck';
+import { isDatabaseReady } from '../builders/utils';
 import type { AccountCondition, ConditionEdge, EntityCondition, TransactionRelationship } from '../interfaces';
 import type { PgQueryConfig } from '../interfaces/database';
-import type { Condition } from '../interfaces/event-flow/Condition';
-import type { Account, Edge, Entity } from '../interfaces/event-flow/EntityConditionEdge';
+import type { Account, Edge, Entity, Condition } from '../interfaces/event-flow/EntityConditionEdge';
 import type { DBConfig, EventHistoryDB } from '../services/dbManager';
 import { readyChecks } from '../services/dbManager';
 import { getSSLConfig } from './utils';
@@ -94,16 +92,12 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
   };
 
   manager.saveCondition = async (condition: EntityCondition | AccountCondition): Promise<void> => {
-    const uuid = v4();
-
     const query: PgQueryConfig = {
       text: `INSERT INTO condition
-              (id, condition)
+              (condition)
             VALUES
-              ($1, $2)
-            ON CONFLICT 
-              (condId) DO NOTHING`,
-      values: [uuid, condition],
+              ($1)`,
+      values: [condition],
     };
 
     await manager._eventHistory.query(query);

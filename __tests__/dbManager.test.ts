@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ConfigurationDB, EvaluationDB, EventHistoryDB, RawHistoryDB, RedisService } from '../src';
-import * as isDatabaseReady from '../src/helpers/readyCheck';
+import * as isDatabaseReady from '../src/builders/utils';
 import {
   ConditionEdge,
   EntityCondition,

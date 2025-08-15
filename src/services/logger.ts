@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import pino, { type DestinationStream, type Logger } from 'pino';
-import { LumberjackGRPCService } from './lumberjackGRPCService';
-import type { LogLevel } from '../helpers/proto/lumberjack/LogLevel';
-import { type LogCallback, createElasticStream } from '../helpers/logUtilities';
 import { validateLogConfig } from '../config/index';
 import type { ProcessorConfig } from '../config/processor.config';
+import { type LogCallback, createElasticStream } from '../helpers/logUtilities';
+import type { LogLevel } from '../helpers/proto/lumberjack/LogLevel';
+import type { LumberjackGRPCService } from './lumberjackGRPCService';
 
 const config = validateLogConfig();
 
 const pinoStream = (): DestinationStream | undefined => {
-  if (config.pinoElasticOpts) {
+  if (config.pinoElasticOpts?.elasticHost.length) {
     const { stream } = createElasticStream(
       config.pinoElasticOpts.elasticHost,
       config.pinoElasticOpts.elasticVersion,
@@ -23,7 +23,7 @@ const pinoStream = (): DestinationStream | undefined => {
   }
 };
 
-const LOGLEVEL = config.logstashLevel.toLowerCase();
+const LOGLEVEL = config.logLevel.toLowerCase();
 
 type LogFunc = (message: string, serviceOperation?: string, id?: string, callback?: LogCallback) => void;
 type ErrorFunc = (message: string | Error, innerError?: unknown, serviceOperation?: string, id?: string, callback?: LogCallback) => void;
@@ -114,10 +114,7 @@ export class LoggerService {
     } else {
       this.logger = pino({ level: LOGLEVEL }, pinoStream());
     }
-    if (config.sidecarHost) {
-      this.lumberjackService = new LumberjackGRPCService(config.sidecarHost, processorConfig.functionName);
-    }
-    switch (config.logstashLevel.toLowerCase()) {
+    switch (config.logLevel.toLowerCase()) {
       // error > warn > info > debug > trace
       case 'trace':
         this.trace = createLogCallback('trace', this.logger, this.lumberjackService);

@@ -5,7 +5,6 @@ import type { DataCache } from './rule/DataCache';
 export interface Pain001 {
   TxTp: string;
   CstmrCdtTrfInitn: CstmrCdtTrfInitn;
-  _key?: string;
   DataCache?: DataCache;
 }
 

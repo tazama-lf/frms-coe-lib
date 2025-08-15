@@ -3,7 +3,7 @@
 import NodeCache from 'node-cache';
 import * as util from 'node:util';
 import { Pool, type PoolConfig } from 'pg';
-import { isDatabaseReady } from '../helpers/readyCheck';
+import { isDatabaseReady } from '../builders/utils';
 import type { NetworkMap, RuleConfig, Typology } from '../interfaces';
 import type { PgQueryConfig } from '../interfaces/database';
 import type { TypologyConfig } from '../interfaces/processor-files/TypologyConfig';

@@ -13,5 +13,4 @@ export * from './AccountType';
 export * from './NetworkMap';
 export type * from './RedisConfig';
 export type * from './event-flow/ConditionEdge';
-export type * from './event-flow/EntityCondition';
-export type * from './event-flow/AccountCondition';
+export type * from './event-flow/EntityConditionEdge';

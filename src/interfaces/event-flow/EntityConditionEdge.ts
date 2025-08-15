@@ -30,11 +30,12 @@ export interface Account {
 }
 
 export interface Condition {
+  condId: string;
   evtTp: string[];
   condTp: string;
   prsptv: string;
   incptnDtTm: string;
-  xprtnDtTm: string;
+  xprtnDtTm?: string;
   condRsn: string;
   forceCret: boolean;
   usr: string;

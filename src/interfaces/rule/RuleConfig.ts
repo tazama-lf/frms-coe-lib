@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export interface RuleConfig {
-  _key?: string;
-  _id?: string;
-  _rev?: string;
   id: string;
   cfg: string;
   config: Config;

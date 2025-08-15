@@ -2,8 +2,7 @@
 
 import type { Pool } from 'pg';
 import type { AccountCondition, ConditionEdge, EntityCondition, TransactionRelationship } from '..';
-import type { Account, Edge, Entity, RawConditionResponse } from '../event-flow/EntityConditionEdge';
-import type { Condition } from '../event-flow/Condition';
+import type { Account, Edge, Entity, RawConditionResponse, Condition } from '../event-flow/EntityConditionEdge';
 
 export interface EventHistoryDB {
   _eventHistory: Pool;
@@ -42,6 +41,7 @@ export interface EventHistoryDB {
 
   /**
    * @param condition condition object we are storing of `EntityCondition` or `AccountCondition` type
+   * @throws {Error} if condId already exists
    *
    * @memberof EventHistoryDB
    */
@@ -162,7 +162,7 @@ export interface EventHistoryDB {
   getConditionsByAccount: (accountId: string, schemeProprietary: string, memberId: string) => Promise<AccountCondition[]>;
 
   /**
-   * @param edgeDebtorByKey string _key of identifier for debtor by edge
+   * @param edgeDebtorByKey string id of identifier for debtor by edge
    * @param expireDateTime new date to use for expire timedate in edges
    * @param tenantId string tenant identifier for authorization
    *
@@ -171,7 +171,7 @@ export interface EventHistoryDB {
   updateExpiryDateOfDebtorAccountEdges: (edgeDebtorByKey: string, expireDateTime: string, tenantId: string) => Promise<void>;
 
   /**
-   * @param edgeCreditorByKey string _key of identifier for creditor by edge
+   * @param edgeCreditorByKey string id of identifier for creditor by edge
    * @param expireDateTime new date to use for expire timedate in edges
    * @param tenantId string tenant identifier for authorization
    *
@@ -180,8 +180,8 @@ export interface EventHistoryDB {
   updateExpiryDateOfCreditorAccountEdges: (edgeCreditorByKey: string, expireDateTime: string, tenantId: string) => Promise<void>;
 
   /**
-   * @param edgeCreditorByKey string _key of identifier for creditor by edge
-   * @param edgeDebtorByKey string _key of identifier for debtor by edge
+   * @param edgeCreditorByKey string id of identifier for creditor by edge
+   * @param edgeDebtorByKey string id of identifier for debtor by edge
    * @param expireDateTime new date to use for expire timedate in edges
    * @param tenantId string tenant identifier for authorization
    *
@@ -190,8 +190,8 @@ export interface EventHistoryDB {
   updateExpiryDateOfDebtorEntityEdges: (edgeDebtorByKey: string, expireDateTime: string, tenantId: string) => Promise<void>;
 
   /**
-   * @param edgeCreditorByKey string _key of identifier for creditor by edge
-   * @param edgeDebtorByKey string _key of identifier for debtor by edge
+   * @param edgeCreditorByKey string id of identifier for creditor by edge
+   * @param edgeDebtorByKey string id of identifier for debtor by edge
    * @param expireDateTime new date to use for expire timedate in edges
    * @param tenantId string tenant identifier for authorization
    *
@@ -200,7 +200,7 @@ export interface EventHistoryDB {
   updateExpiryDateOfCreditorEntityEdges: (edgeDebtorByKey: string, expireDateTime: string, tenantId: string) => Promise<void>;
 
   /**
-   * @param conditionId string _key of identifier for condition being updated
+   * @param conditionId string id of identifier for condition being updated
    * @param expireDateTime new date to use for expire timedate in the condition
    *
    * @memberof EventHistoryDB

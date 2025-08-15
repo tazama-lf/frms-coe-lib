@@ -2,7 +2,7 @@
 
 import * as util from 'node:util';
 import { Pool, type PoolConfig } from 'pg';
-import { isDatabaseReady } from '../helpers/readyCheck';
+import { isDatabaseReady } from '../builders/utils';
 import type { DataCache, NetworkMap, Pacs002 } from '../interfaces';
 import type { PgQueryConfig } from '../interfaces/database';
 import type { Alert } from '../interfaces/processor-files/Alert';

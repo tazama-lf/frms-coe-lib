@@ -2,7 +2,7 @@
 
 import * as util from 'node:util';
 import { Pool, type PoolConfig } from 'pg';
-import { isDatabaseReady } from '../helpers/readyCheck';
+import { isDatabaseReady } from '../builders/utils';
 import type { Pacs002, Pacs008, Pain001, Pain013 } from '../interfaces';
 import type { PgQueryConfig } from '../interfaces/database';
 import { readyChecks, type DBConfig, type RawHistoryDB } from '../services/dbManager';

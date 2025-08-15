@@ -1,4 +1,4 @@
-import type { QueryConfig } from 'pg';
+import type { Pool, QueryConfig } from 'pg';
 import * as fs from 'node:fs';
 import type { ConnectionOptions } from 'node:tls';
 
@@ -25,4 +25,11 @@ export const getSSLConfig = (certPath: string): ConnectionOptions | false => {
     // rejectUnauthorized: false,
     ca: [fs.readFileSync(certPath).toString()],
   };
+};
+
+export const isDatabaseReady = async (db: Pool): Promise<boolean> => {
+  const client = await db.connect();
+  await client.query('SELECT 1');
+  client.release();
+  return true;
 };

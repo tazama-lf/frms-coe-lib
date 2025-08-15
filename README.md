@@ -21,7 +21,7 @@
 `frms-coe-lib` is a foundational library designed to provide common functionalities and interfaces for the FRMS (Fraud Risk Management System) ecosystem. It includes utilities, data structures, and interfaces that support various components of the system. The library offers a range of features, including database management, logging, configuration management, rule evaluation, and message handling. It serves as a core dependency for other FRMS components, providing essential building blocks and standardized approaches for handling data and interactions.
 
 Key features:
-- **Database Management**: Interfaces and utilities for interacting with different database systems, including ArangoDB and Redis.
+- **Database Management**: Interfaces and utilities for interacting with different database systems, including Postgres and Redis.
 - **Logging**: A standardized logging interface supporting various log levels and integration with external systems.
 - **Configuration**: Tools for managing application configuration, including environment variable parsing and structured configuration objects.
 - **Protocol Buffers**: Support for serialization and deserialization of messages using Protocol Buffers.
@@ -68,7 +68,7 @@ The `frms-coe-lib` library provides various functionalities for transaction moni
 
 ### 1. **Database Management**
 
-The `CreateDatabaseManager` function initializes and manages connections to multiple databases, including ArangoDB and Redis. This function returns an instance of `DatabaseManagerInstance` which includes methods to interact with the databases.
+The `CreateDatabaseManager` function initializes and manages connections to multiple databases, including Postgres and Redis. This function returns an instance of `DatabaseManagerInstance` which includes methods to interact with the databases.
 
 **Usage Example:**
 ```typescript
@@ -262,7 +262,7 @@ By default, this function checks for the following environment variables:
 
 The third-party services we support include:
 
-- **ArangoDB**: For database operations.
+- **Postgres**: For database operations.
 - **Logging**: Capable of sending logs to Pino or console/stdout.
 - **APM (Application Performance Monitoring)**: Integrated with Elastic for performance tracking.
 

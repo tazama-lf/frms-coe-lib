@@ -31,7 +31,7 @@ Logging Class: This class needs configuration variables to check the environment
 | REDIS_IS_CLUSTER | Boolean | No |
 
  
-### Database Variables (Arango)
+### Database Variables (Postgres)
 
  ##### 1. RAW HISTORY DATABASE 
 
@@ -90,8 +90,6 @@ Logging Class: This class needs configuration variables to check the environment
 
 | Variables | DataType | Optional | 
 | -------- | ------- | ------- | 
-| LOGSTASH_HOST | String | Yes | 
-| LOGSTASH_PORT | String | Yes | 
-| LOGSTASH_LEVEL | String | Yes | 
+| LOG_LEVEL | String | Yes | 
 | SIDECAR_HOST | String | Yes | 
 
