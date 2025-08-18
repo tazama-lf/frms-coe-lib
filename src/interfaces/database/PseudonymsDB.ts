@@ -416,21 +416,6 @@ export interface PseudonymsDB {
   getConditionsByAccount: (accountId: string, SchemeProprietary: string, tenantId: string, MemberId: string) => Promise<unknown>;
 
   /**
-   * @param edgeCreditorByKey string _key of identifier for creditor by edge
-   * @param edgeDebtorByKey string _key of identifier for debtor by edge
-   * @param expireDateTime new date to use for expire timedate in edges
-   * @param tenantId string tenant identifier for authorization
-   *
-   * @memberof PseudonymsDB
-   */
-  updateExpiryDateOfAccountEdges: (
-    edgeCreditorByKey: string,
-    edgeDebtorByKey: string,
-    expireDateTime: string,
-    tenantId: string,
-  ) => Promise<unknown>;
-
-  /**
    * @param edgeDebtorByKey string _key of identifier for debtor by edge
    * @param expireDateTime new date to use for expire timedate in edges
    * @param tenantId string tenant identifier for authorization
@@ -447,21 +432,6 @@ export interface PseudonymsDB {
    * @memberof PseudonymsDB
    */
   updateExpiryDateOfCreditorAccountEdges: (edgeCreditorByKey: string, expireDateTime: string, tenantId: string) => Promise<unknown>;
-
-  /**
-   * @param edgeCreditorByKey string _key of identifier for creditor by edge
-   * @param edgeDebtorByKey string _key of identifier for debtor by edge
-   * @param expireDateTime new date to use for expire timedate in edges
-   * @param tenantId string tenant identifier for authorization
-   *
-   * @memberof PseudonymsDB
-   */
-  updateExpiryDateOfEntityEdges: (
-    edgeCreditorByKey: string,
-    edgeDebtorByKey: string,
-    expireDateTime: string,
-    tenantId: string,
-  ) => Promise<unknown>;
 
   /**
    * @param edgeDebtorByKey string _key of identifier for debtor by edge
