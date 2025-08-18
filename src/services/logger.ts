@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { type DestinationStream, pino, type Logger } from 'pino';
+import pino, { type DestinationStream, type Logger } from 'pino';
 import { LumberjackGRPCService } from './lumberjackGRPCService';
 import type { LogLevel } from '../helpers/proto/lumberjack/LogLevel';
 import { type LogCallback, createElasticStream } from '../helpers/logUtilities';
