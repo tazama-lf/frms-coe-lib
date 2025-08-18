@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { Pool } from 'pg';
-import type { AccountCondition, ConditionEdge, EntityCondition, TransactionRelationship } from '..';
+import type { AccountCondition, ConditionEdge, EntityCondition, TransactionDetails } from '..';
 import type { Account, Edge, Entity, RawConditionResponse, Condition } from '../event-flow/EntityConditionEdge';
 
 export interface EventHistoryDB {
   _eventHistory: Pool;
 
   /**
-   * @param {TransactionRelationship} tR TransactionRelationship Object
+   * @param {TransactionDetails} td TransactionDetails Object
    *
-   * This is a insert query to the transactionRelationship collection with overwrite mode set to `ignore`
+   * This is a insert query to the tranaction collection with overwrite mode set to `ignore`
    * @memberof EventHistoryDB
    */
-  saveTransactionRelationship: (tR: TransactionRelationship) => Promise<void>;
+  saveTransactionDetails: (td: TransactionDetails) => Promise<void>;
 
   /**
    * @param key string account identifier we are storing

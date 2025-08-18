@@ -3,7 +3,7 @@
 import * as util from 'node:util';
 import { Pool, type PoolConfig } from 'pg';
 import { isDatabaseReady } from '../builders/utils';
-import type { AccountCondition, ConditionEdge, EntityCondition, TransactionRelationship } from '../interfaces';
+import type { AccountCondition, ConditionEdge, EntityCondition, TransactionDetails } from '../interfaces';
 import type { PgQueryConfig } from '../interfaces/database';
 import type { Account, Edge, Entity, Condition } from '../interfaces/event-flow/EntityConditionEdge';
 import type { DBConfig, EventHistoryDB } from '../services/dbManager';
@@ -30,7 +30,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
     readyChecks.EventHistoryDB = `err, ${util.inspect(err)}`;
   }
 
-  manager.saveTransactionRelationship = async (tr: TransactionRelationship): Promise<void> => {
+  manager.saveTransactionDetails = async (td: TransactionDetails): Promise<void> => {
     const query: PgQueryConfig = {
       text: `INSERT INTO
               transaction
@@ -43,7 +43,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
             (
               $1, $2, $3
             )`,
-      values: [tr.from, tr.to, tr],
+      values: [td.source, td.destination, td],
     };
 
     await manager._eventHistory.query(query);

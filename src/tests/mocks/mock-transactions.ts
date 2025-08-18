@@ -17,7 +17,7 @@ export const CacheDatabaseClientMocks = (cacheDatabaseClient: any): any => {
     await Promise.resolve();
   });
 
-  jest.spyOn(cacheDatabaseClient, 'saveTransactionRelationship').mockImplementation(async () => {
+  jest.spyOn(cacheDatabaseClient, 'saveTransactionDetails').mockImplementation(async () => {
     await Promise.resolve();
   });
 

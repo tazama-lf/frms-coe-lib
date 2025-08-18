@@ -10,7 +10,7 @@ import {
   Pacs008,
   Pain001,
   Pain013,
-  TransactionRelationship,
+  TransactionDetails,
   Typology,
 } from '../src/interfaces';
 import { Alert } from '../src/interfaces/processor-files/Alert';
@@ -87,12 +87,12 @@ const networkMapConfig = {
   host: 'TestNetworkMap',
 };
 
-const mockTR: TransactionRelationship = {
+const mockTR: TransactionDetails = {
   CreDtTm: 'MOCK-CreDtTm',
   EndToEndId: 'MOCK-EndToEndId',
-  from: 'MOCK-from',
+  source: 'MOCK-from',
   MsgId: 'MOCK-MsgId',
-  to: 'MOCK-to',
+  destination: 'MOCK-to',
   TxTp: 'MOCK-TxTp',
   Amt: 'MOCK-Amt',
   Ccy: 'MOCK-Ccy',
@@ -244,7 +244,7 @@ describe('CreateDatabaseManager', () => {
     const testTypes = <RedisService & EventHistoryDB>{};
     const dbManager: typeof testTypes = globalManager satisfies EventHistoryDB;
 
-    expect(dbManager.saveTransactionRelationship).toBeDefined();
+    expect(dbManager.saveTransactionDetails).toBeDefined();
     expect(dbManager.saveAccount).toBeDefined();
     expect(dbManager.saveAccountHolder).toBeDefined();
     expect(dbManager.saveEntity).toBeDefined();
@@ -263,7 +263,7 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.getConditionsByAccount).toBeDefined();
     expect(dbManager.updateCondition).toBeDefined();
 
-    expect(await dbManager.saveTransactionRelationship(mockTR)).toEqual(undefined);
+    expect(await dbManager.saveTransactionDetails(mockTR)).toEqual(undefined);
     expect(await dbManager.saveAccount('test')).toEqual(undefined);
     expect(await dbManager.saveAccountHolder('test', 'testID', 'testTime')).toEqual(undefined);
     expect(await dbManager.saveEntity('test', 'testTime')).toEqual(undefined);
@@ -328,7 +328,7 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.getTypologyConfig).toBeDefined();
 
     // eventHistory
-    expect(dbManager.saveTransactionRelationship).toBeDefined();
+    expect(dbManager.saveTransactionDetails).toBeDefined();
     expect(dbManager.saveGovernedAsCreditorAccountByEdge).toBeDefined();
     expect(dbManager.saveGovernedAsDebtorAccountByEdge).toBeDefined();
 
@@ -454,7 +454,7 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.getRuleConfig).toBeDefined();
 
     // eventHistory
-    expect(dbManager.saveTransactionRelationship).toBeDefined();
+    expect(dbManager.saveTransactionDetails).toBeDefined();
 
     // network map
     expect(dbManager.getNetworkMap).toBeDefined();
