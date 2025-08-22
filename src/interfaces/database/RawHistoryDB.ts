@@ -8,18 +8,9 @@ export interface RawHistoryDB {
 
   /**
    * @param endToEndId An endToEndId String used to filter on the EndToEndId field
-   * @param cacheKey A cacheKey String used to check the cache instead of executing the postgres query
-   *
-   * Will only execute query if no cache key or cache didn't contain the key
-   * ```
-   * const query = aql`
-   * FOR doc IN ${collection}
-   * FILTER doc.EndToEndId == ${endToEndId}
-   * RETURN doc`
-   * ```
    * @memberof RawHistoryDB
    */
-  getTransactionPacs008: (endToEndId: string, cacheKey?: string) => Promise<Pacs008 | undefined>;
+  getTransactionPacs008: (endToEndId: string) => Promise<Pacs008 | undefined>;
 
   /**
    * @param transaction Transaction of Type Pain001 to store

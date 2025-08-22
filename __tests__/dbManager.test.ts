@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
+import { v7 } from 'uuid';
 import { ConfigurationDB, EvaluationDB, EventHistoryDB, RawHistoryDB, RedisService } from '../src';
 import * as isDatabaseReady from '../src/builders/utils';
 import {
@@ -144,7 +145,12 @@ const getMockNetworkMap = (): NetworkMap => {
 };
 
 const getMockTypology = (): Typology => {
-  return new Typology('testId', 'testCfg', 'testHost');
+  const typology: Typology = {
+    id: 'testId',
+    cfg: 'testCfg',
+    rules: [],
+  };
+  return typology;
 };
 
 describe('CreateDatabaseManager', () => {
@@ -530,12 +536,19 @@ describe('CreateDatabaseManager', () => {
     const testPacs002: Pacs002 = getMockRequest();
     const testNetworkMap: NetworkMap = getMockNetworkMap();
 
+    const alert: Alert = {
+      evaluationID: v7(),
+      status: 'NALT',
+      tadpResult: { cfg: '', id: '', typologyResult: [] },
+      timestamp: new Date().toISOString(),
+    };
+
     const testTypes = <EvaluationDB>{};
     const dbManager: typeof testTypes = localManager as any;
 
     expect(dbManager.saveEvaluationResult).toBeDefined();
 
-    expect(await dbManager.saveEvaluationResult('testID', testPacs002, testNetworkMap, new Alert())).toEqual(undefined);
+    expect(await dbManager.saveEvaluationResult('testID', testPacs002, testNetworkMap, alert)).toEqual(undefined);
   });
 
   it('should create getReportByMessageId function when evaluation db is defined', async () => {

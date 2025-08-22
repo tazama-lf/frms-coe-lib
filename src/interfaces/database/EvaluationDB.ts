@@ -12,28 +12,17 @@ export interface EvaluationDB {
    * @param collection: Collection name against which this query will be run
    * @param messageid: A String value that will be used to compare with Msgid from reports stored
    *
-   * ```
-   * const query = aql`
-   * FOR doc IN ${collection}
-   * FILTER doc.transaction.FIToFIPmtSts.GrpHdr.MsgId == ${messageid}
-   * RETURN doc`;
-   * ```
-   *
    * @memberof EvaluationDB
    */
   getReportByMessageId: (messageid: string) => Promise<Evaluation | undefined>;
 
-  /* ```
-   * const query = aql`
-   * INSERT {
-   *   "transactionID": ${JSON.stringify(transactionID)},
-   *   "transaction": ${JSON.stringify(transaction)},
-   *   "networkMap": ${JSON.stringify(networkMap)},
-   *   "report": ${JSON.stringify(alert)},
-   *   "dataCache": ${JSON.stringify(dataCache)}
-    } INTO ${collection}`
-   * ```
-   *
+  /**
+   * Save the Evaluation Result to DB
+   * @param transactionID transaction identifier
+   * @param tranaction pacs002 transaction object
+   * @param networkMap networkmap used in current evaluation
+   * @param alert report object
+   * @param dataCache dataCache object (optional)
    * @memberof EvaluationDB
    */
   saveEvaluationResult: (

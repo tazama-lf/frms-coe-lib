@@ -32,17 +32,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
 
   manager.saveTransactionDetails = async (td: TransactionDetails): Promise<void> => {
     const query: PgQueryConfig = {
-      text: `INSERT INTO
-              transaction
-            (
-              source,
-              destination,
-              transaction
-            ) 
-            VALUES
-            (
-              $1, $2, $3
-            )`,
+      text: 'INSERT INTO transaction (source, destination, transaction) VALUES ($1, $2, $3)',
       values: [td.source, td.destination, td],
     };
 
@@ -51,12 +41,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
 
   manager.saveAccount = async (key: string): Promise<void> => {
     const query: PgQueryConfig = {
-      text: `INSERT INTO account
-              (id)
-            VALUES
-              ($1)
-            ON CONFLICT 
-              (id) DO NOTHING`,
+      text: 'INSERT INTO account (id) VALUES ($1) ON CONFLICT (id) DO NOTHING',
       values: [key],
     };
 
@@ -65,12 +50,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
 
   manager.saveEntity = async (entityId: string, CreDtTm: string): Promise<void> => {
     const query: PgQueryConfig = {
-      text: `INSERT INTO entity
-              (id, creDtTm)
-            VALUES
-              ($1, $2)
-            ON CONFLICT 
-              (id) DO NOTHING`,
+      text: 'INSERT INTO entity (id, creDtTm) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING',
       values: [entityId, CreDtTm],
     };
 
@@ -79,12 +59,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
 
   manager.saveAccountHolder = async (entityId: string, accountId: string, CreDtTm: string): Promise<void> => {
     const query: PgQueryConfig = {
-      text: `INSERT INTO account_holder
-              (source, destination, creDtTm)
-            VALUES
-              ($1, $2, $3)
-            ON CONFLICT 
-              (source, destination) DO NOTHING`,
+      text: 'INSERT INTO account_holder (source, destination, creDtTm) VALUES ($1, $2, $3) ON CONFLICT (source, destination) DO NOTHING',
       values: [entityId, accountId, CreDtTm],
     };
 
@@ -93,10 +68,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
 
   manager.saveCondition = async (condition: EntityCondition | AccountCondition): Promise<void> => {
     const query: PgQueryConfig = {
-      text: `INSERT INTO condition
-              (condition)
-            VALUES
-              ($1)`,
+      text: 'INSERT INTO condition (condition) VALUES ($1)',
       values: [condition],
     };
 
@@ -243,13 +215,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
   manager.getEntity = async (entityId: string, schemeProprietary: string): Promise<Entity | undefined> => {
     const id = `${entityId}${schemeProprietary}`;
     const query: PgQueryConfig = {
-      text: `
-        SELECT
-          id, creDtTm
-        FROM
-          entity
-        WHERE
-          id = $1`,
+      text: 'SELECT id, creDtTm FROM entity WHERE id = $1',
       values: [id],
     };
 
@@ -262,13 +228,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
   manager.getAccount = async (accountId: string, schemeProprietary: string, agtMemberId: string): Promise<Account | undefined> => {
     const id = `${accountId}${schemeProprietary}${agtMemberId}`;
     const query: PgQueryConfig = {
-      text: `
-        SELECT
-          id
-        FROM
-          account
-        WHER
-          id = $1`,
+      text: 'SELECT id FROM account WHERE id = $1',
       values: [id],
     };
 

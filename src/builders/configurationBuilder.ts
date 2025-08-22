@@ -57,7 +57,7 @@ export async function configurationBuilder(
     };
 
     if (limit !== undefined) {
-      query.text += ' LIMIT $4'; // $4 IS NULL OR LIMIT $4
+      query.text += ' LIMIT $3';
       query.values.push(limit);
     }
 

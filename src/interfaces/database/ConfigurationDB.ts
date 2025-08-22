@@ -10,45 +10,25 @@ export interface ConfigurationDB {
   nodeCache?: NodeCache;
 
   /**
-   * Returns rule config
-   * @param ruleId A ruleId String used to filter on the id field
-   * @param cfg A cfg String used to filter on the cfg field
-   * @param limit A limit Number used to limit the amount of results
+   * @param {string} ruleId A ruleId String used to filter on the id field
+   * @param {string} cfg A cfg String used to filter on the cfg field
+   * @param {number | undefined} limit optional limit
+   * @returns {RuleConfig} rule config
    *
-   * ```
-   * const query = aql`
-   * FOR doc IN ${collection}
-   * FILTER doc.id == ${ruleId}
-   * FILTER doc.cfg == ${cfg}
-   * *LIMIT ${limit}
-   * RETURN doc`
-   * ```
-   * \* Indicates filter is only applied when parameter is passed in
    * @memberof ConfigurationDB
    */
   getRuleConfig: (ruleId: string, cfg: string, limit?: number) => Promise<RuleConfig | undefined>;
 
   /**
-   * Returns typology expression
-   * ```
-   * const query = aql`
-   * FOR doc IN ${collection}
-   * FILTER doc.id == ${typology.id} AND doc.cfg == ${typology.cfg}
-   * RETURN doc`;
-   * ```
+   * @param {Typology} typology identifiers used to find it's configuration
+   * @returns {TypologyConfig} given typology's config
+   *
    * @memberof ConfigurationDB
    */
   getTypologyConfig: (typology: Typology) => Promise<TypologyConfig | undefined>;
 
   /**
-   * Finds all active networkmaps
-   *
-   * ```
-   * const query = aql`
-   * FOR doc IN ${collection}
-   * FILTER doc.active == true
-   * RETURN doc
-   * ```
+   * @returns {NetworkMap[]} active networkmaps
    *
    * @memberof ConfigurationDB
    */

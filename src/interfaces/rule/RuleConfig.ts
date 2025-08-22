@@ -25,10 +25,15 @@ export interface Band extends OutcomeResult {
   upperLimit?: number;
 }
 
-export interface Case extends OutcomeResult {
-  value: string;
+export interface Case {
+  expressions: Expression[];
+  alternative: OutcomeResult;
 }
 
 export interface Timeframe {
   threshold: number;
+}
+
+export interface Expression extends OutcomeResult {
+  value: string;
 }

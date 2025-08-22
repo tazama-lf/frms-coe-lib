@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
-export class RuleResult {
-  id = '';
-  cfg = '';
-  subRuleRef = '';
-  reason? = '';
-  prcgTm? = 0;
-  wght? = 0;
+export interface RuleResult {
+  id: string;
+  cfg: string;
+  subRuleRef: string;
+  reason?: string;
+  prcgTm?: number;
+  wght?: number;
 }

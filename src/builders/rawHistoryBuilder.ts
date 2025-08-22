@@ -30,12 +30,7 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
 
   manager.getTransactionPacs008 = async (endToEndId: string): Promise<Pacs008 | undefined> => {
     const query: PgQueryConfig = {
-      text: `SELECT 
-              document 
-            FROM 
-              pacs008 
-            WHERE 
-              endToEndId = $1`,
+      text: 'SELECT document FROM pacs008 WHERE endToEndId = $1',
       values: [endToEndId],
     };
 
@@ -47,12 +42,7 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
 
   manager.saveTransactionHistoryPain001 = async (tran: Pain001): Promise<void> => {
     const query: PgQueryConfig = {
-      text: `INSERT INTO pain001
-              (document)
-            VALUES
-              ($1)
-            ON CONFLICT 
-              (EndToEndId) DO NOTHING`,
+      text: 'INSERT INTO pain001 (document) VALUES ($1) ON CONFLICT (EndToEndId) DO NOTHING',
       values: [tran],
     };
 
@@ -61,12 +51,7 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
 
   manager.saveTransactionHistoryPain013 = async (tran: Pain013): Promise<void> => {
     const query: PgQueryConfig = {
-      text: `INSERT INTO pain013
-              (document)
-            VALUES
-              ($1)
-            ON CONFLICT 
-              (EndToEndId) DO NOTHING`,
+      text: 'INSERT INTO pain013 (document) VALUES ($1) ON CONFLICT (EndToEndId) DO NOTHING',
       values: [tran],
     };
 
@@ -75,12 +60,7 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
 
   manager.saveTransactionHistoryPacs008 = async (tran: Pacs008): Promise<void> => {
     const query: PgQueryConfig = {
-      text: `INSERT INTO pacs008
-              (document)
-            VALUES
-              ($1)
-            ON CONFLICT 
-              (EndToEndId) DO NOTHING`,
+      text: 'INSERT INTO pacs008 (document) VALUES ($1) ON CONFLICT (EndToEndId) DO NOTHING',
       values: [tran],
     };
 
@@ -89,12 +69,7 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
 
   manager.saveTransactionHistoryPacs002 = async (tran: Pacs002): Promise<void> => {
     const query: PgQueryConfig = {
-      text: `INSERT INTO pacs002
-              (document)
-            VALUES
-              ($1)
-            ON CONFLICT 
-              (EndToEndId) DO NOTHING`,
+      text: 'INSERT INTO pacs002 (document) VALUES ($1) ON CONFLICT (EndToEndId) DO NOTHING',
       values: [tran],
     };
 

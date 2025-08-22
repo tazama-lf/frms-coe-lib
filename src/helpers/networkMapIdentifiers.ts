@@ -3,37 +3,31 @@
 import type { DatabaseManagerInstance, ManagerConfig } from '..';
 import type { NetworkMap } from '../interfaces';
 
-function getRuleMap(networkMap: NetworkMap | undefined): { rulesIds: string[]; typologyCfg: string[] } {
+function getRuleMap(networkMap: NetworkMap): { rulesIds: string[]; typologyCfg: string[] } {
   const rulesIds: string[] = new Array<string>();
   const typologyCfg: string[] = new Array<string>();
-  if (networkMap) {
-    for (const Message of networkMap.messages) {
-      if (Message.typologies.length) {
-        for (const typology of Message.typologies) {
-          if (!typologyCfg.includes(typology.cfg)) typologyCfg.push(typology.cfg);
-          if (typology.rules.length) {
-            for (const rule of typology.rules) {
-              if (!rulesIds.includes(rule.id)) rulesIds.push(rule.id);
-            }
-          }
-        }
+
+  for (const Message of networkMap.messages) {
+    for (const typology of Message.typologies) {
+      if (!typologyCfg.includes(typology.cfg)) typologyCfg.push(typology.cfg);
+      for (const rule of typology.rules) {
+        if (!rulesIds.includes(rule.id)) rulesIds.push(rule.id);
       }
     }
   }
+
   return { rulesIds, typologyCfg };
 }
 
-export const getIdsFromNetworkMap = async (
+const getIdsFromNetworkMap = async (
   databaseManager: DatabaseManagerInstance<Required<Pick<ManagerConfig, 'configuration' | 'localCacheConfig' | 'redisConfig'>>>,
 ): Promise<{ rulesIds: string[]; typologyCfg: string[] }> => {
   const networkConfigurationList = await databaseManager.getNetworkMap();
-  const [firstNetworkMap] = networkConfigurationList;
+  if (!networkConfigurationList.length) {
+    return { rulesIds: [], typologyCfg: [] };
+  }
 
-  const networkMap = getRuleMap(firstNetworkMap);
-  return {
-    rulesIds: networkMap.rulesIds,
-    typologyCfg: networkMap.typologyCfg,
-  };
+  return getRuleMap(networkConfigurationList[0]);
 };
 
 export const getRoutesFromNetworkMap = async (

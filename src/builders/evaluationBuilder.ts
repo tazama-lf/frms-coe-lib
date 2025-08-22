@@ -31,12 +31,7 @@ export async function evaluationBuilder(manager: EvaluationDB, evaluationConfig:
 
   manager.getReportByMessageId = async (messageid: string): Promise<Evaluation | undefined> => {
     const query: PgQueryConfig = {
-      text: `SELECT 
-              evaluation 
-            FROM 
-              evaluation 
-            WHERE 
-              messageId = $1`,
+      text: 'SELECT evaluation FROM evaluation WHERE messageId = $1',
       values: [messageid],
     };
 
@@ -62,10 +57,7 @@ export async function evaluationBuilder(manager: EvaluationDB, evaluationConfig:
     };
 
     const query: PgQueryConfig = {
-      text: `INSERT INTO evaluation
-              (evaluation)
-            VALUES
-              ($1)`,
+      text: 'INSERT INTO evaluation (evaluation) VALUES ($1)',
       values: [data],
     };
 
