@@ -25,6 +25,7 @@ message SchemeName {
 message Entity {
     string id = 1;
     SchemeName schmeNm = 2;
+    string tenantId = 3;
 }
 
 message Perspective {
@@ -43,6 +44,7 @@ message ConditionDetails {
     string usr = 6;
     string creDtTm = 7;
     repeated Perspective prsptvs = 8;
+    string tenantId = 9;
 }
 
 message Conditions {
@@ -67,6 +69,7 @@ message SimpleCondition {
     string creDtTm = 8;
     string condId = 9;
     string xprtnDtTm = 10;
+    string tenantId = 13;
     oneof entityType {
       Account acct = 11;
       Entity ntty = 12;

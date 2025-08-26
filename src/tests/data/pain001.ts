@@ -4,6 +4,7 @@ import type { Pain001 } from '../../interfaces';
 
 export const Pain001Sample: Pain001 = {
   TxTp: 'pain.001.001.11',
+  TenantId: 'tenantId',
   CstmrCdtTrfInitn: {
     GrpHdr: {
       MsgId: '17fa-afea-48d6-b147-05c8463ea494',

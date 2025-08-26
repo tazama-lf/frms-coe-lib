@@ -4,6 +4,7 @@ import type { Pacs008 } from '../../interfaces';
 
 export const Pacs008Sample: Pacs008 = {
   TxTp: 'pacs.008.001.10',
+  TenantId: 'tenantId',
   FIToFICstmrCdtTrf: {
     GrpHdr: { MsgId: 'cabb-32c3-4ecf-944e-654855c80c38', CreDtTm: '2023-02-03T07:17:52.216Z', NbOfTxs: 1, SttlmInf: { SttlmMtd: 'CLRG' } },
     CdtTrfTxInf: {

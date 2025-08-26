@@ -33,6 +33,7 @@ const conditions = [
     condRsn: 'R001',
     usr: 'bob',
     creDtTm: '2024-08-23T11:46:53.091Z',
+    tenantId: 'tenantId',
     prsptvs: [
       {
         prsptv: 'governed_as_creditor_by',
@@ -55,6 +56,7 @@ const entity = {
   schmeNm: {
     prtry: 'MSISDN',
   },
+  tenantId: 'tenantId',
 };
 
 describe('Should serialise/deserialise EFRuP conditions', () => {
@@ -102,6 +104,7 @@ describe('Should serialise/deserialise EFRuP conditions', () => {
         usr: 'bob',
         creDtTm: '2024-09-09T07:38:16.421Z',
         condId: 'a66e78a0-2508-4fca-aac3-3207d8d2f88b',
+        tenantId: 'tenantId',
       },
       {
         evtTp: ['pacs.008.001.10'],
@@ -114,6 +117,7 @@ describe('Should serialise/deserialise EFRuP conditions', () => {
         usr: 'bob',
         creDtTm: '2024-09-09T07:38:24.349Z',
         condId: 'c859d422-d67f-454e-aae2-5011b0b16af2',
+        tenantId: 'tenantId',
       },
       {
         evtTp: ['pacs.008.001.10'],
@@ -127,6 +131,7 @@ describe('Should serialise/deserialise EFRuP conditions', () => {
         usr: 'bob',
         creDtTm: '2024-09-10T08:38:40.265Z',
         condId: '62b21fc0-5f4f-4f49-9cb0-c69e0123b3ec',
+        tenantId: 'tenantId',
       },
     ];
     let bufConds = createSimpleConditionsBuffer(items);
