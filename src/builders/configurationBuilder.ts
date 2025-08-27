@@ -4,7 +4,7 @@ import NodeCache from 'node-cache';
 import * as util from 'node:util';
 import { Pool, type PoolConfig } from 'pg';
 import { isDatabaseReady } from '../builders/utils';
-import type { NetworkMap, RuleConfig, Typology } from '../interfaces';
+import type { NetworkMap, RuleConfig } from '../interfaces';
 import type { PgQueryConfig } from '../interfaces/database';
 import type { TypologyConfig } from '../interfaces/processor-files/TypologyConfig';
 import type { ConfigurationDB, DBConfig, LocalCacheConfig } from '../services/dbManager';
@@ -70,8 +70,8 @@ export async function configurationBuilder(
     return toReturn;
   };
 
-  manager.getTypologyConfig = async (typology: Typology): Promise<TypologyConfig | undefined> => {
-    const cacheKey = `${typology.id}_${typology.cfg}`;
+  manager.getTypologyConfig = async (typologyId: string, typologyCfg: string): Promise<TypologyConfig | undefined> => {
+    const cacheKey = `${typologyId}_${typologyCfg}`;
     if (manager.nodeCache) {
       const cacheVal = manager.nodeCache.get<TypologyConfig>(cacheKey);
       if (cacheVal) return await Promise.resolve(cacheVal);
@@ -83,7 +83,7 @@ export async function configurationBuilder(
               typology
             WHERE
               typologyId = $1 AND typologyCfg = $2`,
-      values: [typology.id, typology.cfg],
+      values: [typologyId, typologyCfg],
     };
 
     const queryRes = await manager._configuration.query<{ configuration: TypologyConfig }>(query);

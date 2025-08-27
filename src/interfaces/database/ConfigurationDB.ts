@@ -2,7 +2,7 @@
 
 import type NodeCache from 'node-cache';
 import type { Pool } from 'pg';
-import type { NetworkMap, RuleConfig, Typology } from '..';
+import type { NetworkMap, RuleConfig } from '..';
 import type { TypologyConfig } from '../processor-files/TypologyConfig';
 
 export interface ConfigurationDB {
@@ -25,7 +25,7 @@ export interface ConfigurationDB {
    *
    * @memberof ConfigurationDB
    */
-  getTypologyConfig: (typology: Typology) => Promise<TypologyConfig | undefined>;
+  getTypologyConfig: (typologyId: string, typologyCfg: string) => Promise<TypologyConfig | undefined>;
 
   /**
    * @returns {NetworkMap[]} active networkmaps
