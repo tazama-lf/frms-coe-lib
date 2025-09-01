@@ -23,6 +23,7 @@ export type ExpressionMathJSON = Array<string | number | ExpressionMathJSON>;
 
 export interface ITypologyExpression {
   id: string;
+  tenantId: string;
   cfg: string;
   desc?: string;
   rules: IRuleValue[];
