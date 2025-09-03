@@ -36,6 +36,8 @@ const createErrorFn =
     if (innerError) {
       if (innerError instanceof Error) {
         errMessage = `${errMessage}\r\n${innerError.stack ?? innerError.message}`;
+      } else if (typeof innerError === 'string') {
+        errMessage = `${errMessage}\r\n${innerError}`;
       }
     }
 
