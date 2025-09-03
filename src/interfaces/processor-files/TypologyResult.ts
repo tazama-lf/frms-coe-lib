@@ -4,6 +4,7 @@ import type { RuleResult } from '..';
 
 export class TypologyResult {
   id = '';
+  tenantId = 'DEFAULT';
   cfg = '';
   prcgTm? = 0;
   result = 0.0;
