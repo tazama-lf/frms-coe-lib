@@ -13,6 +13,7 @@ export class Rule {
 
 export class Typology {
   id = '';
+  tenantId = '';
   host = '';
   cfg = '';
   desc = '';
