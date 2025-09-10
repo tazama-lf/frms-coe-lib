@@ -426,7 +426,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
                 )
             )
         )
-        SELECT result(
+        SELECT jsonb_build_object(
             'governed_as_creditor_account_by', COALESCE(jsonb_agg(gov_acct_cred), '[]'::jsonb),
             'governed_as_debtor_account_by',   COALESCE(jsonb_agg(gov_acct_debtor), '[]'::jsonb),
             'governed_as_creditor_by',         COALESCE(jsonb_agg(gov_cred), '[]'::jsonb),
@@ -436,12 +436,12 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
       values: [activeOnly],
     };
 
-    const queryRes = await manager._eventHistory.query<{ result: RawConditionResponse }>(query);
+    const queryRes = await manager._eventHistory.query<{ jsonb_build_object: RawConditionResponse }>(query);
     return queryRes.rows.map((eachEntry) => ({
-      governed_as_creditor_by: eachEntry.result.governed_as_creditor_by,
-      governed_as_debtor_by: eachEntry.result.governed_as_debtor_by,
-      governed_as_creditor_account_by: eachEntry.result.governed_as_creditor_account_by,
-      governed_as_debtor_account_by: eachEntry.result.governed_as_debtor_account_by,
+      governed_as_creditor_by: eachEntry.jsonb_build_object.governed_as_creditor_by,
+      governed_as_debtor_by: eachEntry.jsonb_build_object.governed_as_debtor_by,
+      governed_as_creditor_account_by: eachEntry.jsonb_build_object.governed_as_creditor_account_by,
+      governed_as_debtor_account_by: eachEntry.jsonb_build_object.governed_as_debtor_account_by,
     })) as RawConditionResponse[];
   };
 
@@ -498,7 +498,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
                   )
               )
         )
-        SELECT result(
+        SELECT jsonb_build_object(
             'governed_as_creditor_by', COALESCE(jsonb_agg(gov_cred), '[]'::jsonb),
             'governed_as_debtor_by',   COALESCE(jsonb_agg(gov_debtor), '[]'::jsonb)
         )
@@ -506,10 +506,10 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
       values: [entityId, schemeProprietary, retrieveAll],
     };
 
-    const queryRes = await manager._eventHistory.query<{ result: RawConditionResponse }>(query);
+    const queryRes = await manager._eventHistory.query<{ jsonb_build_object: RawConditionResponse }>(query);
     return queryRes.rows.map((eachEntry) => ({
-      governed_as_creditor_by: eachEntry.result.governed_as_creditor_by,
-      governed_as_debtor_by: eachEntry.result.governed_as_debtor_by,
+      governed_as_creditor_by: eachEntry.jsonb_build_object.governed_as_creditor_by,
+      governed_as_debtor_by: eachEntry.jsonb_build_object.governed_as_debtor_by,
     })) as RawConditionResponse[];
   };
 
@@ -563,17 +563,17 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
                   )
               )
         )
-        SELECT result(
+        SELECT jsonb_build_object(
             'governed_as_creditor_account_by', COALESCE(jsonb_agg(gov_cred), '[]'::jsonb),
             'governed_as_debtor_account_by', COALESCE(jsonb_agg(gov_debtor), '[]'::jsonb)
         )
         FROM gov_cred, gov_debtor;`,
       values: [entityId, schemeProprietary, agt, retrieveAll],
     };
-    const queryRes = await manager._eventHistory.query<{ result: RawConditionResponse }>(query);
+    const queryRes = await manager._eventHistory.query<{ jsonb_build_object: RawConditionResponse }>(query);
     return queryRes.rows.map((eachEntry) => ({
-      governed_as_creditor_account_by: eachEntry.result.governed_as_creditor_account_by,
-      governed_as_debtor_account_by: eachEntry.result.governed_as_debtor_account_by,
+      governed_as_creditor_account_by: eachEntry.jsonb_build_object.governed_as_creditor_account_by,
+      governed_as_debtor_account_by: eachEntry.jsonb_build_object.governed_as_debtor_account_by,
     })) as RawConditionResponse[];
   };
 }

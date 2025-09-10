@@ -291,7 +291,7 @@ describe('CreateDatabaseManager', () => {
     jest.spyOn(globalManager._eventHistory, 'query').mockImplementation((query: string): Promise<any> => {
       return new Promise((resolve, reject) => {
         resolve({
-          rows: [{ result: { governed_as_creditor_by: 'MOCK-QUERY', governed_as_debtor_by: 'MOCK-QUERY' } }],
+          rows: [{ jsonb_build_object: { governed_as_creditor_by: 'MOCK-QUERY', governed_as_debtor_by: 'MOCK-QUERY' } }],
         });
       });
     });
@@ -307,7 +307,7 @@ describe('CreateDatabaseManager', () => {
     jest.spyOn(globalManager._eventHistory, 'query').mockImplementation((query: string): Promise<any> => {
       return new Promise((resolve, reject) => {
         resolve({
-          rows: [{ result: { governed_as_creditor_account_by: 'MOCK-QUERY', governed_as_debtor_account_by: 'MOCK-QUERY' } }],
+          rows: [{ jsonb_build_object: { governed_as_creditor_account_by: 'MOCK-QUERY', governed_as_debtor_account_by: 'MOCK-QUERY' } }],
         });
       });
     });
