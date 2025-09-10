@@ -105,7 +105,7 @@ export interface EventHistoryDB {
    *
    * @memberof EventHistoryDB
    */
-  getEntityConditionsByGraph: (entityId: string, schemeProprietary: string, retrieveAll?: boolean) => Promise<RawConditionResponse[][]>;
+  getEntityConditionsByGraph: (entityId: string, schemeProprietary: string, retrieveAll?: boolean) => Promise<RawConditionResponse[]>;
 
   /**
    * @param entityId string of identifier for entity being retrieved
@@ -120,14 +120,14 @@ export interface EventHistoryDB {
     schemeProprietary: string,
     agt: string,
     retrieveAll?: boolean,
-  ) => Promise<RawConditionResponse[][]>;
+  ) => Promise<RawConditionResponse[]>;
 
   /**
    * @param activeOnly Only active conditions
    *
    * @memberof EventHistoryDB
    */
-  getConditionsByGraph: (activeOnly: boolean) => Promise<RawConditionResponse[][]>;
+  getConditionsByGraph: (activeOnly: boolean) => Promise<RawConditionResponse[]>;
 
   /**
    * @param activeOnly Only active conditions

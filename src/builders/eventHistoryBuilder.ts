@@ -5,7 +5,7 @@ import { Pool, type PoolConfig } from 'pg';
 import { isDatabaseReady } from '../builders/utils';
 import type { AccountCondition, ConditionEdge, EntityCondition, TransactionDetails } from '../interfaces';
 import type { PgQueryConfig } from '../interfaces/database';
-import type { Account, Edge, Entity, Condition } from '../interfaces/event-flow/EntityConditionEdge';
+import type { Account, Edge, Entity, Condition, RawConditionResponse } from '../interfaces/event-flow/EntityConditionEdge';
 import type { DBConfig, EventHistoryDB } from '../services/dbManager';
 import { readyChecks } from '../services/dbManager';
 import { getSSLConfig } from './utils';
@@ -361,5 +361,219 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
     };
 
     await manager._eventHistory.query(query);
+  };
+
+  manager.getConditionsByGraph = async (activeOnly: boolean): Promise<RawConditionResponse[]> => {
+    const query: PgQueryConfig = {
+      text: `
+        WITH gov_acct_cred AS (
+            SELECT 
+                e.* AS edge,
+                f.* AS result,
+                t.* AS condition
+            FROM governed_as_creditor_account_by e
+            JOIN account    f ON f.id = e.source
+            JOIN "condition" t ON t.id = e.destination
+            WHERE (
+                $1::boolean = FALSE
+                OR (
+                    e."xprtndttm"::timestamptz < NOW()
+                )
+            )
+        ),
+        gov_acct_debtor AS (
+            SELECT 
+                e.* AS edge,
+                f.* AS result,
+                t.* AS condition
+            FROM governed_as_debtor_account_by e
+            JOIN account    f ON f.id = e.source
+            JOIN "condition" t ON t.id = e.destination
+            WHERE (
+                $1::boolean = FALSE
+                OR (
+                    e."xprtndttm"::timestamptz < NOW()
+                )
+            )
+        ),
+        gov_cred AS (
+            SELECT 
+                e.* AS edge,
+                f.* AS result,
+                t.* AS condition
+            FROM governed_as_creditor_by e
+            JOIN entity    f ON f.id = e.source
+            JOIN "condition" t ON t.id = e.destination
+            WHERE (
+                $1::boolean = FALSE
+                OR (
+                    e."xprtndttm"::timestamptz < NOW()
+                )
+            )
+        ),
+        gov_debtor AS (
+            SELECT 
+                e.* AS edge,
+                f.* AS result,
+                t.* AS condition
+            FROM governed_as_debtor_by e
+            JOIN entity    f ON f.id = e.source
+            JOIN "condition" t ON t.id = e.destination
+            WHERE (
+                $1::boolean = FALSE
+                OR (
+                    e."xprtndttm"::timestamptz < NOW()
+                )
+            )
+        )
+        SELECT result(
+            'governed_as_creditor_account_by', COALESCE(jsonb_agg(gov_acct_cred), '[]'::jsonb),
+            'governed_as_debtor_account_by',   COALESCE(jsonb_agg(gov_acct_debtor), '[]'::jsonb),
+            'governed_as_creditor_by',         COALESCE(jsonb_agg(gov_cred), '[]'::jsonb),
+            'governed_as_debtor_by',           COALESCE(jsonb_agg(gov_debtor), '[]'::jsonb)
+        )
+        FROM gov_acct_cred, gov_acct_debtor, gov_cred, gov_debtor;`,
+      values: [activeOnly],
+    };
+
+    const queryRes = await manager._eventHistory.query<{ result: RawConditionResponse }>(query);
+    return queryRes.rows.map((eachEntry) => ({
+      governed_as_creditor_by: eachEntry.result.governed_as_creditor_by,
+      governed_as_debtor_by: eachEntry.result.governed_as_debtor_by,
+      governed_as_creditor_account_by: eachEntry.result.governed_as_creditor_account_by,
+      governed_as_debtor_account_by: eachEntry.result.governed_as_debtor_account_by,
+    })) as RawConditionResponse[];
+  };
+
+  manager.getEntityConditionsByGraph = async (
+    entityId: string,
+    schemeProprietary: string,
+    retrieveAll?: boolean,
+  ): Promise<RawConditionResponse[]> => {
+    const query: PgQueryConfig = {
+      text: `
+        WITH gov_cred AS (
+          SELECT 
+              e.* AS edge,
+              f.* AS result,
+              t.* AS condition
+          FROM governed_as_creditor_by e
+          JOIN entity   f ON f.id = e.source
+          JOIN "condition" t ON t.id = e.destination
+          WHERE t.condition->'ntty'->>'id' = $1
+          AND t.condition->'ntty'->'schmeNm'->>'prtry' = $2
+          AND (
+              $3::boolean = TRUE
+              OR (
+                  (t.condition #>> '{incptnDtTm}')::timestamptz < NOW()
+                  AND (
+                      (t.condition #>> '{xprtnDtTm}')::timestamptz > NOW()
+                      OR (t.condition #>> '{xprtnDtTm}') IS NULL
+                  )
+                  AND e."incptndttm"::timestamptz < NOW()
+                  AND (e."xprtndttm"::timestamptz > NOW() OR e."xprtndttm" IS NULL)
+              )
+            )
+        ),
+        gov_debtor AS (
+            SELECT 
+                e.* AS edge,
+                f.* AS result,
+                t.* AS condition
+            FROM governed_as_debtor_by e
+            JOIN entity   f ON f.id = e.source
+            JOIN "condition" t ON t.id = e.destination
+            WHERE t.condition->'ntty'->>'id' = $1
+              AND t.condition->'ntty'->'schmeNm'->>'prtry' = $2
+              AND (
+                  $3::boolean = TRUE
+                  OR (
+                      (t.condition #>> '{incptnDtTm}')::timestamptz < NOW()
+                      AND (
+                           (t.condition #>> '{xprtnDtTm}')::timestamptz > NOW()
+                           OR (t.condition #>> '{xprtnDtTm}') IS NULL
+                      )
+                      AND e."incptndttm"::timestamptz < NOW()
+                      AND (e."xprtndttm"::timestamptz > NOW() OR e."xprtndttm" IS NULL)
+                  )
+              )
+        )
+        SELECT result(
+            'governed_as_creditor_by', COALESCE(jsonb_agg(gov_cred), '[]'::jsonb),
+            'governed_as_debtor_by',   COALESCE(jsonb_agg(gov_debtor), '[]'::jsonb)
+        )
+        FROM gov_cred, gov_debtor;`,
+      values: [entityId, schemeProprietary, retrieveAll],
+    };
+
+    const queryRes = await manager._eventHistory.query<{ result: RawConditionResponse }>(query);
+    return queryRes.rows.map((eachEntry) => ({
+      governed_as_creditor_by: eachEntry.result.governed_as_creditor_by,
+      governed_as_debtor_by: eachEntry.result.governed_as_debtor_by,
+    })) as RawConditionResponse[];
+  };
+
+  manager.getAccountConditionsByGraph = async (
+    entityId: string,
+    schemeProprietary: string,
+    agt: string,
+    retrieveAll?: boolean,
+  ): Promise<RawConditionResponse[]> => {
+    const query: PgQueryConfig = {
+      text: `
+        WITH gov_cred AS (
+            SELECT 
+                e.* AS edge,
+                f.* AS result,
+                t.* AS condition
+            FROM governed_as_creditor_account_by e
+            JOIN account f ON f.id = e.source
+            JOIN condition t ON t.id = e.destination
+            WHERE t.condition->'acct'->>'id' = $1
+              AND t.condition->'acct'->'schmeNm'->>'prtry' = $2
+              AND t.condition->'acct'->'agt'->'finInstnId'->'clrSysMmbId'->>'mmbId' = $3
+              AND (
+                  $4::boolean = TRUE 
+                  OR (
+                      (t.condition #>> '{incptnDtTm}')::timestamptz < NOW()  
+                      AND ((t.condition #>> '{xprtnDtTm}')::timestamptz > NOW() OR (t.condition #>> '{xprtnDtTm}') IS NULL)
+                      AND e."incptndttm"::timestamptz < NOW()
+                      AND (e."xprtndttm"::timestamptz > NOW() OR e."xprtndttm" IS NULL)
+                  )
+              )
+        ),
+        gov_debtor AS (
+            SELECT 
+                e.* AS edge,
+                f.* AS result,
+                t.* AS condition
+            FROM governed_as_debtor_account_by e
+            JOIN account f ON f.id = e.source
+            JOIN condition t ON t.id = e.destination
+            WHERE t.condition->'acct'->>'id' = $1
+              AND t.condition->'acct'->'schmeNm'->>'prtry' = $2
+              AND t.condition->'acct'->'agt'->'finInstnId'->'clrSysMmbId'->>'mmbId' = $3
+              AND (
+                  $4::boolean = TRUE 
+                  OR (
+                      (t.condition #>> '{incptnDtTm}')::timestamptz < NOW() 
+                      AND ((t.condition #>> '{xprtnDtTm}')::timestamptz > NOW() OR (t.condition #>> '{xprtnDtTm}') IS NULL)
+                      AND e."incptndttm"::timestamptz < NOW()
+                      AND (e."xprtndttm"::timestamptz > NOW() OR e."xprtndttm" IS NULL) 
+                  )
+              )
+        )
+        SELECT result(
+            'governed_as_creditor_account_by', COALESCE(jsonb_agg(gov_cred), '[]'::jsonb),
+            'governed_as_debtor_account_by', COALESCE(jsonb_agg(gov_debtor), '[]'::jsonb)
+        )
+        FROM gov_cred, gov_debtor;`,
+      values: [entityId, schemeProprietary, agt, retrieveAll],
+    };
+    const queryRes = await manager._eventHistory.query<{ result: RawConditionResponse }>(query);
+    return queryRes.rows.map((eachEntry) => ({
+      governed_as_creditor_account_by: eachEntry.result.governed_as_creditor_account_by,
+      governed_as_debtor_account_by: eachEntry.result.governed_as_debtor_account_by,
+    })) as RawConditionResponse[];
   };
 }
