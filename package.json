@@ -1,6 +1,6 @@
 {
   "name": "@tazama-lf/frms-coe-lib",
-  "version": "6.0.0-postgres.alpha.7",
+  "version": "6.0.0-postgres.alpha.8",
   "description": "Tazama package library",
   "main": "lib/index.js",
   "repository": {
@@ -15,7 +15,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "npx rimraf lib && tsc --project tsconfig.json && copyfiles 'src/helpers/proto/*.proto' lib/helpers/proto -f",
+    "build": "npx rimraf lib && tsc --project tsconfig.json && copyfiles src/helpers/proto/*.proto lib/helpers/proto -f",
     "test": "jest --config=jest.config.ts --passWithNoTests",
     "clean": "npx rimraf lib node_modules coverage package-lock.json",
     "fix": "npm run fix:prettier && npm run fix:eslint",

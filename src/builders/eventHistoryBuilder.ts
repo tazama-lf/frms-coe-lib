@@ -269,7 +269,8 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
   };
 
   manager.updateExpiryDateOfDebtorAccountEdges = async (
-    edgeDebtorByKey: string,
+    source: string,
+    destination: string,
     expireDateTime: string,
     tenantId: string,
   ): Promise<void> => {
@@ -280,16 +281,19 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
         SET
           xprtnDtTm = $1
         WHERE
-          id = $2
+          source = $2
+        AND
+          destination = $3
       `, // AND tenantId = $3
-      values: [expireDateTime, edgeDebtorByKey],
+      values: [expireDateTime, source, destination],
     };
 
     await manager._eventHistory.query(query);
   };
 
   manager.updateExpiryDateOfCreditorAccountEdges = async (
-    edgeCreditorByKey: string,
+    source: string,
+    destination: string,
     expireDateTime: string,
     tenantId: string,
   ): Promise<void> => {
@@ -300,16 +304,19 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
         SET
           xprtnDtTm = $1
         WHERE
-          id = $2
+          source = $2
+        AND
+          destination = $3
       `, // AND tenantId = $3
-      values: [expireDateTime, edgeCreditorByKey],
+      values: [expireDateTime, source, destination],
     };
 
     await manager._eventHistory.query(query);
   };
 
   manager.updateExpiryDateOfDebtorEntityEdges = async (
-    edgeDebtorByKey: string,
+    source: string,
+    destination: string,
     expireDateTime: string,
     tenantId: string,
   ): Promise<void> => {
@@ -320,16 +327,19 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
         SET
           xprtnDtTm = $1
         WHERE
-          id = $2
+          source = $2
+        AND
+          destination = $3
       `, // AND tenantId = $3
-      values: [expireDateTime, edgeDebtorByKey],
+      values: [expireDateTime, source, destination],
     };
 
     await manager._eventHistory.query(query);
   };
 
   manager.updateExpiryDateOfCreditorEntityEdges = async (
-    edgeCreditorByKey: string,
+    source: string,
+    destination: string,
     expireDateTime: string,
     tenantId: string,
   ): Promise<void> => {
@@ -340,9 +350,11 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
         SET
           xprtnDtTm = $1
         WHERE
-          id = $2
+          source = $2
+        AND
+          destination = $3
       `, // AND tenantId = $3
-      values: [expireDateTime, edgeCreditorByKey],
+      values: [expireDateTime, source, destination],
     };
 
     await manager._eventHistory.query(query);
@@ -351,12 +363,12 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
   manager.updateCondition = async (conditionId: string, expireDateTime: string): Promise<void> => {
     const query: PgQueryConfig = {
       text: `
-        UPDATE
-          conditions
-        SET
-          xprtnDtTm = $1
-        WHERE
-          condId = $2`,
+        UPDATE 
+          condition
+        SET 
+          condition = jsonb_set(condition, '{xprtnDtTm}', to_jsonb($1::text), true)
+        WHERE 
+          id = $2;`,
       values: [expireDateTime, conditionId],
     };
 
@@ -431,17 +443,17 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
             'governed_as_debtor_account_by',   COALESCE(jsonb_agg(gov_acct_debtor), '[]'::jsonb),
             'governed_as_creditor_by',         COALESCE(jsonb_agg(gov_cred), '[]'::jsonb),
             'governed_as_debtor_by',           COALESCE(jsonb_agg(gov_debtor), '[]'::jsonb)
-        )
+        ) AS result
         FROM gov_acct_cred, gov_acct_debtor, gov_cred, gov_debtor;`,
       values: [activeOnly],
     };
 
-    const queryRes = await manager._eventHistory.query<{ jsonb_build_object: RawConditionResponse }>(query);
+    const queryRes = await manager._eventHistory.query<{ result: RawConditionResponse }>(query);
     return queryRes.rows.map((eachEntry) => ({
-      governed_as_creditor_by: eachEntry.jsonb_build_object.governed_as_creditor_by,
-      governed_as_debtor_by: eachEntry.jsonb_build_object.governed_as_debtor_by,
-      governed_as_creditor_account_by: eachEntry.jsonb_build_object.governed_as_creditor_account_by,
-      governed_as_debtor_account_by: eachEntry.jsonb_build_object.governed_as_debtor_account_by,
+      governed_as_creditor_by: eachEntry.result.governed_as_creditor_by,
+      governed_as_debtor_by: eachEntry.result.governed_as_debtor_by,
+      governed_as_creditor_account_by: eachEntry.result.governed_as_creditor_account_by,
+      governed_as_debtor_account_by: eachEntry.result.governed_as_debtor_account_by,
     })) as RawConditionResponse[];
   };
 
@@ -501,15 +513,15 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
         SELECT jsonb_build_object(
             'governed_as_creditor_by', COALESCE(jsonb_agg(gov_cred), '[]'::jsonb),
             'governed_as_debtor_by',   COALESCE(jsonb_agg(gov_debtor), '[]'::jsonb)
-        )
+        ) AS result
         FROM gov_cred, gov_debtor;`,
       values: [entityId, schemeProprietary, retrieveAll],
     };
 
-    const queryRes = await manager._eventHistory.query<{ jsonb_build_object: RawConditionResponse }>(query);
+    const queryRes = await manager._eventHistory.query<{ result: RawConditionResponse }>(query);
     return queryRes.rows.map((eachEntry) => ({
-      governed_as_creditor_by: eachEntry.jsonb_build_object.governed_as_creditor_by,
-      governed_as_debtor_by: eachEntry.jsonb_build_object.governed_as_debtor_by,
+      governed_as_creditor_by: eachEntry.result.governed_as_creditor_by,
+      governed_as_debtor_by: eachEntry.result.governed_as_debtor_by,
     })) as RawConditionResponse[];
   };
 
@@ -566,14 +578,14 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
         SELECT jsonb_build_object(
             'governed_as_creditor_account_by', COALESCE(jsonb_agg(gov_cred), '[]'::jsonb),
             'governed_as_debtor_account_by', COALESCE(jsonb_agg(gov_debtor), '[]'::jsonb)
-        )
+        ) AS result
         FROM gov_cred, gov_debtor;`,
       values: [entityId, schemeProprietary, agt, retrieveAll],
     };
-    const queryRes = await manager._eventHistory.query<{ jsonb_build_object: RawConditionResponse }>(query);
+    const queryRes = await manager._eventHistory.query<{ result: RawConditionResponse }>(query);
     return queryRes.rows.map((eachEntry) => ({
-      governed_as_creditor_account_by: eachEntry.jsonb_build_object.governed_as_creditor_account_by,
-      governed_as_debtor_account_by: eachEntry.jsonb_build_object.governed_as_debtor_account_by,
+      governed_as_creditor_account_by: eachEntry.result.governed_as_creditor_account_by,
+      governed_as_debtor_account_by: eachEntry.result.governed_as_debtor_account_by,
     })) as RawConditionResponse[];
   };
 }

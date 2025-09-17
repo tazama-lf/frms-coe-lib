@@ -162,42 +162,46 @@ export interface EventHistoryDB {
   getConditionsByAccount: (accountId: string, schemeProprietary: string, memberId: string) => Promise<AccountCondition[]>;
 
   /**
+   * @param source string id of the "from" node data that is connected by the edge
+   * @param destination string id of the "to" node data that is connected by the edge
+   * @param expireDateTime new date to use for expire timedate in edges
+   * @param tenantId string tenant identifier for authorization
+   *
+   * @memberof EventHistoryDB
+   */
+  updateExpiryDateOfDebtorAccountEdges: (source: string, destination: string, expireDateTime: string, tenantId: string) => Promise<void>;
+
+  /**
+   * @param source string id of the "from" node data that is connected by the edge
+   * @param destination string id of the "to" node data that is connected by the edge
+   * @param expireDateTime new date to use for expire timedate in edges
+   * @param tenantId string tenant identifier for authorization
+   *
+   * @memberof EventHistoryDB
+   */
+  updateExpiryDateOfCreditorAccountEdges: (source: string, destination: string, expireDateTime: string, tenantId: string) => Promise<void>;
+
+  /**
+   * @param source string id of the "from" node data that is connected by the edge
+   * @param destination string id of the "to" node data that is connected by the edge
    * @param edgeDebtorByKey string id of identifier for debtor by edge
    * @param expireDateTime new date to use for expire timedate in edges
    * @param tenantId string tenant identifier for authorization
    *
    * @memberof EventHistoryDB
    */
-  updateExpiryDateOfDebtorAccountEdges: (edgeDebtorByKey: string, expireDateTime: string, tenantId: string) => Promise<void>;
+  updateExpiryDateOfDebtorEntityEdges: (source: string, destination: string, expireDateTime: string, tenantId: string) => Promise<void>;
 
   /**
-   * @param edgeCreditorByKey string id of identifier for creditor by edge
-   * @param expireDateTime new date to use for expire timedate in edges
-   * @param tenantId string tenant identifier for authorization
-   *
-   * @memberof EventHistoryDB
-   */
-  updateExpiryDateOfCreditorAccountEdges: (edgeCreditorByKey: string, expireDateTime: string, tenantId: string) => Promise<void>;
-
-  /**
-   * @param edgeCreditorByKey string id of identifier for creditor by edge
+   * @param source string id of the "from" node data that is connected by the edge
+   * @param destination string id of the "to" node data that is connected by the edge
    * @param edgeDebtorByKey string id of identifier for debtor by edge
    * @param expireDateTime new date to use for expire timedate in edges
    * @param tenantId string tenant identifier for authorization
    *
    * @memberof EventHistoryDB
    */
-  updateExpiryDateOfDebtorEntityEdges: (edgeDebtorByKey: string, expireDateTime: string, tenantId: string) => Promise<void>;
-
-  /**
-   * @param edgeCreditorByKey string id of identifier for creditor by edge
-   * @param edgeDebtorByKey string id of identifier for debtor by edge
-   * @param expireDateTime new date to use for expire timedate in edges
-   * @param tenantId string tenant identifier for authorization
-   *
-   * @memberof EventHistoryDB
-   */
-  updateExpiryDateOfCreditorEntityEdges: (edgeDebtorByKey: string, expireDateTime: string, tenantId: string) => Promise<void>;
+  updateExpiryDateOfCreditorEntityEdges: (source: string, destination: string, expireDateTime: string, tenantId: string) => Promise<void>;
 
   /**
    * @param conditionId string id of identifier for condition being updated
