@@ -362,6 +362,7 @@ message FRMSMessage {
         string host = 2;
         string cfg = 3;
         repeated Rules rules = 4;
+        string tenantId = 5;
     }
 
     message Messages {
@@ -376,6 +377,7 @@ message FRMSMessage {
         bool active = 1;
         string cfg = 2;
         repeated Messages messages = 3;
+        string tenantId = 4;
     }
 
     message Metadata {
@@ -396,6 +398,7 @@ message FRMSMessage {
 
     message Typologyresult {
         string id = 1;
+        string tenantId = 10;
         string cfg = 2;
         string desc = 3;
         uint32 result = 4;
@@ -515,6 +518,7 @@ message FRMSMessage {
       repeated string evtTp = 1;
       string incptnDtTm = 2;
       string xprtnDtTm = 3;
+      string tenantId = 4;
     }
 
 
