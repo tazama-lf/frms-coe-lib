@@ -2,7 +2,6 @@
 
 import type { DatabaseManagerInstance, ManagerConfig } from '..';
 import type { NetworkMap } from '../interfaces';
-import { unwrap } from './unwrap';
 
 function getRuleMap(networkMap: NetworkMap | undefined): { rulesIds: string[]; typologyCfg: string[] } {
   const rulesIds: string[] = new Array<string>();
@@ -24,16 +23,23 @@ function getRuleMap(networkMap: NetworkMap | undefined): { rulesIds: string[]; t
   return { rulesIds, typologyCfg };
 }
 
-export const getIdsFromNetworkMap = async (
+export const getIdsFromNetworkMaps = async (
   databaseManager: DatabaseManagerInstance<Required<Pick<ManagerConfig, 'configuration' | 'localCacheConfig' | 'redisConfig'>>>,
 ): Promise<{ rulesIds: string[]; typologyCfg: string[] }> => {
+  let ruleIds: string[] = [];
+  let typologyCfg: string[] = [];
   const networkConfigurationList = (await databaseManager.getNetworkMap()) as NetworkMap[][];
-  const unwrappedNetworkMap = unwrap<NetworkMap>(networkConfigurationList);
+  for (const networkMaps of networkConfigurationList) {
+    for (const networkMap of networkMaps) {
+      const ruleMaps = getRuleMap(networkMap);
+      ruleIds = [...ruleIds, ...ruleMaps.rulesIds];
+      typologyCfg = [...typologyCfg, ...ruleMaps.typologyCfg];
+    }
+  }
 
-  const networkMap = getRuleMap(unwrappedNetworkMap);
   return {
-    rulesIds: networkMap.rulesIds,
-    typologyCfg: networkMap.typologyCfg,
+    rulesIds: ruleIds,
+    typologyCfg,
   };
 };
 
@@ -41,7 +47,7 @@ export const getRoutesFromNetworkMap = async (
   databaseManager: DatabaseManagerInstance<Required<Pick<ManagerConfig, 'configuration' | 'localCacheConfig' | 'redisConfig'>>>,
   processor: string,
 ): Promise<{ consumers: string[] }> => {
-  const { typologyCfg, rulesIds } = await getIdsFromNetworkMap(databaseManager);
+  const { typologyCfg, rulesIds } = await getIdsFromNetworkMaps(databaseManager);
 
   switch (processor) {
     case 'typology-processor':

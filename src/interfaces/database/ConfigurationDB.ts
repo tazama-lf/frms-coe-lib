@@ -64,6 +64,7 @@ export interface ConfigurationDB {
    * const query = aql`
    * FOR doc IN ${collection}
    * FILTER doc.id == ${typology.id} AND doc.cfg == ${typology.cfg}
+   * FILTER doc.tenantId == ${typology.tenantId}
    * RETURN doc`;
    * ```
    * @memberof ConfigurationDB

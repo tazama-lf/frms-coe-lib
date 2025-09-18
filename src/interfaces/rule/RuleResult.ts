@@ -2,6 +2,7 @@
 
 export class RuleResult {
   id = '';
+  tenantId = '';
   cfg = '';
   subRuleRef = '';
   reason? = '';

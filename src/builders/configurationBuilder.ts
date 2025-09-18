@@ -99,7 +99,7 @@ export async function configurationBuilder(
   };
 
   manager.getTypologyConfig = async (typology: Typology) => {
-    const cacheKey = `${typology.id}_${typology.cfg}`;
+    const cacheKey = `${typology.tenantId}_${typology.id}_${typology.cfg}`;
     if (cacheConfig?.localCacheEnabled ?? false) {
       const cacheVal = manager.nodeCache?.get(cacheKey);
       if (cacheVal) return await Promise.resolve(cacheVal);
@@ -107,7 +107,7 @@ export async function configurationBuilder(
     const db = manager._configuration?.collection(dbConfiguration.typologyConfiguration);
     const query: AqlQuery = aql`
       FOR doc IN ${db}
-      FILTER doc.id == ${typology.id} AND doc.cfg == ${typology.cfg}
+      FILTER doc.id == ${typology.id} AND doc.cfg == ${typology.cfg} AND doc.tenantId == ${typology.tenantId}
       RETURN doc
     `;
 
