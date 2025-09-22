@@ -295,11 +295,11 @@ describe('CreateDatabaseManager', () => {
     expect(
       await dbManager.updateExpiryDateOfCreditorEntityEdges('sourceKey', 'destinationKey', '2024-09-05T21:00:00.999Z', 'tenantId'),
     ).toEqual(undefined);
-    expect(await dbManager.updateCondition('_testkey1', '2024-09-05T21:00:00.999Z')).toEqual(undefined);
+    expect(await dbManager.updateCondition('testkey1', '2024-09-05T21:00:00.999Z')).toEqual(undefined);
     jest.spyOn(globalManager._eventHistory, 'query').mockImplementation((query: string): Promise<any> => {
       return new Promise((resolve, reject) => {
         resolve({
-          rows: [{ result: { governed_as_creditor_by: 'MOCK-QUERY', governed_as_debtor_by: 'MOCK-QUERY' } }],
+          rows: [{ result_gov: { governed_as_creditor_by: 'MOCK-QUERY', governed_as_debtor_by: 'MOCK-QUERY' } }],
         });
       });
     });
@@ -315,7 +315,7 @@ describe('CreateDatabaseManager', () => {
     jest.spyOn(globalManager._eventHistory, 'query').mockImplementation((query: string): Promise<any> => {
       return new Promise((resolve, reject) => {
         resolve({
-          rows: [{ result: { governed_as_creditor_account_by: 'MOCK-QUERY', governed_as_debtor_account_by: 'MOCK-QUERY' } }],
+          rows: [{ result_gov: { governed_as_creditor_account_by: 'MOCK-QUERY', governed_as_debtor_account_by: 'MOCK-QUERY' } }],
         });
       });
     });
