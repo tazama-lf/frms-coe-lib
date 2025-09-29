@@ -53,8 +53,8 @@ export async function configurationBuilder(
     return await (await manager._configuration?.query(query))?.batches.all();
   };
 
-  manager.getRuleConfig = async (ruleId: string, cfg: string, limit?: number) => {
-    const cacheKey = `${ruleId}_${cfg}`;
+  manager.getRuleConfig = async (ruleId: string, cfg: string, tenantId: string, limit?: number) => {
+    const cacheKey = `${tenantId}_${ruleId}_${cfg}`;
     if (cacheConfig?.localCacheEnabled ?? false) {
       const cacheVal = manager.nodeCache?.get(cacheKey);
       if (cacheVal) return await Promise.resolve(cacheVal);
@@ -65,6 +65,7 @@ export async function configurationBuilder(
       FOR doc IN ${db}
       FILTER doc.id == ${ruleId}
       FILTER doc.cfg == ${cfg}
+      FILTER doc.tenantId == ${tenantId}
       ${aqlLimit}
       RETURN doc
     `;
