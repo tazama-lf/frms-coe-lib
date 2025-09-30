@@ -32,6 +32,7 @@ export interface ConfigurationDB {
    * Returns rule config
    * @param ruleId A ruleId String used to filter on the id field
    * @param cfg A cfg String used to filter on the cfg field
+   * @param tenantId A tenantId String used to filter on the tenantId field
    * @param limit A limit Number used to limit the amount of results
    *
    * ```
@@ -39,13 +40,14 @@ export interface ConfigurationDB {
    * FOR doc IN ${collection}
    * FILTER doc.id == ${ruleId}
    * FILTER doc.cfg == ${cfg}
-   * *LIMIT ${limit}
+   * FILTER doc.tenantId == ${tenantId}
+   * LIMIT ${limit}
    * RETURN doc`
    * ```
    * \* Indicates filter is only applied when parameter is passed in
    * @memberof ConfigurationDB
    */
-  getRuleConfig: (ruleId: string, cfg: string, limit?: number) => Promise<unknown>;
+  getRuleConfig: (ruleId: string, cfg: string, tenantId: string, limit?: number) => Promise<unknown>;
 
   /**
    * Returns transaction configuration

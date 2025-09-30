@@ -243,14 +243,14 @@ describe('CreateDatabaseManager', () => {
 
     expect(await dbManager.queryConfigurationDB('testCollection', 'testFilter')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.queryConfigurationDB('testCollection', 'testFilter', 10)).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getRuleConfig('test', 'test')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getRuleConfig('test', 'test', 'DEFAULT')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getTransactionConfig('test', 'test')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getTypologyConfig(getMockTypology())).toEqual(['MOCK-QUERY']);
 
     // Rerun for now set cache values
     dbManager.nodeCache.set('test_test', ['MOCK-QUERY']);
     dbManager.nodeCache.set('testId_testCfg', ['MOCK-QUERY']);
-    expect(await dbManager.getRuleConfig('test', 'test')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getRuleConfig('test', 'test', 'DEFAULT')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getTransactionConfig('test', 'test')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getTypologyConfig(getMockTypology())).toEqual(['MOCK-QUERY']);
 
@@ -287,7 +287,7 @@ describe('CreateDatabaseManager', () => {
 
     expect(await dbManager.queryConfigurationDB('testCollection', 'testFilter')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.queryConfigurationDB('testCollection', 'testFilter', 10)).toEqual(['MOCK-QUERY']);
-    expect(await dbManager.getRuleConfig('test', 'test')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getRuleConfig('test', 'test', 'DEFAULT')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getTransactionConfig('test', 'test')).toEqual(['MOCK-QUERY']);
     expect(await dbManager.getTypologyConfig(getMockTypology())).toEqual(['MOCK-QUERY']);
 
@@ -488,7 +488,7 @@ describe('CreateDatabaseManager', () => {
       });
     });
 
-    expect(await dbManager.getRuleConfig('test-ruleid', 'test-cfg')).toEqual(['MOCK-QUERY']);
+    expect(await dbManager.getRuleConfig('test-ruleid', 'test-cfg', 'DEFAULT')).toEqual(['MOCK-QUERY']);
 
     dbManager.quit();
   });
@@ -506,7 +506,7 @@ describe('CreateDatabaseManager', () => {
       });
     });
 
-    expect(await globalManager.getRuleConfig('test-ruleid', 'test-cfg')).toEqual([['MOCK-QUERY']]);
+    expect(await globalManager.getRuleConfig('test-ruleid', 'test-cfg', 'DEFAULT')).toEqual([['MOCK-QUERY']]);
   });
 
   it('should not try use cache for getTransactionConfig when cached not enabled', async () => {
