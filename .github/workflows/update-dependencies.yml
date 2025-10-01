@@ -1,0 +1,228 @@
+name: Update FRMS COE Lib Dependencies
+
+on:
+  workflow_dispatch:
+    inputs:
+      repositories:
+        description: 'Comma-separated list of repositories to update (e.g., tazama-lf/repo1,tazama-lf/repo2)'
+        required: true
+        type: string
+      target_branch:
+        description: 'Base branch to merge updates into (default: dev)'
+        required: false
+        default: 'dev'
+        type: string
+      create_pr:
+        description: 'Create pull request for changes'
+        required: false
+        default: true
+        type: boolean
+      use_cross_org_token:
+        description: 'Use CROSS_ORG_TOKEN for private/cross-org repositories'
+        required: false
+        default: false
+        type: boolean
+  
+  # Trigger on push to main branches
+  push:
+    branches: [dev, main]
+    paths: 
+      - 'package.json'
+      - 'VERSION'
+  
+  # Optional: Trigger on release
+  release:
+    types: [published]
+
+jobs:
+  update-dependencies:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout current repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Get current package version
+      id: get_version
+      run: |
+        CURRENT_VERSION=$(node -p "require('./package.json').version")
+        PACKAGE_NAME=$(node -p "require('./package.json').name")
+        echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+        echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+        echo "Current version: $CURRENT_VERSION"
+        echo "Package name: $PACKAGE_NAME"
+    
+    - name: Set repository list
+      id: set_repos
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          REPOS="${{ github.event.inputs.repositories }}"
+        else
+          # Default repositories to update on release (from repositories.conf GITHUB_ACTION_DEFAULT)
+          REPOS="tazama-lf/frms-coe-startup-lib,tazama-lf/auth-lib,tazama-lf/tms-service,tazama-lf/admin-service,tazama-lf/auth-service,tazama-lf/event-director,tazama-lf/event-flow,tazama-lf/rule-executer,tazama-lf/rule-901,tazama-lf/typology-processor,tazama-lf/transaction-aggregation-decisioning-processor,tazama-lf/batch-ppa,tazama-lf/relay-service,tazama-lf/relay-service-integration-nats,tazama-lf/relay-service-integration-kafka,tazama-lf/relay-service-integration-rabbitmq,tazama-lf/relay-service-integration-rest,tazama-lf/nats-utilities,tazama-lf/event-sidecar,tazama-lf/lumberjack,frmscoe/rule-001,frmscoe/rule-002,frmscoe/rule-003,frmscoe/rule-004,frmscoe/rule-006,frmscoe/rule-007,frmscoe/rule-008,frmscoe/rule-010,frmscoe/rule-011,frmscoe/rule-016,frmscoe/rule-017,frmscoe/rule-018,frmscoe/rule-020,frmscoe/rule-021,frmscoe/rule-024,frmscoe/rule-025,frmscoe/rule-026,frmscoe/rule-027,frmscoe/rule-028,frmscoe/rule-030,frmscoe/rule-044,frmscoe/rule-045,frmscoe/rule-048,frmscoe/rule-054,frmscoe/rule-063,frmscoe/rule-074,frmscoe/rule-075,frmscoe/rule-076,frmscoe/rule-078,frmscoe/rule-083,frmscoe/rule-084,frmscoe/rule-090,frmscoe/rule-091"
+        fi
+        echo "repositories=$REPOS" >> $GITHUB_OUTPUT
+        echo "Will update repositories: $REPOS"
+        
+    - name: Set target branch
+      id: set_branch
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          BRANCH="${{ github.event.inputs.target_branch }}"
+        else
+          BRANCH="dev"
+        fi
+        echo "target_branch=$BRANCH" >> $GITHUB_OUTPUT
+        echo "Target branch: $BRANCH"
+
+    - name: Update dependencies in target repositories
+      env:
+        GH_TOKEN: ${{ (github.event.inputs.use_cross_org_token == 'true' && secrets.CROSS_ORG_TOKEN) || secrets.GITHUB_TOKEN }}
+        CURRENT_VERSION: ${{ steps.get_version.outputs.version }}
+        PACKAGE_NAME: ${{ steps.get_version.outputs.package_name }}
+        TARGET_BRANCH: ${{ steps.set_branch.outputs.target_branch }}
+        CREATE_PR: ${{ github.event.inputs.create_pr || 'true' }}
+      run: |
+        # Convert comma-separated repos to array
+        IFS=',' read -ra REPO_ARRAY <<< "${{ steps.set_repos.outputs.repositories }}"
+        
+        for repo in "${REPO_ARRAY[@]}"; do
+          repo=$(echo "$repo" | xargs) # trim whitespace
+          echo "Processing repository: $repo"
+          
+          # Create a temporary directory for each repo
+          TEMP_DIR=$(mktemp -d)
+          cd "$TEMP_DIR"
+          
+          # Clone the target repository with authentication
+          echo "Cloning $repo..."
+          if ! git clone "https://$GH_TOKEN@github.com/$repo.git" repo-clone 2>/dev/null; then
+            echo "Failed to clone $repo (check permissions), skipping..."
+            cd - > /dev/null
+            continue
+          fi
+          
+          cd repo-clone
+          
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Checkout base branch (where we'll merge the PR into)
+          if ! git checkout "$TARGET_BRANCH"; then
+            echo "Failed to checkout base branch $TARGET_BRANCH in $repo, skipping..."
+            cd - > /dev/null
+            continue
+          fi
+          
+          # Check if package.json exists
+          if [ ! -f "package.json" ]; then
+            echo "No package.json found in $repo, skipping..."
+            cd - > /dev/null
+            continue
+          fi
+          
+          # Check if the dependency exists
+          if ! node -p "require('./package.json').dependencies && require('./package.json').dependencies['$PACKAGE_NAME']" 2>/dev/null | grep -v undefined > /dev/null; then
+            if ! node -p "require('./package.json').devDependencies && require('./package.json').devDependencies['$PACKAGE_NAME']" 2>/dev/null | grep -v undefined > /dev/null; then
+              echo "Package $PACKAGE_NAME not found in dependencies or devDependencies of $repo, skipping..."
+              cd - > /dev/null
+              continue
+            fi
+          fi
+          
+          # Get current version in target repo
+          CURRENT_TARGET_VERSION=""
+          if node -p "require('./package.json').dependencies && require('./package.json').dependencies['$PACKAGE_NAME']" 2>/dev/null | grep -v undefined > /dev/null; then
+            CURRENT_TARGET_VERSION=$(node -p "require('./package.json').dependencies['$PACKAGE_NAME']" 2>/dev/null || echo "")
+            DEP_TYPE="dependencies"
+          elif node -p "require('./package.json').devDependencies && require('./package.json').devDependencies['$PACKAGE_NAME']" 2>/dev/null | grep -v undefined > /dev/null; then
+            CURRENT_TARGET_VERSION=$(node -p "require('./package.json').devDependencies['$PACKAGE_NAME']" 2>/dev/null || echo "")
+            DEP_TYPE="devDependencies"
+          fi
+          
+          echo "Current version in $repo: $CURRENT_TARGET_VERSION"
+          echo "New version: ^$CURRENT_VERSION"
+          
+          # Skip if versions are the same
+          if [ "$CURRENT_TARGET_VERSION" = "^$CURRENT_VERSION" ] || [ "$CURRENT_TARGET_VERSION" = "$CURRENT_VERSION" ]; then
+            echo "Version already up to date in $repo, skipping..."
+            cd - > /dev/null
+            continue
+          fi
+          
+          # Create feature branch for our changes
+          BRANCH_NAME="update-frms-coe-lib-v$CURRENT_VERSION"
+          git checkout -b "$BRANCH_NAME"
+          
+          # Update package.json using Node.js
+          cat package.json | node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('/dev/stdin', 'utf8'));
+            const depType = '$DEP_TYPE';
+            const packageName = '$PACKAGE_NAME';
+            const newVersion = '^$CURRENT_VERSION';
+            
+            if (pkg[depType] && pkg[depType][packageName]) {
+              pkg[depType][packageName] = newVersion;
+              console.log(JSON.stringify(pkg, null, 2));
+            } else {
+              console.log(JSON.stringify(pkg, null, 2));
+            }
+          " > package.json.tmp && mv package.json.tmp package.json
+          
+          # Check if changes were made
+          if git diff --quiet package.json; then
+            echo "No changes made to package.json in $repo"
+            cd - > /dev/null
+            continue
+          fi
+          
+          # Commit changes
+          git add package.json
+          git commit -m "chore: update $PACKAGE_NAME to v$CURRENT_VERSION"
+          
+          # Push changes with authentication
+          echo "Pushing changes to $repo..."
+          git remote set-url origin "https://$GH_TOKEN@github.com/$repo.git"
+          if ! git push origin "$BRANCH_NAME" 2>/dev/null; then
+            echo "Failed to push to $repo (check write permissions), skipping..."
+            cd - > /dev/null
+            continue
+          fi
+          
+          # Create pull request if requested
+          if [ "$CREATE_PR" = "true" ]; then
+            echo "Creating pull request for $repo..."
+            
+            PR_TITLE="chore: update $PACKAGE_NAME to v$CURRENT_VERSION"
+            PR_BODY="This PR updates the $PACKAGE_NAME dependency to version $CURRENT_VERSION. Updated $PACKAGE_NAME from $CURRENT_TARGET_VERSION to ^$CURRENT_VERSION. This update was automatically generated by the frms-coe-lib update workflow."
+            
+            # Create PR: feature branch -> base branch
+            gh pr create \
+              --repo "$repo" \
+              --title "$PR_TITLE" \
+              --body "$PR_BODY" \
+              --base "$TARGET_BRANCH" \
+              --head "$BRANCH_NAME" || echo "Failed to create PR for $repo"
+          fi
+          
+          echo "Completed processing $repo"
+          cd - > /dev/null
+        done
+        
+        echo "Dependency update workflow completed!"
+
+    - name: Summary
+      run: |
+        echo "## Dependency Update Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **Package**: ${{ steps.get_version.outputs.package_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Version**: ${{ steps.get_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Target Repositories**: ${{ steps.set_repos.outputs.repositories }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Target Branch**: ${{ steps.set_branch.outputs.target_branch }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Create PR**: ${{ github.event.inputs.create_pr || 'true' }}" >> $GITHUB_STEP_SUMMARY
