@@ -539,7 +539,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
 
   manager.getEntity = async (entityId: string, SchemeProprietary: string, tenantId: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.entities);
-    const entityIdentity = `${entityId}${SchemeProprietary}`;
+    const entityIdentity = `${tenantId}${entityId}${SchemeProprietary}`;
     const aqltenantId = aql`${tenantId}`;
     const entityIdAql = aql`FILTER doc._key == ${entityIdentity} && doc.TenantId == ${aqltenantId}`;
 
@@ -552,7 +552,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
 
   manager.getAccount = async (accountId: string, SchemeProprietary: string, agtMemberId: string, tenantId: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.accounts);
-    const accountIdentity = `${accountId}${SchemeProprietary}${agtMemberId}`;
+    const accountIdentity = `${tenantId}${accountId}${SchemeProprietary}${agtMemberId}`;
     const aqltenantId = aql`${tenantId}`;
     const accountIdAql = aql`FILTER doc._key == ${accountIdentity} && doc.TenantId == ${aqltenantId}`;
 
