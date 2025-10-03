@@ -2,10 +2,11 @@
 
 export class RuleResult {
   id = '';
-  tenantId = '';
   cfg = '';
+  indpdntVarbl = 0;
+  prcgTm? = 0;
+  tenantId = '';
   subRuleRef = '';
   reason? = '';
-  prcgTm? = 0;
   wght? = 0;
 }
