@@ -36,7 +36,7 @@
     "arangojs": "^8.8.1",
     "dotenv": "^17.2.3",
     "elastic-apm-node": "^4.14.0",
-    "ioredis": "5.7.0",
+    "ioredis": "5.8.1",
     "node-cache": "^5.1.2",
     "pino": "^9.12.0",
     "pino-elasticsearch": "^8.1.0",
