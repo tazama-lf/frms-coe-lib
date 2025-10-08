@@ -395,7 +395,7 @@ message FRMSMessage {
         uint32 prcgTm = 6;
         uint32 wght = 7;
         string tenantId = 8;
-        int32 indpdntVarbl = 9;
+        double indpdntVarbl = 9;
     }
 
     message Typologyresult {
