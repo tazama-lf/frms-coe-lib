@@ -6,6 +6,7 @@ export const NetworkMapSample: NetworkMap[] = [
   {
     active: true,
     cfg: '',
+    tenantId: 'testTenant',
     messages: [
       {
         id: '001@1.0',
@@ -19,6 +20,7 @@ export const NetworkMapSample: NetworkMap[] = [
               { id: '003@1.0', cfg: '1.0' },
               { id: '028@1.0', cfg: '1.0' },
             ],
+            tenantId: 'testTenant',
           },
         ],
       },
@@ -34,6 +36,7 @@ export const NetworkMapSample: NetworkMap[] = [
               { id: '003@1.0', cfg: '1.0' },
               { id: '028@1.0', cfg: '1.0' },
             ],
+            tenantId: 'testTenant',
           },
           {
             id: '031@1.0',
@@ -42,6 +45,7 @@ export const NetworkMapSample: NetworkMap[] = [
               { id: '003@1.0', cfg: '1.0' },
               { id: '028@1.0', cfg: '1.0' },
             ],
+            tenantId: 'testTenant',
           },
         ],
       },
@@ -54,6 +58,7 @@ export const NetworkMapSample: NetworkMap[] = [
             id: '028@1.0.0',
             cfg: '1.0.0',
             rules: [{ id: '018@1.0', cfg: '1.0.0' }],
+            tenantId: 'testTenant',
           },
         ],
       },
@@ -66,6 +71,7 @@ export const NetworkMapSample: NetworkMap[] = [
             id: '028@1.0.0',
             cfg: '1.0.0',
             rules: [{ id: '018@1.0', cfg: '1.0.0' }],
+            tenantId: 'testTenant',
           },
         ],
       },

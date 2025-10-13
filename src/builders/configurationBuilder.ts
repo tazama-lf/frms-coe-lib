@@ -37,7 +37,7 @@ export async function configurationBuilder(
 
   manager.nodeCache = cacheConfig?.localCacheEnabled ? new NodeCache() : undefined;
 
-  manager.getRuleConfig = async (ruleId: string, cfg: string, limit?: number): Promise<RuleConfig | undefined> => {
+  manager.getRuleConfig = async (ruleId: string, cfg: string, tenantId: string, limit?: number): Promise<RuleConfig | undefined> => {
     const cacheKey = `${ruleId}_${cfg}`;
     if (manager.nodeCache) {
       const cacheVal = manager.nodeCache.get<RuleConfig>(cacheKey);
@@ -52,8 +52,12 @@ export async function configurationBuilder(
               FROM 
                 rule 
               WHERE 
-                ruleId = $1 AND ruleCfg = $2`,
-      values: [ruleId, cfg],
+                ruleId = $1 
+              AND 
+                ruleCfg = $2
+              AND
+                tenantId = $3`,
+      values: [ruleId, cfg, tenantId],
     };
 
     if (limit !== undefined) {
@@ -70,8 +74,8 @@ export async function configurationBuilder(
     return toReturn;
   };
 
-  manager.getTypologyConfig = async (typologyId: string, typologyCfg: string): Promise<TypologyConfig | undefined> => {
-    const cacheKey = `${typologyId}_${typologyCfg}`;
+  manager.getTypologyConfig = async (typologyId: string, typologyCfg: string, tenantId: string): Promise<TypologyConfig | undefined> => {
+    const cacheKey = `${tenantId}_${typologyId}_${typologyCfg}`;
     if (manager.nodeCache) {
       const cacheVal = manager.nodeCache.get<TypologyConfig>(cacheKey);
       if (cacheVal) return await Promise.resolve(cacheVal);
@@ -82,8 +86,12 @@ export async function configurationBuilder(
             FROM
               typology
             WHERE
-              typologyId = $1 AND typologyCfg = $2`,
-      values: [typologyId, typologyCfg],
+              typologyId = $1 
+            AND 
+              typologyCfg = $2
+            AND
+              tenantId = $3`,
+      values: [typologyId, typologyCfg, tenantId],
     };
 
     const queryRes = await manager._configuration.query<{ configuration: TypologyConfig }>(query);

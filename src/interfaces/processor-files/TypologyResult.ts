@@ -9,6 +9,7 @@ export interface TypologyResult {
   result: number;
   review?: boolean;
   ruleResults: RuleResult[];
+  tenantId: string;
   workflow: WorkFlow;
 }
 

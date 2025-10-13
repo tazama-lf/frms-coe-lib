@@ -4,6 +4,7 @@ export interface TransactionDetails {
   source: string;
   destination: string;
   TxTp: string;
+  TenantId: string;
   MsgId: string;
   CreDtTm: string;
   Amt?: string;

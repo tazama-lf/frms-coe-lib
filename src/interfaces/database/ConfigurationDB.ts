@@ -12,20 +12,23 @@ export interface ConfigurationDB {
   /**
    * @param {string} ruleId A ruleId String used to filter on the id field
    * @param {string} cfg A cfg String used to filter on the cfg field
+   * @param {string} tenantId A tenantId string for filtering by tenantId field
    * @param {number | undefined} limit optional limit
    * @returns {RuleConfig} rule config
    *
    * @memberof ConfigurationDB
    */
-  getRuleConfig: (ruleId: string, cfg: string, limit?: number) => Promise<RuleConfig | undefined>;
+  getRuleConfig: (ruleId: string, cfg: string, tenantId: string, limit?: number) => Promise<RuleConfig | undefined>;
 
   /**
-   * @param {Typology} typology identifiers used to find it's configuration
+   * @param {string} typologyId typology identifier
+   * @param {string} typologyCfg typology configuration version
+   * @param {string} tenantId tenant identifier
    * @returns {TypologyConfig} given typology's config
    *
    * @memberof ConfigurationDB
    */
-  getTypologyConfig: (typologyId: string, typologyCfg: string) => Promise<TypologyConfig | undefined>;
+  getTypologyConfig: (typologyId: string, typologyCfg: string, tenantId: string) => Promise<TypologyConfig | undefined>;
 
   /**
    * @returns {NetworkMap[]} active networkmaps

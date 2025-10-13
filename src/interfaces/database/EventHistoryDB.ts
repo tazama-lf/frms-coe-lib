@@ -17,27 +17,30 @@ export interface EventHistoryDB {
 
   /**
    * @param key string account identifier we are storing
+   * @param tenantId The tenantId String to filter on the TenantId field
    *
    * @memberof EventHistoryDB
    */
-  saveAccount: (key: string) => Promise<void>;
+  saveAccount: (key: string, tenantId: string) => Promise<void>;
 
   /**
    * @param entityId string entity identifier we are storing
+   * @param tenantId The tenantId String to filter on the TenantId field
    * @param CreDtTm string timestamp
    *
    * @memberof EventHistoryDB
    */
-  saveEntity: (entityId: string, CreDtTm: string) => Promise<void>;
+  saveEntity: (entityId: string, tenantId: string, CreDtTm: string) => Promise<void>;
 
   /**
    * @param entityId string entity identifier we are storing
    * @param accountId string account identifier we are storing
    * @param CreDtTm string timestamp
+   * @param tenantId The tenantId String to filter on the TenantId field
    *
    * @memberof EventHistoryDB
    */
-  saveAccountHolder: (entityId: string, accountId: string, CreDtTm: string) => Promise<void>;
+  saveAccountHolder: (entityId: string, accountId: string, CreDtTm: string, tenantId: string) => Promise<void>;
 
   /**
    * @param condition condition object we are storing of `EntityCondition` or `AccountCondition` type
@@ -93,23 +96,31 @@ export interface EventHistoryDB {
   /**
    * @param entityId string of identifier for entity being retrieved
    * @param schemeProprietary string of scheme proprietary of the entity being retrieved
+   * @param tenantId The tenantId String to filter on the TenantId field
    *
    * @memberof EventHistoryDB
    */
-  getConditionsByEntity: (entityId: string, schemeProprietary: string) => Promise<EntityCondition[]>;
+  getConditionsByEntity: (entityId: string, schemeProprietary: string, tenantId: string) => Promise<EntityCondition[]>;
 
   /**
    * @param entityId string of identifier for entity being retrieved
    * @param schemeProprietary string of scheme proprietary of the entity being retrieved
+   * @param tenantId The tenantId String to filter on the TenantId field
    * @param retrieveAll (Optional) boolean to retrieve all conditions or only active ones
    *
    * @memberof EventHistoryDB
    */
-  getEntityConditionsByGraph: (entityId: string, schemeProprietary: string, retrieveAll?: boolean) => Promise<RawConditionResponse[]>;
+  getEntityConditionsByGraph: (
+    entityId: string,
+    schemeProprietary: string,
+    tenantId: string,
+    retrieveAll?: boolean,
+  ) => Promise<RawConditionResponse[]>;
 
   /**
    * @param entityId string of identifier for entity being retrieved
    * @param schemeProprietary string of scheme proprietary of the entity being retrieved
+   * @param tenantId The tenantId String to filter on the TenantId field
    * @param agt agt name
    * @param retrieveAll (Optional) boolean to retrieve all conditions or only active ones
    *
@@ -118,39 +129,44 @@ export interface EventHistoryDB {
   getAccountConditionsByGraph: (
     entityId: string,
     schemeProprietary: string,
+    tenantId: string,
     agt: string,
     retrieveAll?: boolean,
   ) => Promise<RawConditionResponse[]>;
 
   /**
    * @param activeOnly Only active conditions
+   * @param tenantId The tenantId String to filter on the TenantId field
    *
    * @memberof EventHistoryDB
    */
-  getConditionsByGraph: (activeOnly: boolean) => Promise<RawConditionResponse[]>;
+  getConditionsByGraph: (activeOnly: boolean, tenantId: string) => Promise<RawConditionResponse[]>;
 
   /**
    * @param activeOnly Only active conditions
+   * @param tenantId The tenantId String to filter on the TenantId field
    *
    * @memberof EventHistoryDB
    */
-  getConditions: (activeOnly: boolean) => Promise<Condition[]>;
+  getConditions: (activeOnly: boolean, tenantId: string) => Promise<Condition[]>;
 
   /**
    * @param entityId string of identifier for entity being retrieved
    * @param schemeProprietary string of scheme proprietary of the entity being retrieved
+   * @param tenantId The tenantId String to filter on the TenantId field
    *
    * @memberof EventHistoryDB
    */
-  getEntity: (entityId: string, schemeProprietary: string) => Promise<Entity | undefined>;
+  getEntity: (entityId: string, schemeProprietary: string, tenantId: string) => Promise<Entity | undefined>;
 
   /**
    * @param accountId string of identifier for account being retrieved
    * @param schemeProprietary string of scheme proprietary of the account being retrieved
+   * @param tenantId The tenantId String to filter on the TenantId field
    *
    * @memberof EventHistoryDB
    */
-  getAccount: (accountId: string, schemeProprietary: string, agtMemberId: string) => Promise<Account | undefined>;
+  getAccount: (accountId: string, schemeProprietary: string, agtMemberId: string, tenantId: string) => Promise<Account | undefined>;
 
   /**
    * @param accountId string of identifier for account being retrieved
@@ -159,7 +175,7 @@ export interface EventHistoryDB {
    *
    * @memberof EventHistoryDB
    */
-  getConditionsByAccount: (accountId: string, schemeProprietary: string, memberId: string) => Promise<AccountCondition[]>;
+  getConditionsByAccount: (accountId: string, schemeProprietary: string, tenantId: string, memberId: string) => Promise<AccountCondition[]>;
 
   /**
    * @param source string id of the "from" node data that is connected by the edge
@@ -209,5 +225,5 @@ export interface EventHistoryDB {
    *
    * @memberof EventHistoryDB
    */
-  updateCondition: (conditionId: string, expireDateTime: string) => Promise<void>;
+  updateCondition: (conditionId: string, expireDateTime: string, tenantId: string) => Promise<void>;
 }

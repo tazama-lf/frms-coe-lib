@@ -4,6 +4,7 @@ import type { DataCache } from './rule/DataCache';
 
 export interface Pain013 {
   TxTp: string;
+  TenantId: string;
   CdtrPmtActvtnReq: CdtrPmtActvtnReq;
   DataCache?: DataCache;
 }

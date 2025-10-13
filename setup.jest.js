@@ -15,6 +15,9 @@ class MockPool {
       release: () => {
         return true;
       },
+      document: () => {
+        return { tenantId: 'tenantId' };
+      },
     };
   }
 

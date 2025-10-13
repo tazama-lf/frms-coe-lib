@@ -95,6 +95,7 @@ const mockTR: TransactionDetails = {
   MsgId: 'MOCK-MsgId',
   destination: 'MOCK-to',
   TxTp: 'MOCK-TxTp',
+  TenantId: 'MOCK-TenantID',
   Amt: 'MOCK-Amt',
   Ccy: 'MOCK-Ccy',
 };
@@ -148,6 +149,7 @@ const getMockTypology = (): Typology => {
   const typology: Typology = {
     id: 'testId',
     cfg: 'testCfg',
+    tenantId: 'testTenant',
     rules: [],
   };
   return typology;
@@ -192,7 +194,7 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.saveTransactionHistoryPacs008).toBeDefined();
     expect(dbManager.saveTransactionHistoryPacs002).toBeDefined();
 
-    expect(await dbManager.getTransactionPacs008('test')).toEqual('MOCK-QUERY');
+    expect(await dbManager.getTransactionPacs008('test', 'tenantId')).toEqual('MOCK-QUERY');
     expect(await dbManager.saveTransactionHistoryPain001(testPacs002 as unknown as Pain001)).toEqual(undefined);
     expect(await dbManager.saveTransactionHistoryPain013(testPacs002 as unknown as Pain013)).toEqual(undefined);
     expect(await dbManager.saveTransactionHistoryPacs008(testPacs002 as unknown as Pacs008)).toEqual(undefined);
@@ -206,14 +208,18 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.getRuleConfig).toBeDefined();
     expect(dbManager.getTypologyConfig).toBeDefined();
 
-    expect(await dbManager.getRuleConfig('test', 'test')).toEqual('MOCK-QUERY');
-    expect(await dbManager.getTypologyConfig(getMockTypology().id, getMockTypology().cfg)).toEqual('MOCK-QUERY');
+    expect(await dbManager.getRuleConfig('test', 'test', 'DEFAULT')).toEqual('MOCK-QUERY');
+    expect(await dbManager.getTypologyConfig(getMockTypology().id, getMockTypology().cfg, getMockTypology().tenantId)).toEqual(
+      'MOCK-QUERY',
+    );
 
     // Rerun for now set cache values
     dbManager.nodeCache!.set('test_test', 'MOCK-QUERY');
     dbManager.nodeCache!.set('testId_testCfg', 'MOCK-QUERY');
-    expect(await dbManager.getRuleConfig('test', 'test')).toEqual('MOCK-QUERY');
-    expect(await dbManager.getTypologyConfig(getMockTypology().id, getMockTypology().cfg)).toEqual('MOCK-QUERY');
+    expect(await dbManager.getRuleConfig('test', 'test', 'DEFAULT')).toEqual('MOCK-QUERY');
+    expect(await dbManager.getTypologyConfig(getMockTypology().id, getMockTypology().cfg, getMockTypology().tenantId)).toEqual(
+      'MOCK-QUERY',
+    );
 
     // Cleanup
     dbManager.nodeCache!.del('test_test'); // getRuleConfig && getTransactionConfig
@@ -240,8 +246,8 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.getRuleConfig).toBeDefined();
     expect(dbManager.getTypologyConfig).toBeDefined();
 
-    expect(await dbManager.getRuleConfig('test', 'test')).toEqual('MOCK-QUERY');
-    expect(await dbManager.getTypologyConfig(getMockTypology().id, getMockTypology().cfg)).toEqual('MOCK-QUERY');
+    expect(await dbManager.getRuleConfig('test', 'test', 'DEFAULT')).toEqual('MOCK-QUERY');
+    expect(await dbManager.getTypologyConfig(getMockTypology().id, getMockTypology().cfg, 'tenantId')).toEqual('MOCK-QUERY');
 
     dbManager.quit();
   });
@@ -270,19 +276,19 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.updateCondition).toBeDefined();
 
     expect(await dbManager.saveTransactionDetails(mockTR)).toEqual(undefined);
-    expect(await dbManager.saveAccount('test')).toEqual(undefined);
-    expect(await dbManager.saveAccountHolder('test', 'testID', 'testTime')).toEqual(undefined);
-    expect(await dbManager.saveEntity('test', 'testTime')).toEqual(undefined);
+    expect(await dbManager.saveAccount('test', 'tenantId')).toEqual(undefined);
+    expect(await dbManager.saveAccountHolder('test', 'testID', 'testTime', 'tenantId')).toEqual(undefined);
+    expect(await dbManager.saveEntity('test', 'tenantId', 'testTime')).toEqual(undefined);
     expect(await dbManager.saveCondition({} as EntityCondition)).toEqual(undefined);
     expect(await dbManager.saveGovernedAsCreditorByEdge('test1', 'test2', {} as ConditionEdge)).toEqual('MOCK-QUERY');
     expect(await dbManager.saveGovernedAsDebtorByEdge('test1', 'test2', {} as ConditionEdge)).toEqual('MOCK-QUERY');
     expect(await dbManager.saveGovernedAsCreditorAccountByEdge('test1', 'test2', {} as ConditionEdge)).toEqual('MOCK-QUERY');
     expect(await dbManager.saveGovernedAsDebtorAccountByEdge('test1', 'test2', {} as ConditionEdge)).toEqual('MOCK-QUERY');
-    expect(await dbManager.getConditionsByEntity('test1', 'test2')).toContainEqual('MOCK-QUERY');
-    expect(await dbManager.getConditions(true)).toContainEqual('MOCK-QUERY');
-    expect(await dbManager.getEntity('test1', 'test2')).toEqual('MOCK-QUERY');
-    expect(await dbManager.getAccount('test1', 'test2', 'test3')).toEqual('MOCK-QUERY');
-    expect(await dbManager.getConditionsByAccount('test1', 'test2', 'test3')).toContainEqual('MOCK-QUERY');
+    expect(await dbManager.getConditionsByEntity('test1', 'test2', 'tenantId')).toContainEqual('MOCK-QUERY');
+    expect(await dbManager.getConditions(true, 'tenantId')).toContainEqual('MOCK-QUERY');
+    expect(await dbManager.getEntity('test1', 'test2', 'tenantId')).toEqual('MOCK-QUERY');
+    expect(await dbManager.getAccount('test1', 'test2', 'test3', 'tenantId')).toEqual('MOCK-QUERY');
+    expect(await dbManager.getConditionsByAccount('test1', 'test2', 'tenantId', 'test3')).toContainEqual('MOCK-QUERY');
     expect(
       await dbManager.updateExpiryDateOfDebtorAccountEdges('sourceKey', 'destinationKey', '2024-09-05T21:00:00.999Z', 'tenantId'),
     ).toEqual(undefined);
@@ -295,7 +301,7 @@ describe('CreateDatabaseManager', () => {
     expect(
       await dbManager.updateExpiryDateOfCreditorEntityEdges('sourceKey', 'destinationKey', '2024-09-05T21:00:00.999Z', 'tenantId'),
     ).toEqual(undefined);
-    expect(await dbManager.updateCondition('testkey1', '2024-09-05T21:00:00.999Z')).toEqual(undefined);
+    expect(await dbManager.updateCondition('_testkey1', '2024-09-05T21:00:00.999Z', 'tenantId')).toEqual(undefined);
     jest.spyOn(globalManager._eventHistory, 'query').mockImplementation((query: string): Promise<any> => {
       return new Promise((resolve, reject) => {
         resolve({
@@ -303,13 +309,13 @@ describe('CreateDatabaseManager', () => {
         });
       });
     });
-    expect(await dbManager.getEntityConditionsByGraph('test1', 'test2')).toEqual([
+    expect(await dbManager.getEntityConditionsByGraph('test1', 'test2', 'tenantId')).toEqual([
       { governed_as_creditor_by: 'MOCK-QUERY', governed_as_debtor_by: 'MOCK-QUERY' },
     ]);
-    expect(await dbManager.getEntityConditionsByGraph('test1', 'test2', true)).toEqual([
+    expect(await dbManager.getEntityConditionsByGraph('test1', 'test2', 'tenantId', true)).toEqual([
       { governed_as_creditor_by: 'MOCK-QUERY', governed_as_debtor_by: 'MOCK-QUERY' },
     ]);
-    expect(await dbManager.getConditionsByGraph(true)).toEqual([
+    expect(await dbManager.getConditionsByGraph(true, 'tenantId')).toEqual([
       { governed_as_creditor_by: 'MOCK-QUERY', governed_as_debtor_by: 'MOCK-QUERY' },
     ]);
     jest.spyOn(globalManager._eventHistory, 'query').mockImplementation((query: string): Promise<any> => {
@@ -319,10 +325,10 @@ describe('CreateDatabaseManager', () => {
         });
       });
     });
-    expect(await dbManager.getAccountConditionsByGraph('test1', 'test2', 'acct')).toEqual([
+    expect(await dbManager.getAccountConditionsByGraph('test1', 'test2', 'tenantId', 'ntty')).toEqual([
       { governed_as_creditor_account_by: 'MOCK-QUERY', governed_as_debtor_account_by: 'MOCK-QUERY' },
     ]);
-    expect(await dbManager.getAccountConditionsByGraph('test1', 'test2', 'acct', true)).toEqual([
+    expect(await dbManager.getAccountConditionsByGraph('test1', 'test2', 'tenantId', 'ntty', true)).toEqual([
       { governed_as_creditor_account_by: 'MOCK-QUERY', governed_as_debtor_account_by: 'MOCK-QUERY' },
     ]);
   });
@@ -406,7 +412,7 @@ describe('CreateDatabaseManager', () => {
       });
     });
 
-    expect(await dbManager.getRuleConfig('test-ruleid', 'test-cfg')).toEqual('MOCK-QUERY');
+    expect(await dbManager.getRuleConfig('test-ruleid', 'test-cfg', 'DEFAULT')).toEqual('MOCK-QUERY');
 
     dbManager.quit();
   });
@@ -420,7 +426,7 @@ describe('CreateDatabaseManager', () => {
       });
     });
 
-    expect(await globalManager.getRuleConfig('test-ruleid', 'test-cfg')).toEqual('MOCK-QUERY');
+    expect(await globalManager.getRuleConfig('test-ruleid', 'test-cfg', 'DEFAULT')).toEqual('MOCK-QUERY');
   });
 
   it('should not try use cache for getTypologyConfig when cached not enabled', async () => {
@@ -440,7 +446,9 @@ describe('CreateDatabaseManager', () => {
       });
     });
 
-    expect(await dbManager.getTypologyConfig(getMockTypology().id, getMockTypology().cfg)).toEqual('MOCK-QUERY');
+    expect(await dbManager.getTypologyConfig(getMockTypology().id, getMockTypology().cfg, getMockTypology().tenantId)).toEqual(
+      'MOCK-QUERY',
+    );
 
     dbManager.quit();
   });
@@ -454,7 +462,9 @@ describe('CreateDatabaseManager', () => {
       });
     });
 
-    expect(await globalManager.getTypologyConfig(getMockTypology().id, getMockTypology().cfg)).toEqual('MOCK-QUERY');
+    expect(await globalManager.getTypologyConfig(getMockTypology().id, getMockTypology().cfg, getMockTypology().tenantId)).toEqual(
+      'MOCK-QUERY',
+    );
   });
 
   it('should use cert if path valid', async () => {
@@ -518,7 +528,7 @@ describe('CreateDatabaseManager', () => {
     });
 
     expect(dbManager.getTransactionPacs008).toBeDefined();
-    expect(await dbManager.getTransactionPacs008('test')).toEqual('MOCK-QUERY');
+    expect(await dbManager.getTransactionPacs008('test', 'tenantId')).toEqual('MOCK-QUERY');
 
     dbManager.quit();
   });
@@ -542,7 +552,7 @@ describe('CreateDatabaseManager', () => {
 
     expect(dbManager.getTransactionPacs008).toBeDefined();
     expect(dbManager.isReadyCheck).toBeDefined();
-    expect(await dbManager.getTransactionPacs008('test')).toEqual('MOCK-QUERY');
+    expect(await dbManager.getTransactionPacs008('test', 'tenantId')).toEqual('MOCK-QUERY');
     expect(await dbManager.isReadyCheck()).toEqual({
       RawHistoryDB: 'Ok',
     });
@@ -602,7 +612,7 @@ describe('CreateDatabaseManager', () => {
     const dbManager: typeof testTypes = localManager as any;
 
     expect(dbManager.getReportByMessageId).toBeDefined();
-    expect(await dbManager.getReportByMessageId('MSGID')).toEqual('MOCK-EVALUATION');
+    expect(await dbManager.getReportByMessageId('MSGID', 'tenantId')).toEqual('MOCK-EVALUATION');
   });
 
   it('should error gracefully on isReadyCheck for database builders', async () => {

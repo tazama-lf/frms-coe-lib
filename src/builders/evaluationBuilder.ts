@@ -29,7 +29,7 @@ export async function evaluationBuilder(manager: EvaluationDB, evaluationConfig:
     readyChecks.EvaluationDB = `err, ${util.inspect(err)}`;
   }
 
-  manager.getReportByMessageId = async (messageid: string): Promise<Evaluation | undefined> => {
+  manager.getReportByMessageId = async (messageid: string, tenantId: string): Promise<Evaluation | undefined> => {
     const query: PgQueryConfig = {
       text: 'SELECT evaluation FROM evaluation WHERE messageId = $1',
       values: [messageid],

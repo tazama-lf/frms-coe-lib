@@ -19,22 +19,30 @@ function getRuleMap(networkMap: NetworkMap): { rulesIds: string[]; typologyCfg: 
   return { rulesIds, typologyCfg };
 }
 
-const getIdsFromNetworkMap = async (
+export const getIdsFromNetworkMaps = async (
   databaseManager: DatabaseManagerInstance<Required<Pick<ManagerConfig, 'configuration' | 'localCacheConfig' | 'redisConfig'>>>,
 ): Promise<{ rulesIds: string[]; typologyCfg: string[] }> => {
-  const networkConfigurationList = await databaseManager.getNetworkMap();
-  if (!networkConfigurationList.length) {
-    return { rulesIds: [], typologyCfg: [] };
+  let ruleIds: string[] = [];
+  let typologyCfg: string[] = [];
+  const networkMaps = await databaseManager.getNetworkMap();
+
+  for (const networkMap of networkMaps) {
+    const ruleMaps = getRuleMap(networkMap);
+    ruleIds = [...ruleIds, ...ruleMaps.rulesIds];
+    typologyCfg = [...typologyCfg, ...ruleMaps.typologyCfg];
   }
 
-  return getRuleMap(networkConfigurationList[0]);
+  return {
+    rulesIds: ruleIds,
+    typologyCfg,
+  };
 };
 
 export const getRoutesFromNetworkMap = async (
   databaseManager: DatabaseManagerInstance<Required<Pick<ManagerConfig, 'configuration' | 'localCacheConfig' | 'redisConfig'>>>,
   processor: string,
 ): Promise<{ consumers: string[] }> => {
-  const { typologyCfg, rulesIds } = await getIdsFromNetworkMap(databaseManager);
+  const { typologyCfg, rulesIds } = await getIdsFromNetworkMaps(databaseManager);
 
   switch (processor) {
     case 'typology-processor':

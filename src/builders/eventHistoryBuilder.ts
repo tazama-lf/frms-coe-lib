@@ -39,28 +39,28 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
     await manager._eventHistory.query(query);
   };
 
-  manager.saveAccount = async (key: string): Promise<void> => {
+  manager.saveAccount = async (key: string, tenantId: string): Promise<void> => {
     const query: PgQueryConfig = {
-      text: 'INSERT INTO account (id) VALUES ($1) ON CONFLICT (id) DO NOTHING',
-      values: [key],
+      text: 'INSERT INTO account (id, tenantId) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING',
+      values: [key, tenantId],
     };
 
     await manager._eventHistory.query(query);
   };
 
-  manager.saveEntity = async (entityId: string, CreDtTm: string): Promise<void> => {
+  manager.saveEntity = async (entityId: string, tenantId: string, CreDtTm: string): Promise<void> => {
     const query: PgQueryConfig = {
-      text: 'INSERT INTO entity (id, creDtTm) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING',
-      values: [entityId, CreDtTm],
+      text: 'INSERT INTO entity (id, tenantId, creDtTm) VALUES ($1, $2, $3) ON CONFLICT (id) DO NOTHING',
+      values: [entityId, tenantId, CreDtTm],
     };
 
     await manager._eventHistory.query(query);
   };
 
-  manager.saveAccountHolder = async (entityId: string, accountId: string, CreDtTm: string): Promise<void> => {
+  manager.saveAccountHolder = async (entityId: string, accountId: string, CreDtTm: string, tenantId: string): Promise<void> => {
     const query: PgQueryConfig = {
-      text: 'INSERT INTO account_holder (source, destination, creDtTm) VALUES ($1, $2, $3) ON CONFLICT (source, destination) DO NOTHING',
-      values: [entityId, accountId, CreDtTm],
+      text: 'INSERT INTO account_holder (source, destination, creDtTm, tenantId) VALUES ($1, $2, $3, $4) ON CONFLICT (source, destination) DO NOTHING',
+      values: [entityId, accountId, CreDtTm, tenantId],
     };
 
     await manager._eventHistory.query(query);
@@ -82,13 +82,20 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
   ): Promise<Edge | undefined> => {
     const query: PgQueryConfig = {
       text: `INSERT INTO governed_as_creditor_by
-              (source, destination, evtTp, incptnDtTm, xprtnDtTm)
+              (source, destination, evtTp, incptnDtTm, xprtnDtTm, tenantId)
             VALUES
-              ($1, $2, $3, $4, $5)
+              ($1, $2, $3, $4, $5, $6)
             ON CONFLICT 
               (source, destination) DO NOTHING
             RETURNING *`,
-      values: [accountEntityId, conditionId, conditionEdge.evtTp, conditionEdge.incptnDtTm, conditionEdge.xprtnDtTm],
+      values: [
+        accountEntityId,
+        conditionId,
+        conditionEdge.evtTp,
+        conditionEdge.incptnDtTm,
+        conditionEdge.xprtnDtTm,
+        conditionEdge.tenantId,
+      ],
     };
 
     const queryRes = await manager._eventHistory.query<Edge>(query);
@@ -104,13 +111,20 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
   ): Promise<Edge | undefined> => {
     const query: PgQueryConfig = {
       text: `INSERT INTO governed_as_debtor_by
-              (source, destination, evtTp, incptnDtTm, xprtnDtTm)
+              (source, destination, evtTp, incptnDtTm, xprtnDtTm, tenantId)
             VALUES
-              ($1, $2, $3, $4, $5)
+              ($1, $2, $3, $4, $5, $6)
             ON CONFLICT 
               (source, destination) DO NOTHING
             RETURNING *`,
-      values: [accountEntityId, conditionId, conditionEdge.evtTp, conditionEdge.incptnDtTm, conditionEdge.xprtnDtTm],
+      values: [
+        accountEntityId,
+        conditionId,
+        conditionEdge.evtTp,
+        conditionEdge.incptnDtTm,
+        conditionEdge.xprtnDtTm,
+        conditionEdge.tenantId,
+      ],
     };
 
     const queryRes = await manager._eventHistory.query<Edge>(query);
@@ -126,13 +140,20 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
   ): Promise<Edge | undefined> => {
     const query: PgQueryConfig = {
       text: `INSERT INTO governed_as_debtor_account_by
-              (source, destination, evtTp, incptnDtTm, xprtnDtTm)
+              (source, destination, evtTp, incptnDtTm, xprtnDtTm, tenantId)
             VALUES
-              ($1, $2, $3, $4, $5)
+              ($1, $2, $3, $4, $5, $6)
             ON CONFLICT 
               (source, destination) DO NOTHING
             RETURNING *`,
-      values: [accountEntityId, conditionId, conditionEdge.evtTp, conditionEdge.incptnDtTm, conditionEdge.xprtnDtTm],
+      values: [
+        accountEntityId,
+        conditionId,
+        conditionEdge.evtTp,
+        conditionEdge.incptnDtTm,
+        conditionEdge.xprtnDtTm,
+        conditionEdge.tenantId,
+      ],
     };
 
     const queryRes = await manager._eventHistory.query<Edge>(query);
@@ -148,13 +169,20 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
   ): Promise<Edge | undefined> => {
     const query: PgQueryConfig = {
       text: `INSERT INTO governed_as_creditor_account_by
-              (source, destination, evtTp, incptnDtTm, xprtnDtTm)
+              (source, destination, evtTp, incptnDtTm, xprtnDtTm, tenantId)
             VALUES
-              ($1, $2, $3, $4, $5)
+              ($1, $2, $3, $4, $5, $6)
             ON CONFLICT 
               (source, destination) DO NOTHING
             RETURNING *`,
-      values: [accountEntityId, conditionId, conditionEdge.evtTp, conditionEdge.incptnDtTm, conditionEdge.xprtnDtTm],
+      values: [
+        accountEntityId,
+        conditionId,
+        conditionEdge.evtTp,
+        conditionEdge.incptnDtTm,
+        conditionEdge.xprtnDtTm,
+        conditionEdge.tenantId,
+      ],
     };
 
     const queryRes = await manager._eventHistory.query<Edge>(query);
@@ -163,7 +191,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
     return toReturn;
   };
 
-  manager.getConditionsByEntity = async (entityId: string, schemeProprietary: string): Promise<EntityCondition[]> => {
+  manager.getConditionsByEntity = async (entityId: string, schemeProprietary: string, tenantId: string): Promise<EntityCondition[]> => {
     const now = new Date().toISOString();
 
     const query: PgQueryConfig = {
@@ -176,8 +204,10 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
             AND
               (condition #>> '{xprtnDtTm}')::timestamp > $2
             AND
-              (condition #>> '{ntty,schmeNm,prtry}')::text = $3`,
-      values: [entityId, now, schemeProprietary],
+              (condition #>> '{ntty,schmeNm,prtry}')::text = $3
+            AND 
+              tenantId = $4`,
+      values: [entityId, now, schemeProprietary, tenantId],
     };
 
     const queryRes = await manager._eventHistory.query<{ condition: EntityCondition }>(query);
@@ -186,13 +216,13 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
     return toReturn;
   };
 
-  manager.getConditions = async (activeOnly: boolean): Promise<Condition[]> => {
+  manager.getConditions = async (activeOnly: boolean, tenantId: string): Promise<Condition[]> => {
     const now = new Date().toISOString();
     let toFilter = '$1::text IS NULL';
 
     if (activeOnly) {
       toFilter = `
-        (condition #>> '{xprtnDtTm}')::timestamp > $1`;
+        (condition #>> '{xprtnDtTm}')::timestamp > $1 AND tenantId = $2`;
     }
 
     const query: PgQueryConfig = {
@@ -203,7 +233,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
           condition
         WHERE
           ${toFilter}`,
-      values: [activeOnly ? now : undefined],
+      values: activeOnly ? [now, tenantId] : [],
     };
 
     const queryRes = await manager._eventHistory.query<{ condition: Condition }>(query);
@@ -212,11 +242,11 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
     return toReturn;
   };
 
-  manager.getEntity = async (entityId: string, schemeProprietary: string): Promise<Entity | undefined> => {
-    const id = `${entityId}${schemeProprietary}`;
+  manager.getEntity = async (entityId: string, schemeProprietary: string, tenantId: string): Promise<Entity | undefined> => {
+    const id = `${tenantId}${entityId}${schemeProprietary}`;
     const query: PgQueryConfig = {
-      text: 'SELECT id, creDtTm FROM entity WHERE id = $1',
-      values: [id],
+      text: 'SELECT id, creDtTm, tenantId FROM entity WHERE id = $1 AND tenantId = $2',
+      values: [id, tenantId],
     };
 
     const queryRes = await manager._eventHistory.query<Entity>(query);
@@ -225,11 +255,16 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
     return toReturn;
   };
 
-  manager.getAccount = async (accountId: string, schemeProprietary: string, agtMemberId: string): Promise<Account | undefined> => {
-    const id = `${accountId}${schemeProprietary}${agtMemberId}`;
+  manager.getAccount = async (
+    accountId: string,
+    schemeProprietary: string,
+    agtMemberId: string,
+    tenantId: string,
+  ): Promise<Account | undefined> => {
+    const id = `${tenantId}${accountId}${schemeProprietary}${agtMemberId}`;
     const query: PgQueryConfig = {
-      text: 'SELECT id FROM account WHERE id = $1',
-      values: [id],
+      text: 'SELECT id, tenantId FROM account WHERE id = $1 AND tenantId = $2',
+      values: [id, tenantId],
     };
 
     const queryRes = await manager._eventHistory.query<Account>(query);
@@ -238,7 +273,12 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
     return toReturn;
   };
 
-  manager.getConditionsByAccount = async (accountId: string, schemeProprietary: string, memberId: string): Promise<AccountCondition[]> => {
+  manager.getConditionsByAccount = async (
+    accountId: string,
+    schemeProprietary: string,
+    tenantId: string,
+    memberId: string,
+  ): Promise<AccountCondition[]> => {
     const now = new Date().toISOString();
     const query: PgQueryConfig = {
       text: `
@@ -258,8 +298,10 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
           OR
             (condition #>> '{xprtnDtTm}')::timestamp > $4
           )
+        AND
+          tenantId = $5
       }`,
-      values: [accountId, schemeProprietary, memberId, now],
+      values: [accountId, schemeProprietary, memberId, now, tenantId],
     };
 
     const queryRes = await manager._eventHistory.query<{ condition: AccountCondition }>(query);
@@ -284,8 +326,9 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
           source = $2
         AND
           destination = $3
-      `, // AND tenantId = $3
-      values: [expireDateTime, source, destination],
+        AND 
+          tenantId = $4`,
+      values: [expireDateTime, source, destination, tenantId],
     };
 
     await manager._eventHistory.query(query);
@@ -307,8 +350,9 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
           source = $2
         AND
           destination = $3
-      `, // AND tenantId = $3
-      values: [expireDateTime, source, destination],
+        AND 
+          tenantId = $4`,
+      values: [expireDateTime, source, destination, tenantId],
     };
 
     await manager._eventHistory.query(query);
@@ -330,8 +374,9 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
           source = $2
         AND
           destination = $3
-      `, // AND tenantId = $3
-      values: [expireDateTime, source, destination],
+        AND 
+          tenantId = $4`,
+      values: [expireDateTime, source, destination, tenantId],
     };
 
     await manager._eventHistory.query(query);
@@ -353,14 +398,15 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
           source = $2
         AND
           destination = $3
-      `, // AND tenantId = $3
-      values: [expireDateTime, source, destination],
+        AND 
+          tenantId = $4`,
+      values: [expireDateTime, source, destination, tenantId],
     };
 
     await manager._eventHistory.query(query);
   };
 
-  manager.updateCondition = async (conditionId: string, expireDateTime: string): Promise<void> => {
+  manager.updateCondition = async (conditionId: string, expireDateTime: string, tenantId: string): Promise<void> => {
     const query: PgQueryConfig = {
       text: `
         UPDATE 
@@ -368,14 +414,16 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
         SET 
           condition = jsonb_set(condition, '{xprtnDtTm}', to_jsonb($1::text), true)
         WHERE 
-          id = $2;`,
-      values: [expireDateTime, conditionId],
+          id = $2
+        AND
+          tenantId = $3`,
+      values: [expireDateTime, conditionId, tenantId],
     };
 
     await manager._eventHistory.query(query);
   };
 
-  manager.getConditionsByGraph = async (activeOnly: boolean): Promise<RawConditionResponse[]> => {
+  manager.getConditionsByGraph = async (activeOnly: boolean, tenantId: string): Promise<RawConditionResponse[]> => {
     const query: PgQueryConfig = {
       text: `
         WITH gov_acct_cred AS (
@@ -391,6 +439,8 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
                 OR (
                     e."xprtndttm"::timestamptz < NOW()
                 )
+              AND
+                e.tenantId = $2
             )
         ),
         gov_acct_debtor AS (
@@ -406,6 +456,8 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
                 OR (
                     e."xprtndttm"::timestamptz < NOW()
                 )
+              AND
+                e.tenantId = $2
             )
         ),
         gov_cred AS (
@@ -421,6 +473,8 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
                 OR (
                     e."xprtndttm"::timestamptz < NOW()
                 )
+              AND
+                e.tenantId = $2
             )
         ),
         gov_debtor AS (
@@ -436,6 +490,8 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
                 OR (
                     e."xprtndttm"::timestamptz < NOW()
                 )
+              AND
+                e.tenantId = $2
             )
         )
         
@@ -449,7 +505,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
             'governed_as_debtor_account_by',
               COALESCE((SELECT jsonb_agg(c) FROM gov_acct_debtor AS c), '[]'::jsonb)
         ) AS result_gov;`,
-      values: [activeOnly],
+      values: [activeOnly, tenantId],
     };
 
     const queryRes = await manager._eventHistory.query<{ result_gov: RawConditionResponse }>(query);
@@ -464,6 +520,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
   manager.getEntityConditionsByGraph = async (
     entityId: string,
     schemeProprietary: string,
+    tenantId: string,
     retrieveAll?: boolean,
   ): Promise<RawConditionResponse[]> => {
     const query: PgQueryConfig = {
@@ -490,6 +547,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
                   AND (e."xprtndttm"::timestamptz > NOW() OR e."xprtndttm" IS NULL)
               )
             )
+          AND e.tenantId = $4
         ),
         gov_debtor AS (
             SELECT 
@@ -513,6 +571,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
                       AND (e."xprtndttm"::timestamptz > NOW() OR e."xprtndttm" IS NULL)
                   )
               )
+            AND e.tenantId = $4
         )
         SELECT jsonb_build_object(
             'governed_as_creditor_by',
@@ -520,7 +579,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
             'governed_as_debtor_by',
               COALESCE((SELECT jsonb_agg(d) FROM gov_debtor AS d), '[]'::jsonb)
         ) AS result_gov;`,
-      values: [entityId, schemeProprietary, retrieveAll],
+      values: [entityId, schemeProprietary, retrieveAll, tenantId],
     };
 
     const queryRes = await manager._eventHistory.query<{ result_gov: RawConditionResponse }>(query);
@@ -533,6 +592,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
   manager.getAccountConditionsByGraph = async (
     entityId: string,
     schemeProprietary: string,
+    tenantId: string,
     agt: string,
     retrieveAll?: boolean,
   ): Promise<RawConditionResponse[]> => {
@@ -558,6 +618,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
                       AND (e."xprtndttm"::timestamptz > NOW() OR e."xprtndttm" IS NULL)
                   )
               )
+            AND e.tenantId = $5
         ),
         gov_debtor AS (
             SELECT 
@@ -579,6 +640,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
                       AND (e."xprtndttm"::timestamptz > NOW() OR e."xprtndttm" IS NULL) 
                   )
               )
+            AND e.tenantId = $5
         )
         SELECT jsonb_build_object(
             'governed_as_creditor_account_by',
@@ -586,7 +648,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
             'governed_as_debtor_account_by',
               COALESCE((SELECT jsonb_agg(d) FROM gov_debtor AS d), '[]'::jsonb)
         ) AS result_gov;`,
-      values: [entityId, schemeProprietary, agt, retrieveAll],
+      values: [entityId, schemeProprietary, agt, retrieveAll, tenantId],
     };
     const queryRes = await manager._eventHistory.query<{ result_gov: RawConditionResponse }>(query);
     return queryRes.rows.map((eachEntry) => ({

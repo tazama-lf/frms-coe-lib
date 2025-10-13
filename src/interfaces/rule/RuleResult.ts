@@ -4,6 +4,7 @@ export interface RuleResult {
   id: string;
   cfg: string;
   subRuleRef: string;
+  tenantId: string;
   reason?: string;
   prcgTm?: number;
   wght?: number;

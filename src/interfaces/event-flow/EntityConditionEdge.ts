@@ -16,6 +16,7 @@ export interface Edge {
   source: string;
   destination: string;
   evtTp: string[];
+  tenantId: string;
   incptnDtTm: string;
   xprtnDtTm?: string;
 }
@@ -23,15 +24,18 @@ export interface Edge {
 export interface Entity {
   id: string;
   creDtTm: string;
+  TenantId: string;
 }
 
 export interface Account {
   id: string;
+  TenantId: string;
 }
 
 export interface Condition {
   condId: string;
   evtTp: string[];
+  tenantId: string;
   condTp: string;
   prsptv: string;
   incptnDtTm: string;

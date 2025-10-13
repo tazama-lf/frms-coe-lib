@@ -28,10 +28,10 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
     readyChecks.RawHistoryDB = `err, ${util.inspect(err)}`;
   }
 
-  manager.getTransactionPacs008 = async (endToEndId: string): Promise<Pacs008 | undefined> => {
+  manager.getTransactionPacs008 = async (endToEndId: string, tenantId: string): Promise<Pacs008 | undefined> => {
     const query: PgQueryConfig = {
-      text: 'SELECT document FROM pacs008 WHERE endToEndId = $1',
-      values: [endToEndId],
+      text: 'SELECT document FROM pacs008 WHERE endToEndId = $1 AND tenantId = $2',
+      values: [endToEndId, tenantId],
     };
 
     const queryRes = await manager._rawHistory.query<{ document: Pacs008 }>(query);

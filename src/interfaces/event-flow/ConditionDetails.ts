@@ -6,7 +6,7 @@ export interface Entry {
   entity: Entity;
   condition: MetaData & Condition;
 }
-export interface ConditionDetails extends Pick<Condition, 'incptnDtTm' | 'xprtnDtTm'> {
+export interface ConditionDetails extends Pick<Condition, 'incptnDtTm' | 'xprtnDtTm' | 'tenantId'> {
   condId: string;
   condTp: string;
   condRsn: string;

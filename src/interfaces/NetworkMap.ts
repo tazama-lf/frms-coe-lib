@@ -7,6 +7,7 @@ export interface Rule {
 
 export interface Typology {
   id: string;
+  tenantId: string;
   cfg: string;
   rules: Rule[];
 }
@@ -21,5 +22,6 @@ export interface Message {
 export interface NetworkMap {
   active: boolean;
   cfg: string;
+  tenantId: string;
   messages: Message[];
 }

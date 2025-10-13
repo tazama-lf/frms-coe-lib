@@ -4,6 +4,7 @@ export interface RuleConfig {
   id: string;
   cfg: string;
   config: Config;
+  tenantId: string;
   desc?: string;
 }
 

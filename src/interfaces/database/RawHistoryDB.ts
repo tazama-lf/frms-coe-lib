@@ -8,9 +8,10 @@ export interface RawHistoryDB {
 
   /**
    * @param endToEndId An endToEndId String used to filter on the EndToEndId field
+   * @param tenantId The tenantId String to filter on the TenantId field
    * @memberof RawHistoryDB
    */
-  getTransactionPacs008: (endToEndId: string) => Promise<Pacs008 | undefined>;
+  getTransactionPacs008: (endToEndId: string, tenantId: string) => Promise<Pacs008 | undefined>;
 
   /**
    * @param transaction Transaction of Type Pain001 to store

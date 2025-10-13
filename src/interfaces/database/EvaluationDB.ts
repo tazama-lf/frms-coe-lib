@@ -9,12 +9,12 @@ export interface EvaluationDB {
   _evaluation: Pool;
 
   /**
-   * @param collection: Collection name against which this query will be run
    * @param messageid: A String value that will be used to compare with Msgid from reports stored
+   * @param tenantId The tenantId String to filter on the TenantId field
    *
    * @memberof EvaluationDB
    */
-  getReportByMessageId: (messageid: string) => Promise<Evaluation | undefined>;
+  getReportByMessageId: (messageid: string, tenantId: string) => Promise<Evaluation | undefined>;
 
   /**
    * Save the Evaluation Result to DB
