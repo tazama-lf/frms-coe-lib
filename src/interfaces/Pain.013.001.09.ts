@@ -94,7 +94,7 @@ interface EqvtAmt {
 }
 
 interface EqvtAmtAmt {
-  Amt: string;
+  Amt: number;
   Ccy: string;
 }
 

@@ -97,7 +97,7 @@ const mockTR: TransactionRelationship = {
   to: 'MOCK-to',
   TxTp: 'MOCK-TxTp',
   TenantId: 'MOCK-TenantID',
-  Amt: 'MOCK-Amt',
+  Amt: 999.99,
   Ccy: 'MOCK-Ccy',
 };
 

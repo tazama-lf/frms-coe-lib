@@ -7,7 +7,7 @@ export interface TransactionRelationship {
   TenantId: string;
   MsgId: string;
   CreDtTm: string;
-  Amt?: string;
+  Amt?: number;
   Ccy?: string;
   PmtInfId: string;
   EndToEndId: string;

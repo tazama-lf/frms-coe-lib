@@ -96,7 +96,7 @@ interface ChrgsInf {
 }
 
 interface Amt {
-  Amt: string;
+  Amt: number;
   Ccy: string;
 }
 
