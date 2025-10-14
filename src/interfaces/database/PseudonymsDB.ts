@@ -25,6 +25,7 @@ export interface PseudonymsDB {
   queryPseudonymDB: (collection: string, tenantId: string, filter: string, limit?: number) => Promise<unknown>;
 
   /**
+   * @deprecated pseudonymization is no longer used
    * @param hash Hash String used to identify the pseudonym we are looking up
    *
    * ```
@@ -47,6 +48,7 @@ export interface PseudonymsDB {
   saveTransactionRelationship: (tR: TransactionRelationship) => Promise<unknown>;
 
   /**
+   * @deprecated edge retrieval in rules is no longer via library functions
    * @param endToEndIds An Array of endToEndIds Strings to find their related pacs.008 edge set
    * @param tenantId Tenant ID to filter the collection by
    *
@@ -63,6 +65,7 @@ export interface PseudonymsDB {
   getPacs008Edge: (endToEndIds: string[], tenantId: string) => Promise<unknown>;
 
   /**
+   * @deprecated edge retrieval in rules is no longer via library functions
    * @param accountId The accountId String to filter on the _to field
    * @param tenantId The tenantId String to filter on the TenantId field
    * @param threshold The time String Threshold to return transactions newer that date threshold
@@ -84,6 +87,7 @@ export interface PseudonymsDB {
   getPacs008Edges: (accountId: string, tenantId: string, threshold?: string, amount?: number) => Promise<unknown>;
 
   /**
+   * @deprecated edge retrieval in rules is no longer via library functions
    * @param endToEndIds An Array of endToEndIds Strings to find their related pacs.002 edge set
    * @param tenantId The tenantId String to filter on the TenantId field
    *
@@ -100,6 +104,7 @@ export interface PseudonymsDB {
   getPacs002Edge: (endToEndIds: string[], tenantId: string) => Promise<unknown>;
 
   /**
+   * @deprecated edge retrieval in rules is no longer via library functions
    * @param debtorId A debtorId String to filter on the _from field
    * @param tenantId The tenantId String to filter on the TenantId field
    *
@@ -118,6 +123,7 @@ export interface PseudonymsDB {
   getDebtorPacs002Edges: (debtorId: string, tenantId: string) => Promise<unknown>;
 
   /**
+   * @deprecated edge retrieval in rules is no longer via library functions
    * @param accountId A accountId String to filter on the _to field
    * @param tenantId The tenantId String to filter on the TenantId field
    * @param limit A limit Number to optionally limit results
@@ -139,6 +145,7 @@ export interface PseudonymsDB {
   getIncomingPacs002Edges: (accountId: string, tenantId: string, limit?: number) => Promise<unknown>;
 
   /**
+   * @deprecated edge retrieval in rules is no longer via library functions
    * @param accountId A accountId String to filter on the _from field
    * @param tenantId The tenantId String to filter on the TenantId field
    * @param limit A limit Number to optionally limit results
@@ -160,6 +167,7 @@ export interface PseudonymsDB {
   getOutgoingPacs002Edges: (accountId: string, tenantId: string, limit?: number) => Promise<unknown>;
 
   /**
+   * @deprecated edge retrieval in rules is no longer via library functions
    * @param creditorId A creditorId Array of String to filter on the _to field
    * @param debtorId A debtorId String to filter on the _from field
    * @param endToEndId A endToEndId Array of String to filter on the EndToEndId field
@@ -184,6 +192,7 @@ export interface PseudonymsDB {
   getSuccessfulPacs002Edges: (creditorId: string[], debtorId: string, endToEndId: string[], tenantId: string) => Promise<unknown>;
 
   /**
+   * @deprecated edge retrieval in rules is no longer via library functions
    * @param debtorId A debtorId String to filter on the _from field
    * @param tenantId The tenantId String to filter on the TenantId field
    * @param @deprecated endToEndId no longer filters
@@ -203,6 +212,7 @@ export interface PseudonymsDB {
   getDebtorPacs008Edges: (debtorId: string, tenantId: string, endToEndId: string) => Promise<unknown>;
 
   /**
+   * @deprecated edge retrieval in rules is no longer via library functions
    * @param creditorId A creditorId String to filter on the _to field
    * @param tenantId The tenantId String to filter on the TenantId field
    *
@@ -221,6 +231,7 @@ export interface PseudonymsDB {
   getCreditorPacs008Edges: (creditorId: string, tenantId: string) => Promise<unknown>;
 
   /**
+   * @deprecated edge retrieval in rules is no longer via library functions
    * @param debtorId A debtorId String to filter on the _from field
    * @param tenantId The tenantId String to filter on the TenantId field
    * @param limit A limit Number to optionally limit results
@@ -243,6 +254,7 @@ export interface PseudonymsDB {
   getPreviousPacs008Edges: (debtorId: string, tenantId: string, limit?: number, to?: string[]) => Promise<unknown>;
 
   /**
+   * @deprecated edge retrieval in rules is no longer via library functions
    * @param creditorId A creditorId String to filter on the _from field
    * @param tenantId The tenantId String to filter on the TenantId field
    * @param threshold A threshold Number (in seconds) used to determine how far back to filter
