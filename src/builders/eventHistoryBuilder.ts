@@ -41,7 +41,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
 
   manager.saveAccount = async (key: string, tenantId: string): Promise<void> => {
     const query: PgQueryConfig = {
-      text: 'INSERT INTO account (id, tenantId) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING',
+      text: 'INSERT INTO account (id, tenantId) VALUES ($1, $2) ON CONFLICT (id, tenantId) DO NOTHING',
       values: [key, tenantId],
     };
 
@@ -50,7 +50,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
 
   manager.saveEntity = async (entityId: string, tenantId: string, CreDtTm: string): Promise<void> => {
     const query: PgQueryConfig = {
-      text: 'INSERT INTO entity (id, tenantId, creDtTm) VALUES ($1, $2, $3) ON CONFLICT (id) DO NOTHING',
+      text: 'INSERT INTO entity (id, tenantId, creDtTm) VALUES ($1, $2, $3) ON CONFLICT (id, tenantId) DO NOTHING',
       values: [entityId, tenantId, CreDtTm],
     };
 
@@ -59,7 +59,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
 
   manager.saveAccountHolder = async (entityId: string, accountId: string, CreDtTm: string, tenantId: string): Promise<void> => {
     const query: PgQueryConfig = {
-      text: 'INSERT INTO account_holder (source, destination, creDtTm, tenantId) VALUES ($1, $2, $3, $4) ON CONFLICT (source, destination) DO NOTHING',
+      text: 'INSERT INTO account_holder (source, destination, creDtTm, tenantId) VALUES ($1, $2, $3, $4) ON CONFLICT (source, destination, tenantId) DO NOTHING',
       values: [entityId, accountId, CreDtTm, tenantId],
     };
 
@@ -86,7 +86,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
             VALUES
               ($1, $2, $3, $4, $5, $6)
             ON CONFLICT 
-              (source, destination) DO NOTHING
+              (source, destination, tenantId) DO NOTHING
             RETURNING *`,
       values: [
         accountEntityId,
@@ -115,7 +115,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
             VALUES
               ($1, $2, $3, $4, $5, $6)
             ON CONFLICT 
-              (source, destination) DO NOTHING
+              (source, destination, tenantId) DO NOTHING
             RETURNING *`,
       values: [
         accountEntityId,
@@ -144,7 +144,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
             VALUES
               ($1, $2, $3, $4, $5, $6)
             ON CONFLICT 
-              (source, destination) DO NOTHING
+              (source, destination, tenantId) DO NOTHING
             RETURNING *`,
       values: [
         accountEntityId,
@@ -173,7 +173,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
             VALUES
               ($1, $2, $3, $4, $5, $6)
             ON CONFLICT 
-              (source, destination) DO NOTHING
+              (source, destination, tenantId) DO NOTHING
             RETURNING *`,
       values: [
         accountEntityId,
