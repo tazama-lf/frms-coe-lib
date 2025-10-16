@@ -222,7 +222,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
 
     if (activeOnly) {
       toFilter = `
-        (condition #>> '{xprtnDtTm}')::timestamp > $1 AND tenantId = $2`;
+        (condition #>> '{xprtnDtTm}')::timestamp > $2`;
     }
 
     const query: PgQueryConfig = {
@@ -232,8 +232,9 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
         FROM
           condition
         WHERE
-          ${toFilter}`,
-      values: activeOnly ? [now, tenantId] : [],
+          ${toFilter}
+        AND tenantId = $1`,
+      values: activeOnly ? [tenantId, now] : [tenantId],
     };
 
     const queryRes = await manager._eventHistory.query<{ condition: Condition }>(query);
@@ -243,7 +244,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
   };
 
   manager.getEntity = async (entityId: string, schemeProprietary: string, tenantId: string): Promise<Entity | undefined> => {
-    const id = `${tenantId}${entityId}${schemeProprietary}`;
+    const id = `${entityId}${schemeProprietary}`;
     const query: PgQueryConfig = {
       text: 'SELECT id, creDtTm, tenantId FROM entity WHERE id = $1 AND tenantId = $2',
       values: [id, tenantId],
@@ -261,7 +262,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
     agtMemberId: string,
     tenantId: string,
   ): Promise<Account | undefined> => {
-    const id = `${tenantId}${accountId}${schemeProprietary}${agtMemberId}`;
+    const id = `${accountId}${schemeProprietary}${agtMemberId}`;
     const query: PgQueryConfig = {
       text: 'SELECT id, tenantId FROM account WHERE id = $1 AND tenantId = $2',
       values: [id, tenantId],
