@@ -94,7 +94,7 @@ interface EqvtAmt {
 }
 
 interface DbtrFinSvcsPrvdrFeesClass {
-  Amt: string;
+  Amt: number;
   Ccy: string;
 }
 

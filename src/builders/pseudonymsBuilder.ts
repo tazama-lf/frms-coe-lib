@@ -58,8 +58,8 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
   manager.saveTransactionRelationship = async (tR: TransactionRelationship) => {
     const data = {
       _key: tR.MsgId,
-      _from: tR.from,
-      _to: tR.to,
+      _from: tR.from, // expected key composition accounts/${tenantId}${accountId}${accountType}${agentId}
+      _to: tR.to, // expected key composition accounts/${tenantId}${accountId}${accountType}${agentId}
       TxTp: tR.TxTp,
       TenantId: tR.TenantId,
       TxSts: tR.TxSts,
@@ -285,7 +285,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
   manager.saveAccount = async (key: string, tenantId: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.accounts);
     const data = {
-      _key: key,
+      _key: `${tenantId}${key}`, // expected key composition ${tenantId}${accountId}${accountType}${agentId}
       TenantId: tenantId,
     };
     return await db?.save(data, { overwriteMode: 'ignore' });
@@ -294,7 +294,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
   manager.saveEntity = async (entityId: string, tenantId: string, CreDtTm: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.entities);
     const data = {
-      _key: entityId,
+      _key: `${tenantId}${entityId}`, // expected key composition ${tenantId}${entityId}${entityIdType}
       Id: entityId,
       TenantId: tenantId,
       CreDtTm,
@@ -304,13 +304,13 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
 
   manager.saveAccountHolder = async (entityId: string, accountId: string, CreDtTm: string, tenantId: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.account_holder);
-    const _key = `${accountId}${entityId}`;
-    const _from = `entities/${entityId}`;
-    const _to = `accounts/${accountId}`;
+    const _key = `${tenantId}${accountId}${tenantId}${entityId}`;
+    const _from = `entities/${tenantId}${entityId}`;
+    const _to = `accounts/${tenantId}${accountId}`;
     const data = {
-      _key,
-      _from,
-      _to,
+      _key, // expected key composition ${tenantId}${entityId}${entityIdType}${tenantId}${accountId}${accountType}${agentId}
+      _from, // expected key composition entities/${tenantId}${entityId}${entityIdType}
+      _to, // expected key composition accounts/${tenantId}${accountId}${accountType}${agentId}
       CreDtTm,
       TenantId: tenantId,
     };
@@ -539,7 +539,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
 
   manager.getEntity = async (entityId: string, SchemeProprietary: string, tenantId: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.entities);
-    const entityIdentity = `${tenantId}${entityId}${SchemeProprietary}`;
+    const entityIdentity = `${tenantId}${entityId}${SchemeProprietary}`; // expected key composition ${tenantId}${entityId}${entityIdType}
     const aqltenantId = aql`${tenantId}`;
     const entityIdAql = aql`FILTER doc._key == ${entityIdentity} && doc.TenantId == ${aqltenantId}`;
 
@@ -552,7 +552,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
 
   manager.getAccount = async (accountId: string, SchemeProprietary: string, agtMemberId: string, tenantId: string) => {
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.accounts);
-    const accountIdentity = `${tenantId}${accountId}${SchemeProprietary}${agtMemberId}`;
+    const accountIdentity = `${tenantId}${accountId}${SchemeProprietary}${agtMemberId}`; // expected key composition ${tenantId}${accountId}${accountType}${agentId}
     const aqltenantId = aql`${tenantId}`;
     const accountIdAql = aql`FILTER doc._key == ${accountIdentity} && doc.TenantId == ${aqltenantId}`;
 
@@ -689,7 +689,7 @@ export async function pseudonymsBuilder(manager: DatabaseManagerType, pseudonyms
     const db = manager._pseudonymsDb?.collection(dbPseudonyms.conditions);
     const condition = (await db?.document(conditionId)) as { tenantId: string } | undefined;
 
-    if (!condition || condition.tenantId !== tenantId) {
+    if (condition?.tenantId !== tenantId) {
       throw new Error(`Unauthorized: Cannot update condition ${conditionId}. Tenant mismatch or record not found.`);
     }
 
