@@ -1,6 +1,6 @@
 {
   "name": "@tazama-lf/frms-coe-lib",
-  "version": "6.0.0-postgres.alpha.12",
+  "version": "6.0.0-postgres.alpha.13",
   "description": "Tazama package library",
   "main": "lib/index.js",
   "repository": {
