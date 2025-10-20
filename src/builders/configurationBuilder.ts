@@ -38,7 +38,7 @@ export async function configurationBuilder(
   manager.nodeCache = cacheConfig?.localCacheEnabled ? new NodeCache() : undefined;
 
   manager.getRuleConfig = async (ruleId: string, cfg: string, tenantId: string, limit?: number): Promise<RuleConfig | undefined> => {
-    const cacheKey = `${ruleId}_${cfg}`;
+    const cacheKey = `${tenantId}_${ruleId}_${cfg}`;
     if (manager.nodeCache) {
       const cacheVal = manager.nodeCache.get<RuleConfig>(cacheKey);
       if (cacheVal) {
