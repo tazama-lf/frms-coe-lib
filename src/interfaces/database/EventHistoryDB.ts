@@ -97,15 +97,6 @@ export interface EventHistoryDB {
    * @param entityId string of identifier for entity being retrieved
    * @param schemeProprietary string of scheme proprietary of the entity being retrieved
    * @param tenantId The tenantId String to filter on the TenantId field
-   *
-   * @memberof EventHistoryDB
-   */
-  getConditionsByEntity: (entityId: string, schemeProprietary: string, tenantId: string) => Promise<EntityCondition[]>;
-
-  /**
-   * @param entityId string of identifier for entity being retrieved
-   * @param schemeProprietary string of scheme proprietary of the entity being retrieved
-   * @param tenantId The tenantId String to filter on the TenantId field
    * @param retrieveAll (Optional) boolean to retrieve all conditions or only active ones
    *
    * @memberof EventHistoryDB
@@ -140,14 +131,6 @@ export interface EventHistoryDB {
    *
    * @memberof EventHistoryDB
    */
-  getConditionsByGraph: (activeOnly: boolean, tenantId: string) => Promise<RawConditionResponse[]>;
-
-  /**
-   * @param activeOnly Only active conditions
-   * @param tenantId The tenantId String to filter on the TenantId field
-   *
-   * @memberof EventHistoryDB
-   */
   getConditions: (activeOnly: boolean, tenantId: string) => Promise<Condition[]>;
 
   /**
@@ -167,15 +150,6 @@ export interface EventHistoryDB {
    * @memberof EventHistoryDB
    */
   getAccount: (accountId: string, schemeProprietary: string, agtMemberId: string, tenantId: string) => Promise<Account | undefined>;
-
-  /**
-   * @param accountId string of identifier for account being retrieved
-   * @param schemeProprietary string of scheme proprietary of the account being retrieved
-   * @param memberId string of financial institution member id of the account being retrieved
-   *
-   * @memberof EventHistoryDB
-   */
-  getConditionsByAccount: (accountId: string, schemeProprietary: string, tenantId: string, memberId: string) => Promise<AccountCondition[]>;
 
   /**
    * @param source string id of the "from" node data that is connected by the edge

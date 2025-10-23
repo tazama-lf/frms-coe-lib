@@ -13,12 +13,11 @@ export interface ConfigurationDB {
    * @param {string} ruleId A ruleId String used to filter on the id field
    * @param {string} cfg A cfg String used to filter on the cfg field
    * @param {string} tenantId A tenantId string for filtering by tenantId field
-   * @param {number | undefined} limit optional limit
    * @returns {RuleConfig} rule config
    *
    * @memberof ConfigurationDB
    */
-  getRuleConfig: (ruleId: string, cfg: string, tenantId: string, limit?: number) => Promise<RuleConfig | undefined>;
+  getRuleConfig: (ruleId: string, cfg: string, tenantId: string) => Promise<RuleConfig | undefined>;
 
   /**
    * @param {string} typologyId typology identifier

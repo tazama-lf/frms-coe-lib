@@ -37,7 +37,7 @@ export async function configurationBuilder(
 
   manager.nodeCache = cacheConfig?.localCacheEnabled ? new NodeCache() : undefined;
 
-  manager.getRuleConfig = async (ruleId: string, cfg: string, tenantId: string, limit?: number): Promise<RuleConfig | undefined> => {
+  manager.getRuleConfig = async (ruleId: string, cfg: string, tenantId: string): Promise<RuleConfig | undefined> => {
     const cacheKey = `${tenantId}_${ruleId}_${cfg}`;
     if (manager.nodeCache) {
       const cacheVal = manager.nodeCache.get<RuleConfig>(cacheKey);
@@ -59,11 +59,6 @@ export async function configurationBuilder(
                 tenantId = $3`,
       values: [ruleId, cfg, tenantId],
     };
-
-    if (limit !== undefined) {
-      query.text += ' LIMIT $3';
-      query.values.push(limit);
-    }
 
     const queryRes = await manager._configuration.query<{ configuration: RuleConfig }>(query);
 

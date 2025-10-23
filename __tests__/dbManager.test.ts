@@ -265,14 +265,11 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.saveGovernedAsCreditorAccountByEdge).toBeDefined();
     expect(dbManager.saveGovernedAsDebtorAccountByEdge).toBeDefined();
     expect(dbManager.saveGovernedAsDebtorByEdge).toBeDefined();
-    expect(dbManager.getConditionsByEntity).toBeDefined();
     expect(dbManager.getConditions).toBeDefined();
     expect(dbManager.getEntityConditionsByGraph).toBeDefined();
-    expect(dbManager.getConditionsByGraph).toBeDefined();
     expect(dbManager.getAccountConditionsByGraph).toBeDefined();
     expect(dbManager.getEntity).toBeDefined();
     expect(dbManager.getAccount).toBeDefined();
-    expect(dbManager.getConditionsByAccount).toBeDefined();
     expect(dbManager.updateCondition).toBeDefined();
 
     expect(await dbManager.saveTransactionDetails(mockTR)).toEqual(undefined);
@@ -284,11 +281,9 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.saveGovernedAsDebtorByEdge('test1', 'test2', {} as ConditionEdge)).toEqual('MOCK-QUERY');
     expect(await dbManager.saveGovernedAsCreditorAccountByEdge('test1', 'test2', {} as ConditionEdge)).toEqual('MOCK-QUERY');
     expect(await dbManager.saveGovernedAsDebtorAccountByEdge('test1', 'test2', {} as ConditionEdge)).toEqual('MOCK-QUERY');
-    expect(await dbManager.getConditionsByEntity('test1', 'test2', 'tenantId')).toContainEqual('MOCK-QUERY');
     expect(await dbManager.getConditions(true, 'tenantId')).toContainEqual('MOCK-QUERY');
     expect(await dbManager.getEntity('test1', 'test2', 'tenantId')).toEqual('MOCK-QUERY');
     expect(await dbManager.getAccount('test1', 'test2', 'test3', 'tenantId')).toEqual('MOCK-QUERY');
-    expect(await dbManager.getConditionsByAccount('test1', 'test2', 'tenantId', 'test3')).toContainEqual('MOCK-QUERY');
     expect(
       await dbManager.updateExpiryDateOfDebtorAccountEdges('sourceKey', 'destinationKey', '2024-09-05T21:00:00.999Z', 'tenantId'),
     ).toEqual(undefined);
@@ -313,9 +308,6 @@ describe('CreateDatabaseManager', () => {
       { governed_as_creditor_by: 'MOCK-QUERY', governed_as_debtor_by: 'MOCK-QUERY' },
     ]);
     expect(await dbManager.getEntityConditionsByGraph('test1', 'test2', 'tenantId', true)).toEqual([
-      { governed_as_creditor_by: 'MOCK-QUERY', governed_as_debtor_by: 'MOCK-QUERY' },
-    ]);
-    expect(await dbManager.getConditionsByGraph(true, 'tenantId')).toEqual([
       { governed_as_creditor_by: 'MOCK-QUERY', governed_as_debtor_by: 'MOCK-QUERY' },
     ]);
     jest.spyOn(globalManager._eventHistory, 'query').mockImplementation((query: string): Promise<any> => {

@@ -191,31 +191,6 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
     return toReturn;
   };
 
-  manager.getConditionsByEntity = async (entityId: string, schemeProprietary: string, tenantId: string): Promise<EntityCondition[]> => {
-    const now = new Date().toISOString();
-
-    const query: PgQueryConfig = {
-      text: `SELECT
-              condition
-            FROM
-              condition
-            WHERE
-              id = $1
-            AND
-              (condition #>> '{xprtnDtTm}')::timestamp > $2
-            AND
-              (condition #>> '{ntty,schmeNm,prtry}')::text = $3
-            AND 
-              tenantId = $4`,
-      values: [entityId, now, schemeProprietary, tenantId],
-    };
-
-    const queryRes = await manager._eventHistory.query<{ condition: EntityCondition }>(query);
-    const toReturn = queryRes.rows.length > 0 ? queryRes.rows.map((value) => value.condition) : [];
-
-    return toReturn;
-  };
-
   manager.getConditions = async (activeOnly: boolean, tenantId: string): Promise<Condition[]> => {
     const now = new Date().toISOString();
     let toFilter = '$1::text IS NULL';
@@ -270,43 +245,6 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
 
     const queryRes = await manager._eventHistory.query<Account>(query);
     const toReturn = queryRes.rows.length > 0 ? queryRes.rows[0] : undefined;
-
-    return toReturn;
-  };
-
-  manager.getConditionsByAccount = async (
-    accountId: string,
-    schemeProprietary: string,
-    tenantId: string,
-    memberId: string,
-  ): Promise<AccountCondition[]> => {
-    const now = new Date().toISOString();
-    const query: PgQueryConfig = {
-      text: `
-        SELECT
-          condition
-        FROM
-          condition
-        WHERE
-          (condition #>> '{acct,id}')::text = $1
-        AND
-          (condition #>> '{acct,schmeNm,prtry}')::text = $2
-        AND
-          (condition #>> '{acct,agt,finInstnId,clrSysMmbId,mmbId}')::text = $3
-        AND 
-          (
-            (condition #>> '{xprtnDtTm}')::timestamp IS NULL
-          OR
-            (condition #>> '{xprtnDtTm}')::timestamp > $4
-          )
-        AND
-          tenantId = $5
-      }`,
-      values: [accountId, schemeProprietary, memberId, now, tenantId],
-    };
-
-    const queryRes = await manager._eventHistory.query<{ condition: AccountCondition }>(query);
-    const toReturn = queryRes.rows.length > 0 ? queryRes.rows.map((value) => value.condition) : [];
 
     return toReturn;
   };
@@ -422,100 +360,6 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
     };
 
     await manager._eventHistory.query(query);
-  };
-
-  manager.getConditionsByGraph = async (activeOnly: boolean, tenantId: string): Promise<RawConditionResponse[]> => {
-    const query: PgQueryConfig = {
-      text: `
-        WITH gov_acct_cred AS (
-            SELECT 
-                e.* AS edge,
-                f.* AS result,
-                t.* AS condition
-            FROM governed_as_creditor_account_by e
-            JOIN account    f ON f.id = e.source
-            JOIN "condition" t ON t.id = e.destination
-            WHERE (
-                $1::boolean = FALSE
-                OR (
-                    e."xprtndttm"::timestamptz < NOW()
-                )
-              AND
-                e.tenantId = $2
-            )
-        ),
-        gov_acct_debtor AS (
-            SELECT 
-                e.* AS edge,
-                f.* AS result,
-                t.* AS condition
-            FROM governed_as_debtor_account_by e
-            JOIN account    f ON f.id = e.source
-            JOIN "condition" t ON t.id = e.destination
-            WHERE (
-                $1::boolean = FALSE
-                OR (
-                    e."xprtndttm"::timestamptz < NOW()
-                )
-              AND
-                e.tenantId = $2
-            )
-        ),
-        gov_cred AS (
-            SELECT 
-                e.* AS edge,
-                f.* AS result,
-                t.* AS condition
-            FROM governed_as_creditor_by e
-            JOIN entity    f ON f.id = e.source
-            JOIN "condition" t ON t.id = e.destination
-            WHERE (
-                $1::boolean = FALSE
-                OR (
-                    e."xprtndttm"::timestamptz < NOW()
-                )
-              AND
-                e.tenantId = $2
-            )
-        ),
-        gov_debtor AS (
-            SELECT 
-                e.* AS edge,
-                f.* AS result,
-                t.* AS condition
-            FROM governed_as_debtor_by e
-            JOIN entity    f ON f.id = e.source
-            JOIN "condition" t ON t.id = e.destination
-            WHERE (
-                $1::boolean = FALSE
-                OR (
-                    e."xprtndttm"::timestamptz < NOW()
-                )
-              AND
-                e.tenantId = $2
-            )
-        )
-        
-        SELECT jsonb_build_object(
-            'governed_as_creditor_by',
-              COALESCE((SELECT jsonb_agg(g) FROM gov_cred AS g), '[]'::jsonb),
-            'governed_as_debtor_by',
-              COALESCE((SELECT jsonb_agg(d) FROM gov_debtor AS d), '[]'::jsonb)
-            'governed_as_creditor_account_by',
-              COALESCE((SELECT jsonb_agg(a) FROM gov_acct_cred AS a), '[]'::jsonb)
-            'governed_as_debtor_account_by',
-              COALESCE((SELECT jsonb_agg(c) FROM gov_acct_debtor AS c), '[]'::jsonb)
-        ) AS result_gov;`,
-      values: [activeOnly, tenantId],
-    };
-
-    const queryRes = await manager._eventHistory.query<{ result_gov: RawConditionResponse }>(query);
-    return queryRes.rows.map((eachEntry) => ({
-      governed_as_creditor_by: eachEntry.result_gov.governed_as_creditor_by,
-      governed_as_debtor_by: eachEntry.result_gov.governed_as_debtor_by,
-      governed_as_creditor_account_by: eachEntry.result_gov.governed_as_creditor_account_by,
-      governed_as_debtor_account_by: eachEntry.result_gov.governed_as_debtor_account_by,
-    })) as RawConditionResponse[];
   };
 
   manager.getEntityConditionsByGraph = async (
