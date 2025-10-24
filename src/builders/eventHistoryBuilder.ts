@@ -32,7 +32,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
 
   manager.saveTransactionDetails = async (td: TransactionDetails): Promise<void> => {
     const query: PgQueryConfig = {
-      text: 'INSERT INTO transaction (source, destination, transaction) VALUES ($1, $2, $3)',
+      text: 'INSERT INTO transaction (source, destination, transaction) VALUES ($1, $2, $3) ON CONFLICT (endToEndId, txTp, tenantId) DO NOTHING',
       values: [td.source, td.destination, td],
     };
 
