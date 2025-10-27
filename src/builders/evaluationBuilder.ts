@@ -57,7 +57,7 @@ export async function evaluationBuilder(manager: EvaluationDB, evaluationConfig:
     };
 
     const query: PgQueryConfig = {
-      text: 'INSERT INTO evaluation (evaluation) VALUES ($1)',
+      text: 'INSERT INTO evaluation (evaluation) VALUES ($1) ON CONFLICT (messageId, tenantId) DO NOTHING',
       values: [data],
     };
 
