@@ -18,8 +18,7 @@ Logging Class: This class needs configuration variables to check the environment
 | -------- | -------- | -------- | 
 | FUNCTION_NAME  | String | No |
 | NODE_ENV | String | No |
-| MAX_CPU | Number | No |
-
+| MAX_CPU | Number | Yes |
 
 
 ### Redis Variables
@@ -32,46 +31,51 @@ Logging Class: This class needs configuration variables to check the environment
 | REDIS_IS_CLUSTER | Boolean | No |
 
  
-### Database Variables (Arango)
+### Database Variables (Postgres)
 
- ##### 1. TRANSACTION HISTORY DATABASE 
+ ##### 1. RAW HISTORY DATABASE 
 
 | Variables | DataType | Optional |
 | -------- | ------- | ------- | 
-| TRANSACTION_HISTORY_DATABASE | String | No | 
-| TRANSACTION_HISTORY_DATABASE_URL | String | No | 
-| TRANSACTION_HISTORY_DATABASE_USER | String | if specified No | 
-| TRANSACTION_HISTORY_DATABASE_PASSWORD |  String | if specified No | 
-| TRANSACTION_HISTORY_DATABASE_CERT_PATH |  String | No | 
+| RAW_HISTORY_DATABASE | String | No | 
+| RAW_HISTORY_DATABASE_HOST | String | No | 
+| RAW_HISTORY_DATABASE_PORT | String | Yes | 
+| RAW_HISTORY_DATABASE_USER | String | Controllable | 
+| RAW_HISTORY_DATABASE_PASSWORD |  String | Controllable | 
+| RAW_HISTORY_DATABASE_CERT_PATH |  String | No | 
 
-##### 2. PSEUDONYMS DATABASE 
+##### 2. EVENT HISTORY DATABASE 
 
 | Variables | DataType | Optional | 
 | -------- | ------- | ------- | 
-| PSEUDONYMS_DATABASE_URL |  String | No | 
-| PSEUDONYMS_DATABASE_USER |  String | if specified No |  
-| PSEUDONYMS_DATABASE_PASSWORD |  String | if specified No | 
-| PSEUDONYMS_DATABASE_CERT_PATH |  String | No | 
+| EVENT_HISTORY_DATABASE |  String | No | 
+| EVENT_HISTORY_DATABASE_HOST |  String | No | 
+| EVENT_HISTORY_DATABASE_PORT |  String | Yes | 
+| EVENT_HISTORY_DATABASE_USER |  String | Controllable |  
+| EVENT_HISTORY_DATABASE_PASSWORD |  String | Controllable | 
+| EVENT_HISTORY_DATABASE_CERT_PATH |  String | No | 
 
 ##### 3. CONFIGURATION DATABASE 
 
 | Variables | DataType | Optional | 
 | -------- | ------- | ------- | 
-| CONFIGURATION_DATABASE_CERT_PATH |  String | No | 
 | CONFIGURATION_DATABASE |  String | No | 
-| CONFIGURATION_DATABASE_USER |  String | if specified No |  
-| CONFIGURATION_DATABASE_URL | String | No |   
-| CONFIGURATION_DATABASE_PASSWORD |  String | if specified No |  
+| CONFIGURATION_DATABASE_HOST | String | No |   
+| CONFIGURATION_DATABASE_PORT | String | YES |   
+| CONFIGURATION_DATABASE_USER |  String | Controllable |  
+| CONFIGURATION_DATABASE_PASSWORD |  String | Controllable |  
+| CONFIGURATION_DATABASE_CERT_PATH |  String | No | 
 
 ##### 4. EVALUATION DATABASE 
 
 | Variables | DataType | Optional | 
 | -------- | ------- | ------- | 
-| TRANSACTION_DATABASE_CERT_PATH |  String | No |  
-| TRANSACTION_DATABASE_URL |  String | No |  
-| TRANSACTION_DATABASE_USER |  String | if specified No |  
-| TRANSACTION_DATABASE_PASSWORD |  String | if specified No | 
-| TRANSACTION_DATABASE | String | No |  
+| EVALUATION_DATABASE | String | No |  
+| EVALUATION_DATABASE_HOST |  String | No |  
+| EVALUATION_DATABASE_PORT |  String | YES |  
+| EVALUATION_DATABASE_USER |  String | Controllable |  
+| EVALUATION_DATABASE_PASSWORD |  String | Controllable | 
+| EVALUATION_DATABASE_CERT_PATH |  String | No |  
 
 ### Elastic Variables
 
@@ -86,8 +90,6 @@ Logging Class: This class needs configuration variables to check the environment
 
 | Variables | DataType | Optional | 
 | -------- | ------- | ------- | 
-| LOGSTASH_HOST | String | Yes | 
-| LOGSTASH_PORT | String | Yes | 
-| LOGSTASH_LEVEL | String | Yes | 
+| LOG_LEVEL | String | Yes | 
 | SIDECAR_HOST | String | Yes | 
 

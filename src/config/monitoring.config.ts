@@ -23,7 +23,7 @@ export interface ApmConfig {
 export interface LogConfig {
   /** The host of the logging sidecar. */
   sidecarHost?: string;
-  logstashLevel: string;
+  logLevel: string;
   pinoElasticOpts?: {
     flushBytes: number;
     elasticUsername: string;
@@ -61,7 +61,7 @@ export const validateAPMConfig = (): ApmConfig => ({
  */
 export const validateLogConfig = (): LogConfig => ({
   sidecarHost: validateEnvVar('SIDECAR_HOST', 'string', true).toString(),
-  logstashLevel: validateEnvVar('LOGSTASH_LEVEL', 'string', true).toString() || 'info',
+  logLevel: validateEnvVar('LOG_LEVEL', 'string', true).toString() || 'info',
   pinoElasticOpts: {
     flushBytes: Number(validateEnvVar('ELASTIC_FLUSH_BYTES', 'number', true)),
     elasticUsername: validateEnvVar('ELASTIC_USERNAME', 'string', true).toString(),

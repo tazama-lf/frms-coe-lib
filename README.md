@@ -21,7 +21,7 @@
 `frms-coe-lib` is a foundational library designed to provide common functionalities and interfaces for the FRMS (Fraud Risk Management System) ecosystem. It includes utilities, data structures, and interfaces that support various components of the system. The library offers a range of features, including database management, logging, configuration management, rule evaluation, and message handling. It serves as a core dependency for other FRMS components, providing essential building blocks and standardized approaches for handling data and interactions.
 
 Key features:
-- **Database Management**: Interfaces and utilities for interacting with different database systems, including ArangoDB and Redis.
+- **Database Management**: Interfaces and utilities for interacting with different database systems, including Postgres and Redis.
 - **Logging**: A standardized logging interface supporting various log levels and integration with external systems.
 - **Configuration**: Tools for managing application configuration, including environment variable parsing and structured configuration objects.
 - **Protocol Buffers**: Support for serialization and deserialization of messages using Protocol Buffers.
@@ -68,7 +68,7 @@ The `frms-coe-lib` library provides various functionalities for transaction moni
 
 ### 1. **Database Management**
 
-The `CreateDatabaseManager` function initializes and manages connections to multiple databases, including ArangoDB and Redis. This function returns an instance of `DatabaseManagerInstance` which includes methods to interact with the databases.
+The `CreateDatabaseManager` function initializes and manages connections to multiple databases, including Postgres and Redis. This function returns an instance of `DatabaseManagerInstance` which includes methods to interact with the databases.
 
 **Usage Example:**
 ```typescript
@@ -192,7 +192,7 @@ databaseManager = await CreateDatabaseManager(dbConfig);
 3. **Database Manager**
 
   - **Class**: `DatabaseManager`
-    - **Description**: Manages database connections and interactions, including configuration, pseudonyms, historical transactions and evaluation databases.
+    - **Description**: Manages database connections and interactions, including configuration, event history, raw transactions and evaluation databases.
     - **Methods**:
       - `CreateDatabaseManager<T>(config: T): Promise<DatabaseManagerInstance<T>>`: Creates a database manager instance.
       - `isReadyCheck(): any`: Checks if the database services are ready.
@@ -230,11 +230,6 @@ databaseManager = await CreateDatabaseManager(dbConfig);
     - `createLogBuffer(data: Record<string, unknown>): Buffer | undefined`: Creates a log buffer from a data object.
     - `decodeLogBuffer(buffer: Buffer): LogMessageType | undefined`: Decodes a log buffer into a `LogMessageType`.
 
-7. **Unwrap Utility**
-
-  - **Functions**:
-    - `unwrap<T>(type: T[][]): T | undefined`: Unwraps a 2D array and returns the item at `[0][0]`.
-
 ## Configuration
 
 ### Environment Variables
@@ -267,7 +262,7 @@ By default, this function checks for the following environment variables:
 
 The third-party services we support include:
 
-- **ArangoDB**: For database operations.
+- **Postgres**: For database operations.
 - **Logging**: Capable of sending logs to Pino or console/stdout.
 - **APM (Application Performance Monitoring)**: Integrated with Elastic for performance tracking.
 
@@ -276,9 +271,9 @@ To see what are the variables required for each service please refer to VARIABLE
 ### Configuration Options
 The ManagerConfig interface allows you to define which databases and services you wish to use. Each service can be optionally included in the configuration:
 
-- **Pseudonyms Database**: Access and manage  pseudonyms data. `Optional`
-- **Transaction History Database**: Access and manage transaction histories. `Optional`
-- **Transaction Database**: Evaluation Result data management object. `Optional`
+- **Event History Database**: Access and manage event history data. `Optional`
+- **Raw History Database**: Access and manage raw transaction histories. `Optional`
+- **Evaluation Database**: Evaluation Result data management object. `Optional`
 - **Configuration Database**: Store and retrieve application configurations. `Optional`
 - **Redis Cache**: Use Redis for caching to improve performance. `Optional`
 - **Local Cache**: Option for using local cache (Node cache) to improve performance. `Optional` Note: This object is heavily used by configuration builder
@@ -287,15 +282,17 @@ The ManagerConfig interface allows you to define which databases and services yo
 The JSON object example for dbManage configuration
 ```typescript
 {
-    pseudonyms: {
-      url: 'your-pseudonyms-db-url',
+    eventHistory: {
+      host: 'your-event-history-db-host',
+      port: 'your-event-history-db-port',
       user: 'your-user',
       password: 'your-password',
       databaseName: 'your-db-name',
       certPath: 'path-to-cert',
     },
-    transactionHistory: {
-      url: 'your-transaction-history-db-url',
+    rawHistory: {
+      host: 'your-raw-history-db-host',
+      port: 'your-raw-history-db-port',
       user: 'your-user',
       password: 'your-password',
       databaseName: 'your-db-name',

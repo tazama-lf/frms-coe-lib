@@ -1,24 +1,26 @@
 // SPDX-License-Identifier: Apache-2.0
 
+import * as util from 'node:util';
 import type { RedisService } from '..';
-import type { RedisConfig } from '../interfaces';
-import type { PseudonymsDB } from '../interfaces/database/PseudonymsDB';
-import type { TransactionHistoryDB } from '../interfaces/database/TransactionHistoryDB';
-import type { ConfigurationDB } from '../interfaces/database/ConfigurationDB';
-import { redisBuilder } from '../builders/redisBuilder';
-import { pseudonymsBuilder } from '../builders/pseudonymsBuilder';
-import { transactionHistoryBuilder } from '../builders/transactionHistoryBuilder';
 import { configurationBuilder } from '../builders/configurationBuilder';
-import type { TransactionDB } from '../interfaces/database/TransactionDB';
-import { transactionBuilder } from '../builders/transactionBuilder';
-import { validateLocalCacheConfig } from '../config/index';
+import { evaluationBuilder } from '../builders/evaluationBuilder';
+import { eventHistoryBuilder } from '../builders/eventHistoryBuilder';
+import { rawHistoryBuilder } from '../builders/rawHistoryBuilder';
+import { redisBuilder } from '../builders/redisBuilder';
 import { type Database, validateDatabaseConfig } from '../config/database.config';
+import { validateLocalCacheConfig } from '../config/index';
 import { Cache, validateRedisConfig } from '../config/redis.config';
+import type { RedisConfig } from '../interfaces';
+import type { ConfigurationDB } from '../interfaces/database/ConfigurationDB';
+import type { EvaluationDB } from '../interfaces/database/EvaluationDB';
+import type { EventHistoryDB } from '../interfaces/database/EventHistoryDB';
+import type { RawHistoryDB } from '../interfaces/database/RawHistoryDB';
 
 export let readyChecks: Record<string, unknown> = {};
 
 export interface DBConfig {
-  url: string;
+  host: string;
+  port?: number;
   user: string;
   password: string;
   databaseName: string;
@@ -31,9 +33,9 @@ export interface LocalCacheConfig {
 }
 
 interface ManagerConfig {
-  pseudonyms?: DBConfig;
-  transactionHistory?: DBConfig;
-  transaction?: DBConfig;
+  eventHistory?: DBConfig;
+  rawHistory?: DBConfig;
+  evaluation?: DBConfig;
   configuration?: DBConfig;
   redisConfig?: RedisConfig;
   localCacheConfig?: LocalCacheConfig;
@@ -49,14 +51,12 @@ interface ManagerStatus {
   quit: () => unknown;
 }
 
-export type DatabaseManagerType = Partial<
-  ManagerStatus & PseudonymsDB & TransactionHistoryDB & TransactionDB & ConfigurationDB & RedisService
->;
+export type DatabaseManagerType = Partial<ManagerStatus & EventHistoryDB & RawHistoryDB & EvaluationDB & ConfigurationDB & RedisService>;
 
 type DatabaseManagerInstance<T extends ManagerConfig> = ManagerStatus &
-  (T extends { pseudonyms: DBConfig } ? PseudonymsDB : Record<string, unknown>) &
-  (T extends { transactionHistory: DBConfig } ? TransactionHistoryDB : Record<string, unknown>) &
-  (T extends { transaction: DBConfig } ? TransactionDB : Record<string, unknown>) &
+  (T extends { eventHistory: DBConfig } ? EventHistoryDB : Record<string, unknown>) &
+  (T extends { rawHistory: DBConfig } ? RawHistoryDB : Record<string, unknown>) &
+  (T extends { evaluation: DBConfig } ? EvaluationDB : Record<string, unknown>) &
   (T extends { configuration: DBConfig } ? ConfigurationDB : Record<string, unknown>) &
   (T extends { redisConfig: RedisConfig } ? RedisService : Record<string, unknown>);
 
@@ -65,7 +65,7 @@ type DatabaseManagerInstance<T extends ManagerConfig> = ManagerStatus &
  *
  * Returns functionality for configured options
  *
- * @param {T} config ManagerStatus | RedisService | PseudonymsDB | TransactionHistoryDB | ConfigurationDB
+ * @param {T} config ManagerStatus | RedisService | EventHistoryDB | RawHistoryDB | ConfigurationDB
  * @return {*}  {Promise<DatabaseManagerInstance<T>>}
  */
 export async function CreateDatabaseManager<T extends ManagerConfig>(config: T): Promise<DatabaseManagerInstance<T>> {
@@ -73,16 +73,16 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
   readyChecks = {};
   const redis = config.redisConfig ? await redisBuilder(manager, config.redisConfig) : null;
 
-  if (config.pseudonyms) {
-    await pseudonymsBuilder(manager as PseudonymsDB, config.pseudonyms);
+  if (config.eventHistory) {
+    await eventHistoryBuilder(manager as EventHistoryDB, config.eventHistory);
   }
 
-  if (config.transactionHistory) {
-    await transactionHistoryBuilder(manager as TransactionHistoryDB, config.transactionHistory, redis !== null);
+  if (config.rawHistory) {
+    await rawHistoryBuilder(manager as RawHistoryDB, config.rawHistory);
   }
 
-  if (config.transaction) {
-    await transactionBuilder(manager as TransactionDB, config.transaction, redis !== null);
+  if (config.evaluation) {
+    await evaluationBuilder(manager as EvaluationDB, config.evaluation);
   }
 
   if (config.configuration) {
@@ -93,15 +93,15 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
 
   manager.quit = () => {
     redis?.quit();
-    manager._pseudonymsDb?.close();
-    manager._transactionHistory?.close();
-    manager._configuration?.close();
-    manager._transaction?.close();
+    manager._configuration?.end();
+    manager._eventHistory?.end();
+    manager._rawHistory?.end();
+    manager._evaluation?.end();
   };
 
   if (Object.values(readyChecks).some((status) => status !== 'Ok')) {
     manager.quit();
-    throw new Error(JSON.stringify(readyChecks));
+    throw new Error(util.inspect(readyChecks));
   }
 
   return manager as DatabaseManagerInstance<T>;
@@ -109,7 +109,7 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
 
 export async function CreateStorageManager<T extends ManagerConfig>(
   requiredStorages: Array<Database | Cache>,
-  requireAuth?: boolean,
+  requireAuth = false,
 ): Promise<{ db: DatabaseManagerInstance<T>; config: ManagerConfig }> {
   let config: ManagerConfig = {};
 
@@ -118,11 +118,11 @@ export async function CreateStorageManager<T extends ManagerConfig>(
       throw Error(`${currentStorage} was already defined.`);
     }
     if (currentStorage === Cache.DISTRIBUTED) {
-      config = { ...config, ...validateRedisConfig(requireAuth ?? false) };
+      config = { ...config, ...validateRedisConfig(requireAuth) };
     } else if (currentStorage === Cache.LOCAL) {
       config = { ...config, ...validateLocalCacheConfig() };
     } else {
-      config = { ...config, ...validateDatabaseConfig(requireAuth ?? false, currentStorage as Database) };
+      config = { ...config, ...validateDatabaseConfig(requireAuth, currentStorage as Database) };
     }
   }
 
@@ -133,4 +133,4 @@ export async function CreateStorageManager<T extends ManagerConfig>(
   }
 }
 
-export type { ManagerConfig, TransactionHistoryDB, TransactionDB, ConfigurationDB, PseudonymsDB, DatabaseManagerInstance };
+export type { ConfigurationDB, DatabaseManagerInstance, EvaluationDB, EventHistoryDB, ManagerConfig, RawHistoryDB };

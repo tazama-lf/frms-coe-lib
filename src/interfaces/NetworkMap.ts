@@ -1,42 +1,27 @@
 // SPDX-License-Identifier: Apache-2.0
 
-export class Rule {
-  id = '';
-  cfg = '';
-  host = '';
-  typologies: Typology[] = [];
-
-  getStrValue(): string {
-    return `${this.id}${this.cfg}`;
-  }
+export interface Rule {
+  id: string;
+  cfg: string;
 }
 
-export class Typology {
-  id = '';
-  tenantId = '';
-  host = '';
-  cfg = '';
-  desc = '';
-  rules: Rule[] = [];
-
-  constructor(typologyId: string, cfg: string, host: string) {
-    this.id = typologyId;
-    this.cfg = cfg;
-    this.host = host;
-  }
+export interface Typology {
+  id: string;
+  tenantId: string;
+  cfg: string;
+  rules: Rule[];
 }
 
-export class Message {
-  id = '';
-  host = '';
-  cfg = '';
-  txTp = '';
-  typologies: Typology[] = [];
+export interface Message {
+  id: string;
+  cfg: string;
+  txTp: string;
+  typologies: Typology[];
 }
 
-export class NetworkMap {
-  active = false;
-  cfg = '';
-  tenantId = '';
-  messages: Message[] = [];
+export interface NetworkMap {
+  active: boolean;
+  cfg: string;
+  tenantId: string;
+  messages: Message[];
 }

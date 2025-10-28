@@ -1,6 +1,5 @@
 import type { MetaData } from '../metaData';
-import type { Condition } from './Condition';
-import type { Edge, Entity, Acct, Ntty } from './EntityConditionEdge';
+import type { Edge, Entity, Acct, Ntty, Condition } from './EntityConditionEdge';
 
 export interface Entry {
   edge: Edge;

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
+import * as util from 'node:util';
 import { RedisService } from '..';
-import { formatError } from '../helpers/formatter';
 import type { RedisConfig } from '../interfaces';
 import { readyChecks, type DatabaseManagerType } from '../services/dbManager';
 
@@ -31,6 +31,6 @@ export async function redisBuilder(manager: DatabaseManagerType, redisConfig: Re
     return redis;
   } catch (error) {
     const err = error as Error;
-    readyChecks.Redis = `err, ${formatError(err)}`;
+    readyChecks.Redis = `err, ${util.inspect(err)}`;
   }
 }

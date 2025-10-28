@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { NetworkMap } from '..';
-import { Alert } from './Alert';
+import type { NetworkMap, Pacs002 } from '..';
+import type { Alert } from './Alert';
 
-export class CMSRequest {
-  message = '';
-  report: Alert = new Alert();
-  transaction: unknown;
-  networkMap: NetworkMap = new NetworkMap();
+export interface CMSRequest {
+  message: string;
+  networkMap: NetworkMap;
+  report: Alert;
+  transaction: Pacs002;
 }

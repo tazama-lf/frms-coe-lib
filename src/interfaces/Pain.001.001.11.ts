@@ -6,7 +6,6 @@ export interface Pain001 {
   TxTp: string;
   TenantId: string;
   CstmrCdtTrfInitn: CstmrCdtTrfInitn;
-  _key?: string;
   DataCache?: DataCache;
 }
 

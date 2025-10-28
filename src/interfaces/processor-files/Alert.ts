@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { v4 } from 'uuid';
-import { TADPResult } from './TADPResult';
-import { MetaData } from '../metaData';
+import type { TADPResult } from './TADPResult';
+import type { MetaData } from '../metaData';
 
-export class Alert {
-  evaluationID = v4();
-  metaData? = new MetaData();
-  status = ''; // eg ALRT
-  timestamp: string = new Date().toISOString();
-  tadpResult: TADPResult = new TADPResult();
+export interface Alert {
+  evaluationID: string;
+  metaData?: MetaData;
+  status: 'ALRT' | 'NALT';
+  timestamp: string;
+  tadpResult: TADPResult;
 }

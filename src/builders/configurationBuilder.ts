@@ -1,131 +1,115 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { aql, Database } from 'arangojs';
-import type { AqlQuery } from 'arangojs/aql';
-import * as fs from 'node:fs';
 import NodeCache from 'node-cache';
-import { formatError } from '../helpers/formatter';
-import { isDatabaseReady } from '../helpers/readyCheck';
-import type { Typology } from '../interfaces';
-import { dbConfiguration } from '../interfaces/ArangoCollections';
-import { type LocalCacheConfig, readyChecks, type DatabaseManagerType, type DBConfig } from '../services/dbManager';
+import * as util from 'node:util';
+import { Pool, type PoolConfig } from 'pg';
+import { isDatabaseReady } from '../builders/utils';
+import type { NetworkMap, RuleConfig } from '../interfaces';
+import type { PgQueryConfig } from '../interfaces/database';
+import type { TypologyConfig } from '../interfaces/processor-files/TypologyConfig';
+import type { ConfigurationDB, DBConfig, LocalCacheConfig } from '../services/dbManager';
+import { readyChecks } from '../services/dbManager';
+import { getSSLConfig } from './utils';
 
 export async function configurationBuilder(
-  manager: DatabaseManagerType,
+  manager: ConfigurationDB,
   configurationConfig: DBConfig,
   cacheConfig?: LocalCacheConfig,
 ): Promise<void> {
-  manager._configuration = new Database({
-    url: configurationConfig.url,
-    databaseName: configurationConfig.databaseName,
-    auth: {
-      username: configurationConfig.user,
-      password: configurationConfig.password,
-    },
-    agentOptions: {
-      ca: fs.existsSync(configurationConfig.certPath) ? [fs.readFileSync(configurationConfig.certPath)] : [],
-    },
-  });
+  const conf: PoolConfig = {
+    host: configurationConfig.host,
+    port: configurationConfig.port,
+    database: configurationConfig.databaseName,
+    user: configurationConfig.user,
+    password: configurationConfig.password,
+    ssl: getSSLConfig(configurationConfig.certPath),
+  } as const;
+
+  manager._configuration = new Pool(conf);
 
   try {
     const dbReady = await isDatabaseReady(manager._configuration);
     readyChecks.ConfigurationDB = dbReady ? 'Ok' : 'err';
   } catch (error) {
     const err = error as Error;
-    readyChecks.ConfigurationDB = `err, ${formatError(err)}`;
+    readyChecks.ConfigurationDB = `err, ${util.inspect(err)}`;
   }
 
-  manager.setupConfig = configurationConfig;
   manager.nodeCache = cacheConfig?.localCacheEnabled ? new NodeCache() : undefined;
 
-  manager.queryConfigurationDB = async (collection: string, filter: string, limit?: number) => {
-    const db = manager._configuration?.collection(collection);
-    const aqlFilter = aql`${filter}`;
-    const aqlLimit = limit ? aql`LIMIT ${limit}` : undefined;
-
-    const query: AqlQuery = aql`
-      FOR doc IN ${db}
-      FILTER ${aqlFilter}
-      ${aqlLimit}
-      RETURN doc
-    `;
-
-    return await (await manager._configuration?.query(query))?.batches.all();
-  };
-
-  manager.getRuleConfig = async (ruleId: string, cfg: string, tenantId: string, limit?: number) => {
+  manager.getRuleConfig = async (ruleId: string, cfg: string, tenantId: string): Promise<RuleConfig | undefined> => {
     const cacheKey = `${tenantId}_${ruleId}_${cfg}`;
-    if (cacheConfig?.localCacheEnabled ?? false) {
-      const cacheVal = manager.nodeCache?.get(cacheKey);
-      if (cacheVal) return await Promise.resolve(cacheVal);
-    }
-    const aqlLimit = limit ? aql`LIMIT ${limit}` : undefined;
-    const db = manager._configuration?.collection(dbConfiguration.ruleConfiguration);
-    const query: AqlQuery = aql`
-      FOR doc IN ${db}
-      FILTER doc.id == ${ruleId}
-      FILTER doc.cfg == ${cfg}
-      FILTER doc.tenantId == ${tenantId}
-      ${aqlLimit}
-      RETURN doc
-    `;
-
-    const toReturn = await (await manager._configuration?.query(query))?.batches.all();
-    if (cacheConfig?.localCacheEnabled && toReturn?.[0] && toReturn[0].length === 1) {
-      manager.nodeCache?.set(cacheKey, toReturn, cacheConfig?.localCacheTTL ?? 3000);
-    }
-    return toReturn;
-  };
-
-  manager.getTransactionConfig = async (transctionId: string, cfg: string) => {
-    const cacheKey = `${transctionId}_${cfg}`;
-    if (cacheConfig?.localCacheEnabled ?? false) {
-      const cacheVal = manager.nodeCache?.get(cacheKey);
-      if (cacheVal) return await Promise.resolve(cacheVal);
+    if (manager.nodeCache) {
+      const cacheVal = manager.nodeCache.get<RuleConfig>(cacheKey);
+      if (cacheVal) {
+        return cacheVal;
+      }
     }
 
-    const db = manager._configuration?.collection(dbConfiguration.transactionConfiguration);
-    const query: AqlQuery = aql`
-      FOR doc IN ${db}
-      FILTER doc.id == ${transctionId}
-      FILTER doc.cfg == ${cfg}
-      RETURN doc
-    `;
+    const query: PgQueryConfig = {
+      text: `SELECT 
+                configuration
+              FROM 
+                rule 
+              WHERE 
+                ruleId = $1 
+              AND 
+                ruleCfg = $2
+              AND
+                tenantId = $3`,
+      values: [ruleId, cfg, tenantId],
+    };
 
-    const toReturn = await (await manager._configuration?.query(query))?.batches.all();
-    if (cacheConfig?.localCacheEnabled && toReturn?.[0] && toReturn[0].length === 1) {
-      manager.nodeCache?.set(cacheKey, toReturn, cacheConfig?.localCacheTTL ?? 3000);
+    const queryRes = await manager._configuration.query<{ configuration: RuleConfig }>(query);
+
+    const toReturn = queryRes.rows.length > 0 ? queryRes.rows[0].configuration : undefined;
+    if (toReturn && manager.nodeCache) {
+      manager.nodeCache.set(cacheKey, toReturn, cacheConfig?.localCacheTTL ?? 3000);
     }
     return toReturn;
   };
 
-  manager.getTypologyConfig = async (typology: Typology) => {
-    const cacheKey = `${typology.tenantId}_${typology.id}_${typology.cfg}`;
-    if (cacheConfig?.localCacheEnabled ?? false) {
-      const cacheVal = manager.nodeCache?.get(cacheKey);
+  manager.getTypologyConfig = async (typologyId: string, typologyCfg: string, tenantId: string): Promise<TypologyConfig | undefined> => {
+    const cacheKey = `${tenantId}_${typologyId}_${typologyCfg}`;
+    if (manager.nodeCache) {
+      const cacheVal = manager.nodeCache.get<TypologyConfig>(cacheKey);
       if (cacheVal) return await Promise.resolve(cacheVal);
     }
-    const db = manager._configuration?.collection(dbConfiguration.typologyConfiguration);
-    const query: AqlQuery = aql`
-      FOR doc IN ${db}
-      FILTER doc.id == ${typology.id} AND doc.cfg == ${typology.cfg} AND doc.tenantId == ${typology.tenantId}
-      RETURN doc
-    `;
+    const query: PgQueryConfig = {
+      text: `SELECT
+              configuration
+            FROM
+              typology
+            WHERE
+              typologyId = $1 
+            AND 
+              typologyCfg = $2
+            AND
+              tenantId = $3`,
+      values: [typologyId, typologyCfg, tenantId],
+    };
 
-    const toReturn = await (await manager._configuration?.query(query))?.batches.all();
-    if (cacheConfig?.localCacheEnabled && toReturn?.[0] && toReturn[0].length === 1) {
-      manager.nodeCache?.set(cacheKey, toReturn, cacheConfig?.localCacheTTL ?? 3000);
+    const queryRes = await manager._configuration.query<{ configuration: TypologyConfig }>(query);
+
+    const toReturn = queryRes.rows.length > 0 ? queryRes.rows[0].configuration : undefined;
+    if (toReturn && manager.nodeCache) {
+      manager.nodeCache.set(cacheKey, toReturn, cacheConfig?.localCacheTTL ?? 3000);
     }
     return toReturn;
   };
 
-  manager.getNetworkMap = async () => {
-    const db = manager._configuration?.collection(dbConfiguration.networkConfiguration);
-    const networkConfigurationQuery: AqlQuery = aql`
-        FOR doc IN ${db}
-        FILTER doc.active == true
-        RETURN doc
-      `;
-    return await (await manager._configuration?.query(networkConfigurationQuery))?.batches.all();
+  manager.getNetworkMap = async (): Promise<NetworkMap[]> => {
+    const query: PgQueryConfig = {
+      text: `SELECT
+              configuration
+            FROM
+              network_map
+            WHERE
+              configuration->'active' = $1`,
+      values: [true],
+    };
+
+    const queryRes = await manager._configuration.query<{ configuration: NetworkMap }>(query);
+    return queryRes.rows.length > 0 ? queryRes.rows.map((value) => value.configuration) : [];
   };
 }

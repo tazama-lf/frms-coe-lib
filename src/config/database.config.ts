@@ -7,18 +7,20 @@ import type { ManagerConfig } from '../services/dbManager';
  * @enum {number}
  */
 export enum Database {
-  /** Database for storing pseudonyms. */
-  PSEUDONYMS = 'pseudonyms',
+  /** Database for storing event history. */
+  EVENT_HISTORY = 'eventHistory',
 
-  /** Database for transaction history. */
-  TRANSACTION_HISTORY = 'transactionHistory',
+  /** Database for raw history. */
+  RAW_HISTORY = 'rawHistory',
 
   /** Database for configuration settings. */
   CONFIGURATION = 'configuration',
 
   /** Database for evaluations. */
-  EVALUATION = 'transaction',
+  EVALUATION = 'evaluation',
 }
+
+const DEFAULT_DATABASE_PORT = 5432;
 
 /**
  * Validates and retrieves the Redis configuration for a specified database type.
@@ -29,17 +31,17 @@ export enum Database {
  * @throws {Error} - Throws an error if required environment variables are not defined or invalid.
  *
  * @example
- * const transactionHistoryConfig = validateDatabaseConfig(true, Database.TRANSACTION_HISTORY);
+ * const rawHistoryConfig = validateDatabaseConfig(true, Database.RAW_HISTORY);
  */
 export const validateDatabaseConfig = (authEnabled: boolean, database: Database): ManagerConfig => {
   let prefix = '';
 
   switch (database) {
-    case Database.PSEUDONYMS:
-      prefix = 'PSEUDONYMS_DATABASE';
+    case Database.EVENT_HISTORY:
+      prefix = 'EVENT_HISTORY_DATABASE';
       break;
-    case Database.TRANSACTION_HISTORY:
-      prefix = 'TRANSACTION_HISTORY_DATABASE';
+    case Database.RAW_HISTORY:
+      prefix = 'RAW_HISTORY_DATABASE';
       break;
     case Database.CONFIGURATION:
       prefix = 'CONFIGURATION_DATABASE';
@@ -56,7 +58,8 @@ export const validateDatabaseConfig = (authEnabled: boolean, database: Database)
     [database]: {
       databaseName: validateEnvVar(prefix, 'string').toString(),
       password,
-      url: validateEnvVar(`${prefix}_URL`, 'string').toString(),
+      host: validateEnvVar(`${prefix}_HOST`, 'string').toString(),
+      port: Number(validateEnvVar(`${prefix}_PORT`, 'number', true)) || DEFAULT_DATABASE_PORT,
       user,
       certPath: validateEnvVar(`${prefix}_CERT_PATH`, 'string', true).toString(),
     },

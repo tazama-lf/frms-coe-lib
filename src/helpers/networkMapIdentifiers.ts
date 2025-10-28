@@ -3,23 +3,19 @@
 import type { DatabaseManagerInstance, ManagerConfig } from '..';
 import type { NetworkMap } from '../interfaces';
 
-function getRuleMap(networkMap: NetworkMap | undefined): { rulesIds: string[]; typologyCfg: string[] } {
+function getRuleMap(networkMap: NetworkMap): { rulesIds: string[]; typologyCfg: string[] } {
   const rulesIds: string[] = new Array<string>();
   const typologyCfg: string[] = new Array<string>();
-  if (networkMap) {
-    for (const Message of networkMap.messages) {
-      if (Message.typologies?.length) {
-        for (const typology of Message.typologies) {
-          if (!typologyCfg.includes(typology.cfg)) typologyCfg.push(typology.cfg);
-          if (typology.rules?.length) {
-            for (const rule of typology.rules) {
-              if (!rulesIds.includes(rule.id)) rulesIds.push(rule.id);
-            }
-          }
-        }
+
+  for (const Message of networkMap.messages) {
+    for (const typology of Message.typologies) {
+      if (!typologyCfg.includes(typology.cfg)) typologyCfg.push(typology.cfg);
+      for (const rule of typology.rules) {
+        if (!rulesIds.includes(rule.id)) rulesIds.push(rule.id);
       }
     }
   }
+
   return { rulesIds, typologyCfg };
 }
 
@@ -28,13 +24,12 @@ export const getIdsFromNetworkMaps = async (
 ): Promise<{ rulesIds: string[]; typologyCfg: string[] }> => {
   let ruleIds: string[] = [];
   let typologyCfg: string[] = [];
-  const networkConfigurationList = (await databaseManager.getNetworkMap()) as NetworkMap[][];
-  for (const networkMaps of networkConfigurationList) {
-    for (const networkMap of networkMaps) {
-      const ruleMaps = getRuleMap(networkMap);
-      ruleIds = [...ruleIds, ...ruleMaps.rulesIds];
-      typologyCfg = [...typologyCfg, ...ruleMaps.typologyCfg];
-    }
+  const networkMaps = await databaseManager.getNetworkMap();
+
+  for (const networkMap of networkMaps) {
+    const ruleMaps = getRuleMap(networkMap);
+    ruleIds = [...ruleIds, ...ruleMaps.rulesIds];
+    typologyCfg = [...typologyCfg, ...ruleMaps.typologyCfg];
   }
 
   return {
