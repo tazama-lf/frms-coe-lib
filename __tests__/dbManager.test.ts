@@ -96,7 +96,7 @@ const mockTR: TransactionDetails = {
   destination: 'MOCK-to',
   TxTp: 'MOCK-TxTp',
   TenantId: 'MOCK-TenantID',
-  Amt: 'MOCK-Amt',
+  Amt: 123,
   Ccy: 'MOCK-Ccy',
 };
 

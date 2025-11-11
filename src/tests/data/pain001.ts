@@ -102,13 +102,13 @@ export const Pain001Sample: Pain001 = {
         Amt: {
           InstdAmt: {
             Amt: {
-              Amt: '31020.89',
+              Amt: 31020.89,
               Ccy: 'USD',
             },
           },
           EqvtAmt: {
             Amt: {
-              Amt: '31020.89',
+              Amt: 31020.89,
               Ccy: 'USD',
             },
             CcyOfTrf: 'USD',
@@ -187,7 +187,7 @@ export const Pain001Sample: Pain001 = {
               },
               DbtrFinSvcsPrvdrFees: {
                 Ccy: 'USD',
-                Amt: '307.14',
+                Amt: 307.14,
               },
               Xprtn: new Date('2021-11-30T10:38:56.000Z'),
             },

@@ -7,7 +7,7 @@ export interface TransactionDetails {
   TenantId: string;
   MsgId: string;
   CreDtTm: string;
-  Amt?: string;
+  Amt?: number;
   Ccy?: string;
   EndToEndId: string;
   lat?: string;
