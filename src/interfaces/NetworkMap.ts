@@ -7,7 +7,6 @@ export interface Rule {
 
 export interface Typology {
   id: string;
-  tenantId: string;
   cfg: string;
   rules: Rule[];
 }

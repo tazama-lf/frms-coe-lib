@@ -149,7 +149,6 @@ const getMockTypology = (): Typology => {
   const typology: Typology = {
     id: 'testId',
     cfg: 'testCfg',
-    tenantId: 'testTenant',
     rules: [],
   };
   return typology;
@@ -209,17 +208,13 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.getTypologyConfig).toBeDefined();
 
     expect(await dbManager.getRuleConfig('test', 'test', 'DEFAULT')).toEqual('MOCK-QUERY');
-    expect(await dbManager.getTypologyConfig(getMockTypology().id, getMockTypology().cfg, getMockTypology().tenantId)).toEqual(
-      'MOCK-QUERY',
-    );
+    expect(await dbManager.getTypologyConfig(getMockTypology().id, getMockTypology().cfg, 'DEFAULT')).toEqual('MOCK-QUERY');
 
     // Rerun for now set cache values
     dbManager.nodeCache!.set('test_test', 'MOCK-QUERY');
     dbManager.nodeCache!.set('testId_testCfg', 'MOCK-QUERY');
     expect(await dbManager.getRuleConfig('test', 'test', 'DEFAULT')).toEqual('MOCK-QUERY');
-    expect(await dbManager.getTypologyConfig(getMockTypology().id, getMockTypology().cfg, getMockTypology().tenantId)).toEqual(
-      'MOCK-QUERY',
-    );
+    expect(await dbManager.getTypologyConfig(getMockTypology().id, getMockTypology().cfg, 'DEFAULT')).toEqual('MOCK-QUERY');
 
     // Cleanup
     dbManager.nodeCache!.del('test_test'); // getRuleConfig && getTransactionConfig
@@ -438,9 +433,7 @@ describe('CreateDatabaseManager', () => {
       });
     });
 
-    expect(await dbManager.getTypologyConfig(getMockTypology().id, getMockTypology().cfg, getMockTypology().tenantId)).toEqual(
-      'MOCK-QUERY',
-    );
+    expect(await dbManager.getTypologyConfig(getMockTypology().id, getMockTypology().cfg, 'DEFAULT')).toEqual('MOCK-QUERY');
 
     dbManager.quit();
   });
@@ -454,9 +447,7 @@ describe('CreateDatabaseManager', () => {
       });
     });
 
-    expect(await globalManager.getTypologyConfig(getMockTypology().id, getMockTypology().cfg, getMockTypology().tenantId)).toEqual(
-      'MOCK-QUERY',
-    );
+    expect(await globalManager.getTypologyConfig(getMockTypology().id, getMockTypology().cfg, 'DEFAULT')).toEqual('MOCK-QUERY');
   });
 
   it('should use cert if path valid', async () => {
