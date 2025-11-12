@@ -548,4 +548,6 @@ message FRMSMessage {
     string alreadySent = 14;
 
     ConditionEdge conditionEdge = 15;
+
+    string dataPayload = 17;
 }
