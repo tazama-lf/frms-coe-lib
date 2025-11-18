@@ -92,4 +92,3 @@ Logging Class: This class needs configuration variables to check the environment
 | -------- | ------- | ------- | 
 | LOG_LEVEL | String | Yes | 
 | SIDECAR_HOST | String | Yes | 
-
