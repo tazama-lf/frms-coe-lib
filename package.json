@@ -40,7 +40,7 @@
     "ioredis": "^5.7.0",
     "node-cache": "^5.1.2",
     "pg": "8.16.3",
-    "pino": "^9.9.0",
+    "pino": "^10.1.0",
     "pino-elasticsearch": "^8.1.0",
     "protobufjs": "^7.5.4",
     "uuid": "^11.1.0"
