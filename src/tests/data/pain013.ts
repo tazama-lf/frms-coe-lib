@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { type Pain013 } from '../../interfaces';
+import type { Pain013 } from '../../interfaces';
 
 export const Pain013Sample: Pain013 = {
   TxTp: 'pain.013.001.09',
+  TenantId: 'tenantId',
   CdtrPmtActvtnReq: {
     GrpHdr: {
       MsgId: '53bf-5388-4aa3-ac23-6180ac1ce5ab',
@@ -42,8 +43,8 @@ export const Pain013Sample: Pain013 = {
         PmtId: { EndToEndId: '02d5-dd5d-4995-a643-bd31c0a89e7a' },
         PmtTpInf: { CtgyPurp: { Prtry: 'TRANSFER' } },
         Amt: {
-          InstdAmt: { Amt: { Amt: '50431891779910900', Ccy: 'USD' } },
-          EqvtAmt: { Amt: { Amt: '50431891779910900', Ccy: 'USD' }, CcyOfTrf: 'USD' },
+          InstdAmt: { Amt: { Amt: 50431891779910900, Ccy: 'USD' } },
+          EqvtAmt: { Amt: { Amt: 50431891779910900, Ccy: 'USD' }, CcyOfTrf: 'USD' },
         },
         ChrgBr: 'DEBT',
         CdtrAgt: { FinInstnId: { ClrSysMmbId: { MmbId: 'dfsp002' } } },
@@ -64,9 +65,9 @@ export const Pain013Sample: Pain013 = {
         SplmtryData: {
           Envlp: {
             Doc: {
-              PyeeRcvAmt: { Amt: { Amt: '4906747824834590', Ccy: 'USD' } },
-              PyeeFinSvcsPrvdrFee: { Amt: { Amt: '49067478248345.9', Ccy: 'USD' } },
-              PyeeFinSvcsPrvdrComssn: { Amt: { Amt: '0', Ccy: 'USD' } },
+              PyeeRcvAmt: { Amt: { Amt: 4906747824834590, Ccy: 'USD' } },
+              PyeeFinSvcsPrvdrFee: { Amt: { Amt: 49067478248345.9, Ccy: 'USD' } },
+              PyeeFinSvcsPrvdrComssn: { Amt: { Amt: 0, Ccy: 'USD' } },
             },
           },
         },

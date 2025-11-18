@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import Redis, { type Cluster } from 'ioredis';
-import { type RedisConfig } from '../interfaces/RedisConfig';
+import type { RedisConfig } from '../interfaces/RedisConfig';
 import FRMSMessage from '../helpers/protobuf';
+import { once } from 'node:events';
 
 type RedisData = string | number | Buffer;
 const MAX_RETRIES = 10;
@@ -16,8 +17,8 @@ export class RedisService {
       this._redisClient = new Redis.Cluster(config.servers, {
         scaleReads: 'all',
         redisOptions: {
-          db: config?.db,
-          password: config?.password,
+          db: config.db,
+          password: config.password,
           enableAutoPipelining: true,
         },
         clusterRetryStrategy(times) {
@@ -29,10 +30,10 @@ export class RedisService {
       });
     } else {
       this._redisClient = new Redis({
-        db: config?.db,
-        host: config?.servers[0].host,
-        port: config?.servers[0].port,
-        password: config?.password,
+        db: config.db,
+        host: config.servers[0].host,
+        port: config.servers[0].port,
+        password: config.password,
         retryStrategy(times) {
           if (times >= MAX_RETRIES) {
             return null;
@@ -44,21 +45,17 @@ export class RedisService {
   }
 
   private async init(): Promise<string> {
-    return await new Promise((resolve, reject) => {
-      this._redisClient.on('connect', () => {
-        resolve('✅ Redis connection is ready');
-      });
-
-      this._redisClient.on('error', (err) => {
-        reject(new Error(`❌ Redis connection could not be established\n${JSON.stringify(err)}`));
-      });
-
+    try {
+      await once(this._redisClient, 'connect');
+      return '✅ Redis connection is ready';
+    } catch (err) {
+      throw new Error(`❌ Redis connection could not be established\n${JSON.stringify(err)}`);
+    } finally {
       this._redisClient.on('end', () => {
         throw new Error('❓ Redis connection lost, no more reconnections will be made');
       });
-    });
+    }
   }
-
   /**
    * Create an instance of a ready to use RedisService
    *
@@ -233,7 +230,7 @@ export class RedisService {
     const valueBuffer = FRMSMessage.encode(valueMessage).finish() as Buffer;
     const res = await this._redisClient.multi().sadd(key, valueBuffer).scard(key).exec();
 
-    if (res && res[1] && res[1][1]) {
+    if (res?.[1]?.[1]) {
       return res[1][1] as number;
     } else {
       throw new Error('addOneGetAll failed to return properly');

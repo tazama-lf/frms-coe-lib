@@ -1,19 +1,20 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { type RuleResult } from '..';
+import type { RuleResult } from '..';
 
-export class TypologyResult {
-  id = '';
-  cfg = '';
-  prcgTm? = 0;
-  result = 0.0;
-  review? = false;
-  ruleResults: RuleResult[] = [];
-  workflow: WorkFlow = new WorkFlow();
+export interface TypologyResult {
+  id: string;
+  cfg: string;
+  prcgTm?: number;
+  result: number;
+  review?: boolean;
+  ruleResults: RuleResult[];
+  tenantId: string;
+  workflow: WorkFlow;
 }
 
-export class WorkFlow {
-  alertThreshold = 0;
-  interdictionThreshold? = 0;
+export interface WorkFlow {
+  alertThreshold: number;
+  interdictionThreshold?: number;
   flowProcessor?: string;
 }

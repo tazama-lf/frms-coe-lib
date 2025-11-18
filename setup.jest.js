@@ -3,17 +3,20 @@
 // Use mock redis instead of actual in jest
 jest.mock('ioredis', () => jest.requireActual('ioredis-mock'));
 
-// Use mock arango instead of actual in jest
-const arangojs = jest.requireActual('arangojs');
+// Use mock postgres instead of actual in jest
+const postgres = jest.requireActual('pg');
 
-class MockDatabase {
-  collection(col) {
+class MockPool {
+  connect() {
     return {
-      save: () => {
-        return 'MOCK-SAVE';
+      query: (query) => {
+        return query;
       },
-      update: () => {
-        return 'MOCK-UPDATE';
+      release: () => {
+        return true;
+      },
+      document: () => {
+        return { tenantId: 'tenantId' };
       },
     };
   }
@@ -22,27 +25,11 @@ class MockDatabase {
     return query;
   }
 
-  save(data, options) {
-    return data;
-  }
-
-  update(selector, newdata, options) {
-    return newdata;
-  }
-
-  close() {
+  end() {
     return undefined;
-  }
-
-  isArangoDatabase() {
-    return true;
-  }
-
-  exists() {
-    return true;
   }
 }
 
-const mockArangojs = { ...arangojs, Database: MockDatabase };
+const mockPostgres = { ...postgres, Pool: MockPool };
 
-jest.mock('arangojs', () => mockArangojs);
+jest.mock('pg', () => mockPostgres);

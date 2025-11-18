@@ -1,9 +1,3 @@
-export interface EntityMetaData {
-  _key: string;
-  _id: string;
-  _rev: string;
-}
-
 export interface RawConditionResponse {
   governed_as_creditor_by: Result[];
   governed_as_debtor_by: Result[];
@@ -17,29 +11,35 @@ export interface Result {
   condition: EntityCondition | AccountCondition;
 }
 
-export interface Edge extends EntityMetaData {
-  _from: string;
-  _to: string;
+export interface Edge {
+  id: string;
+  source: string;
+  destination: string;
   evtTp: string[];
+  tenantId: string;
   incptnDtTm: string;
-  xprtnDtTm: string;
+  xprtnDtTm?: string;
 }
 
-export interface Entity extends EntityMetaData {
-  Id: string;
-  CreDtTm: string;
+export interface Entity {
+  id: string;
+  creDtTm: string;
+  TenantId: string;
 }
 
-export interface Account extends EntityMetaData {
-  // no extra fields sent in with accounts
+export interface Account {
+  id: string;
+  TenantId: string;
 }
 
-export interface Condition extends EntityMetaData {
+export interface Condition {
+  condId: string;
   evtTp: string[];
+  tenantId: string;
   condTp: string;
   prsptv: string;
   incptnDtTm: string;
-  xprtnDtTm: string;
+  xprtnDtTm?: string;
   condRsn: string;
   forceCret: boolean;
   usr: string;

@@ -2,9 +2,9 @@
 
 import protobuf from 'protobufjs';
 import path from 'node:path';
-import { type LogMessage as LogMessageType } from './proto/lumberjack/LogMessage';
-import { type AccountConditionResponse, type EntityConditionResponse } from '../interfaces/event-flow/ConditionDetails';
-import { type AccountCondition, type EntityCondition } from '../interfaces';
+import type { LogMessage as LogMessageType } from './proto/lumberjack/LogMessage';
+import type { AccountConditionResponse, EntityConditionResponse } from '../interfaces/event-flow/ConditionDetails';
+import type { AccountCondition, EntityCondition } from '../interfaces';
 
 const root = protobuf.loadSync(path.join(__dirname, '/proto/Full.proto'));
 const FRMSMessage = root.lookupType('FRMSMessage');

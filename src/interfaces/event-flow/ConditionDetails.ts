@@ -1,13 +1,12 @@
 import type { MetaData } from '../metaData';
-import type { Condition } from './Condition';
-import type { Edge, Entity, Acct, Ntty } from './EntityConditionEdge';
+import type { Edge, Entity, Acct, Ntty, Condition } from './EntityConditionEdge';
 
 export interface Entry {
   edge: Edge;
   entity: Entity;
   condition: MetaData & Condition;
 }
-export interface ConditionDetails extends Pick<Condition, 'incptnDtTm' | 'xprtnDtTm'> {
+export interface ConditionDetails extends Pick<Condition, 'incptnDtTm' | 'xprtnDtTm' | 'tenantId'> {
   condId: string;
   condTp: string;
   condRsn: string;

@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
-export interface TransactionRelationship {
-  from: string;
-  to: string;
+export interface TransactionDetails {
+  source: string;
+  destination: string;
   TxTp: string;
+  TenantId: string;
   MsgId: string;
   CreDtTm: string;
-  Amt?: string;
+  Amt?: number;
   Ccy?: string;
-  PmtInfId: string;
   EndToEndId: string;
   lat?: string;
   long?: string;

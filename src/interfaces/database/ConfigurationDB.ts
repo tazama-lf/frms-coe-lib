@@ -1,86 +1,38 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { type Database } from 'arangojs';
 import type NodeCache from 'node-cache';
-import { type DBConfig } from '../../services/dbManager';
-import { type Typology } from '..';
+import type { Pool } from 'pg';
+import type { NetworkMap, RuleConfig } from '..';
+import type { TypologyConfig } from '../processor-files/TypologyConfig';
 
 export interface ConfigurationDB {
-  _configuration: Database;
-  setupConfig: DBConfig;
-  nodeCache: NodeCache;
+  _configuration: Pool;
+  nodeCache?: NodeCache;
 
   /**
-   * @param collection: Collection name against which this query will be run
-   * @param filter: String that will put next to the FILTER keyword to run against Arango
-   *
-   * This is what the query looks like internally:
-   *
-   * ```
-   * const query = aql`
-   * FOR doc IN ${collection}
-   * FILTER ${filter}F
-   * RETURN doc`;
-   * ```
-   *
-   * Note, use "doc." in your query string, as we make use of "doc" as the query and return name.
-   * @memberof ConfigurationDB
-   */
-  queryConfigurationDB: (collection: string, filter: string, limit?: number) => Promise<unknown>;
-
-  /**
-   * Returns rule config
-   * @param ruleId A ruleId String used to filter on the id field
-   * @param cfg A cfg String used to filter on the cfg field
-   * @param limit A limit Number used to limit the amount of results
-   *
-   * ```
-   * const query = aql`
-   * FOR doc IN ${collection}
-   * FILTER doc.id == ${ruleId}
-   * FILTER doc.cfg == ${cfg}
-   * *LIMIT ${limit}
-   * RETURN doc`
-   * ```
-   * \* Indicates filter is only applied when parameter is passed in
-   * @memberof ConfigurationDB
-   */
-  getRuleConfig: (ruleId: string, cfg: string, limit?: number) => Promise<unknown>;
-
-  /**
-   * Returns transaction configuration
-   * ```
-   * const query = aql`
-   * FOR doc IN ${collection}
-   * RETURN doc`
-   * ```
-   * @memberof ConfigurationDB
-   */
-  getTransactionConfig: (transactionId: string, cfg: string) => Promise<unknown>;
-
-  /**
-   * Returns typology expression
-   * ```
-   * const query = aql`
-   * FOR doc IN ${collection}
-   * FILTER doc.id == ${typology.id} AND doc.cfg == ${typology.cfg}
-   * RETURN doc`;
-   * ```
-   * @memberof ConfigurationDB
-   */
-  getTypologyConfig: (typology: Typology) => Promise<unknown>;
-
-  /**
-   * Finds all active networkmaps
-   *
-   * ```
-   * const query = aql`
-   * FOR doc IN ${collection}
-   * FILTER doc.active == true
-   * RETURN doc
-   * ```
+   * @param {string} ruleId A ruleId String used to filter on the id field
+   * @param {string} cfg A cfg String used to filter on the cfg field
+   * @param {string} tenantId A tenantId string for filtering by tenantId field
+   * @returns {RuleConfig} rule config
    *
    * @memberof ConfigurationDB
    */
-  getNetworkMap: () => Promise<unknown>;
+  getRuleConfig: (ruleId: string, cfg: string, tenantId: string) => Promise<RuleConfig | undefined>;
+
+  /**
+   * @param {string} typologyId typology identifier
+   * @param {string} typologyCfg typology configuration version
+   * @param {string} tenantId tenant identifier
+   * @returns {TypologyConfig} given typology's config
+   *
+   * @memberof ConfigurationDB
+   */
+  getTypologyConfig: (typologyId: string, typologyCfg: string, tenantId: string) => Promise<TypologyConfig | undefined>;
+
+  /**
+   * @returns {NetworkMap[]} active networkmaps
+   *
+   * @memberof ConfigurationDB
+   */
+  getNetworkMap: () => Promise<NetworkMap[]>;
 }

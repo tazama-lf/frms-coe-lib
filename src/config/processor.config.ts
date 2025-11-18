@@ -32,9 +32,10 @@ export interface AdditionalConfig {
 
 export const validateProcessorConfig = (additionalEnvironmentVariables?: AdditionalConfig[]): ProcessorConfig => {
   //Additional Environment variables
-  const valueAndVariablesName = additionalEnvironmentVariables?.map((value) => {
-    return { value: validateEnvVar<string>(value.name, value.type, value.optional), name: value.name };
-  });
+  const valueAndVariablesName = additionalEnvironmentVariables?.map((value) => ({
+    value: validateEnvVar(value.name, value.type, value.optional),
+    name: value.name,
+  }));
 
   // reduce array of object to object of config
   const _additionalConfiguration = valueAndVariablesName?.reduce<Record<string, string | number | boolean>>((acc, item) => {
@@ -48,15 +49,15 @@ export const validateProcessorConfig = (additionalEnvironmentVariables?: Additio
     throw new Error('Environment variable NODE_ENV is not valid. Expected "dev", "production" or "test".');
   }
 
-  const maxCPU = process.env.MAX_CPU;
+  const maxCPU = process.env.MAX_CPU ?? '1';
 
-  if (maxCPU == null || isNaN(Number(maxCPU))) {
+  if (isNaN(Number(maxCPU))) {
     throw new Error('The value specified for MAX_CPU is not a number.');
   }
 
   const _processorConfig: ProcessorConfig = {
     maxCPU: parseInt(maxCPU, 10),
-    functionName: validateEnvVar('FUNCTION_NAME', 'string'),
+    functionName: validateEnvVar('FUNCTION_NAME', 'string').toString(),
     nodeEnv,
   };
   return { ..._processorConfig, ..._additionalConfiguration };

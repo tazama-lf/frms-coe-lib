@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { type Pacs008 } from '../../interfaces';
+import type { Pacs008 } from '../../interfaces';
 
 export const Pacs008Sample: Pacs008 = {
   TxTp: 'pacs.008.001.10',
+  TenantId: 'tenantId',
   FIToFICstmrCdtTrf: {
     GrpHdr: { MsgId: 'cabb-32c3-4ecf-944e-654855c80c38', CreDtTm: '2023-02-03T07:17:52.216Z', NbOfTxs: 1, SttlmInf: { SttlmMtd: 'CLRG' } },
     CdtTrfTxInf: {
       PmtId: { InstrId: '4ca819baa65d4a2c9e062f2055525046', EndToEndId: '701b-ae14-46fd-a2cf-88dda2875fdd' },
-      IntrBkSttlmAmt: { Amt: { Amt: '31020.89', Ccy: 'USD' } },
-      InstdAmt: { Amt: { Amt: '9000', Ccy: 'ZAR' } },
+      IntrBkSttlmAmt: { Amt: { Amt: 31020.89, Ccy: 'USD' } },
+      InstdAmt: { Amt: { Amt: 9000, Ccy: 'ZAR' } },
       ChrgBr: 'DEBT',
-      ChrgsInf: { Amt: { Amt: '307.14', Ccy: 'USD' }, Agt: { FinInstnId: { ClrSysMmbId: { MmbId: 'typology003' } } } },
+      ChrgsInf: { Amt: { Amt: 307.14, Ccy: 'USD' }, Agt: { FinInstnId: { ClrSysMmbId: { MmbId: 'typology003' } } } },
       InitgPty: {
         Nm: 'April Blake Grant',
         Id: {

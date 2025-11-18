@@ -16,6 +16,7 @@ on:
 
 jobs:
   validate-pr-title:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]'
     runs-on: ubuntu-latest  # Use the latest Ubuntu runner for the job
     steps:
       - name: Checkout code

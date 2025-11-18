@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { type DataCache } from './rule/DataCache';
+import type { DataCache } from './rule/DataCache';
 
 export interface Pain013 {
   TxTp: string;
+  TenantId: string;
   CdtrPmtActvtnReq: CdtrPmtActvtnReq;
-  _key?: string;
   DataCache?: DataCache;
 }
 
@@ -93,7 +93,7 @@ interface EqvtAmt {
 }
 
 interface EqvtAmtAmt {
-  Amt: string;
+  Amt: number;
   Ccy: string;
 }
 

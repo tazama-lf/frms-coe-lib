@@ -1,31 +1,26 @@
-import { type WorkFlow } from './TypologyResult';
+import type { WorkFlow } from './TypologyResult';
 
 // SPDX-License-Identifier: Apache-2.0
-export interface IRuleValue {
+
+export interface TypologyConfig {
   id: string;
   cfg: string;
-  wghts: IWeight[];
+  desc?: string;
+  rules: TypologyRuleConfig[];
+  expression: ExpressionMathJSON;
+  tenantId: string;
+  workflow: WorkFlow;
+}
+export interface TypologyRuleConfig {
+  id: string;
+  cfg: string;
+  wghts: RuleWeight[];
   termId: string;
-}
-
-export interface IWeight {
-  ref: string;
-  wght: number;
-}
-
-export interface IRule {
-  id: string;
-  cfg: string;
-  ref?: string;
 }
 
 export type ExpressionMathJSON = Array<string | number | ExpressionMathJSON>;
 
-export interface ITypologyExpression {
-  id: string;
-  cfg: string;
-  desc?: string;
-  rules: IRuleValue[];
-  expression: ExpressionMathJSON;
-  workflow: WorkFlow;
+export interface RuleWeight {
+  ref: string;
+  wght: number;
 }

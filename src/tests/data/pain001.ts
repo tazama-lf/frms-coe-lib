@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { type Pain001 } from '../../interfaces';
+import type { Pain001 } from '../../interfaces';
 
 export const Pain001Sample: Pain001 = {
   TxTp: 'pain.001.001.11',
+  TenantId: 'tenantId',
   CstmrCdtTrfInitn: {
     GrpHdr: {
       MsgId: '17fa-afea-48d6-b147-05c8463ea494',
@@ -101,13 +102,13 @@ export const Pain001Sample: Pain001 = {
         Amt: {
           InstdAmt: {
             Amt: {
-              Amt: '31020.89',
+              Amt: 31020.89,
               Ccy: 'USD',
             },
           },
           EqvtAmt: {
             Amt: {
-              Amt: '31020.89',
+              Amt: 31020.89,
               Ccy: 'USD',
             },
             CcyOfTrf: 'USD',
@@ -186,7 +187,7 @@ export const Pain001Sample: Pain001 = {
               },
               DbtrFinSvcsPrvdrFees: {
                 Ccy: 'USD',
-                Amt: '307.14',
+                Amt: 307.14,
               },
               Xprtn: new Date('2021-11-30T10:38:56.000Z'),
             },

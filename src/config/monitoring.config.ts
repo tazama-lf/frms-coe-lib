@@ -23,7 +23,7 @@ export interface ApmConfig {
 export interface LogConfig {
   /** The host of the logging sidecar. */
   sidecarHost?: string;
-  logstashLevel: string;
+  logLevel: string;
   pinoElasticOpts?: {
     flushBytes: number;
     elasticUsername: string;
@@ -43,14 +43,12 @@ export interface LogConfig {
  * @example
  * const apmConfig = validateAPMConfig();
  */
-export const validateAPMConfig = (): ApmConfig => {
-  return {
-    apmActive: validateEnvVar('APM_ACTIVE', 'boolean'),
-    apmServiceName: validateEnvVar('APM_SERVICE_NAME', 'string'),
-    apmSecretToken: validateEnvVar('APM_SECRET_TOKEN', 'string', true),
-    apmUrl: validateEnvVar('APM_URL', 'string'),
-  };
-};
+export const validateAPMConfig = (): ApmConfig => ({
+  apmActive: Boolean(validateEnvVar('APM_ACTIVE', 'boolean')),
+  apmServiceName: validateEnvVar('APM_SERVICE_NAME', 'string').toString(),
+  apmSecretToken: validateEnvVar('APM_SECRET_TOKEN', 'string', true).toString(),
+  apmUrl: validateEnvVar('APM_URL', 'string').toString(),
+});
 
 /**
  * Validates and retrieves the logging configuration from environment variables.
@@ -61,17 +59,15 @@ export const validateAPMConfig = (): ApmConfig => {
  * @example
  * const logConfig = validateLogConfig();
  */
-export const validateLogConfig = (): LogConfig => {
-  return {
-    sidecarHost: validateEnvVar('SIDECAR_HOST', 'string', true),
-    logstashLevel: validateEnvVar('LOGSTASH_LEVEL', 'string', true) || 'info',
-    pinoElasticOpts: {
-      flushBytes: validateEnvVar('ELASTIC_FLUSH_BYTES', 'number', true) ?? 1000,
-      elasticUsername: validateEnvVar('ELASTIC_USERNAME', 'string', true) ?? '',
-      elasticPassword: validateEnvVar('ELASTIC_PASSWORD', 'string', true) ?? '',
-      elasticHost: validateEnvVar('ELASTIC_HOST', 'string', true) ?? 'http://localhost:9200',
-      elasticIndex: validateEnvVar('ELASTIC_INDEX', 'string', true) ?? 'logs-tazama',
-      elasticVersion: validateEnvVar('ELASTIC_SEARCH_VERSION', 'string', true) ?? '8',
-    },
-  };
-};
+export const validateLogConfig = (): LogConfig => ({
+  sidecarHost: validateEnvVar('SIDECAR_HOST', 'string', true).toString(),
+  logLevel: validateEnvVar('LOG_LEVEL', 'string', true).toString() || 'info',
+  pinoElasticOpts: {
+    flushBytes: Number(validateEnvVar('ELASTIC_FLUSH_BYTES', 'number', true)),
+    elasticUsername: validateEnvVar('ELASTIC_USERNAME', 'string', true).toString(),
+    elasticPassword: validateEnvVar('ELASTIC_PASSWORD', 'string', true).toString(),
+    elasticHost: validateEnvVar('ELASTIC_HOST', 'string', true).toString(),
+    elasticIndex: validateEnvVar('ELASTIC_INDEX', 'string', true).toString(),
+    elasticVersion: Number(validateEnvVar('ELASTIC_SEARCH_VERSION', 'number', true)),
+  },
+});
