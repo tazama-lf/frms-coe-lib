@@ -29,50 +29,106 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
   }
 
   manager.getTransactionPacs008 = async (endToEndId: string, tenantId: string): Promise<Pacs008 | undefined> => {
-    const query: PgQueryConfig = {
-      text: 'SELECT document FROM pacs008 WHERE endToEndId = $1 AND tenantId = $2',
-      values: [endToEndId, tenantId],
-    };
+    const client = await manager._rawHistory.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query('SELECT public.set_tenant_id($1)', [tenantId]);
 
-    const queryRes = await manager._rawHistory.query<{ document: Pacs008 }>(query);
-    const toReturn = queryRes.rows.length > 0 ? queryRes.rows[0].document : undefined;
+      const query: PgQueryConfig = {
+        text: 'SELECT document FROM pacs008 WHERE endToEndId = $1 AND tenantId = $2',
+        values: [endToEndId, tenantId],
+      };
 
-    return toReturn;
+      const queryRes = await client.query<{ document: Pacs008 }>(query);
+      await client.query('COMMIT');
+
+      const toReturn = queryRes.rows.length > 0 ? queryRes.rows[0].document : undefined;
+      return toReturn;
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
+    }
   };
 
   manager.saveTransactionHistoryPain001 = async (tran: Pain001): Promise<void> => {
-    const query: PgQueryConfig = {
-      text: 'INSERT INTO pain001 (document) VALUES ($1) ON CONFLICT (EndToEndId, tenantId) DO NOTHING',
-      values: [tran],
-    };
+    const client = await manager._rawHistory.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query('SELECT public.set_tenant_id($1)', [tran.TenantId]);
 
-    await manager._rawHistory.query(query);
+      const query: PgQueryConfig = {
+        text: 'INSERT INTO pain001 (document) VALUES ($1) ON CONFLICT (EndToEndId, tenantId) DO NOTHING',
+        values: [tran],
+      };
+      await client.query(query);
+      await client.query('COMMIT');
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
+    }
   };
 
   manager.saveTransactionHistoryPain013 = async (tran: Pain013): Promise<void> => {
-    const query: PgQueryConfig = {
-      text: 'INSERT INTO pain013 (document) VALUES ($1) ON CONFLICT (EndToEndId, tenantId) DO NOTHING',
-      values: [tran],
-    };
+    const client = await manager._rawHistory.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query('SELECT public.set_tenant_id($1)', [tran.TenantId]);
 
-    await manager._rawHistory.query(query);
+      const query: PgQueryConfig = {
+        text: 'INSERT INTO pain013 (document) VALUES ($1) ON CONFLICT (EndToEndId, tenantId) DO NOTHING',
+        values: [tran],
+      };
+      await client.query(query);
+      await client.query('COMMIT');
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
+    }
   };
 
   manager.saveTransactionHistoryPacs008 = async (tran: Pacs008): Promise<void> => {
-    const query: PgQueryConfig = {
-      text: 'INSERT INTO pacs008 (document) VALUES ($1) ON CONFLICT (EndToEndId, tenantId) DO NOTHING',
-      values: [tran],
-    };
+    const client = await manager._rawHistory.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query('SELECT public.set_tenant_id($1)', [tran.TenantId]);
 
-    await manager._rawHistory.query(query);
+      const query: PgQueryConfig = {
+        text: 'INSERT INTO pacs008 (document) VALUES ($1) ON CONFLICT (EndToEndId, tenantId) DO NOTHING',
+        values: [tran],
+      };
+      await client.query(query);
+      await client.query('COMMIT');
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
+    }
   };
 
   manager.saveTransactionHistoryPacs002 = async (tran: Pacs002): Promise<void> => {
-    const query: PgQueryConfig = {
-      text: 'INSERT INTO pacs002 (document) VALUES ($1) ON CONFLICT (EndToEndId, tenantId) DO NOTHING',
-      values: [tran],
-    };
+    const client = await manager._rawHistory.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query('SELECT public.set_tenant_id($1)', [tran.TenantId]);
 
-    await manager._rawHistory.query(query);
+      const query: PgQueryConfig = {
+        text: 'INSERT INTO pacs002 (document) VALUES ($1) ON CONFLICT (EndToEndId, tenantId) DO NOTHING',
+        values: [tran],
+      };
+      await client.query(query);
+      await client.query('COMMIT');
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
+    }
   };
 }
