@@ -46,27 +46,37 @@ export async function configurationBuilder(
       }
     }
 
-    const query: PgQueryConfig = {
-      text: `SELECT 
+    const client = await manager._configuration.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query('SELECT public.set_tenant_id($1)', [tenantId]);
+
+      const query: PgQueryConfig = {
+        text: `SELECT
                 configuration
-              FROM 
-                rule 
-              WHERE 
-                ruleId = $1 
-              AND 
-                ruleCfg = $2
+              FROM
+                rule
+              WHERE
+                ruleId = $1
               AND
-                tenantId = $3`,
-      values: [ruleId, cfg, tenantId],
-    };
+                ruleCfg = $2`,
+        values: [ruleId, cfg],
+      };
 
-    const queryRes = await manager._configuration.query<{ configuration: RuleConfig }>(query);
+      const queryRes = await client.query<{ configuration: RuleConfig }>(query);
+      await client.query('COMMIT');
 
-    const toReturn = queryRes.rows.length > 0 ? queryRes.rows[0].configuration : undefined;
-    if (toReturn && manager.nodeCache) {
-      manager.nodeCache.set(cacheKey, toReturn, cacheConfig?.localCacheTTL ?? 3000);
+      const toReturn = queryRes.rows.length > 0 ? queryRes.rows[0].configuration : undefined;
+      if (toReturn && manager.nodeCache) {
+        manager.nodeCache.set(cacheKey, toReturn, cacheConfig?.localCacheTTL ?? 3000);
+      }
+      return toReturn;
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
     }
-    return toReturn;
   };
 
   manager.getTypologyConfig = async (typologyId: string, typologyCfg: string, tenantId: string): Promise<TypologyConfig | undefined> => {
@@ -75,27 +85,37 @@ export async function configurationBuilder(
       const cacheVal = manager.nodeCache.get<TypologyConfig>(cacheKey);
       if (cacheVal) return await Promise.resolve(cacheVal);
     }
-    const query: PgQueryConfig = {
-      text: `SELECT
-              configuration
+
+    const client = await manager._configuration.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query('SELECT public.set_tenant_id($1)', [tenantId]);
+      const query: PgQueryConfig = {
+        text: `SELECT
+              configuration, tenantid
             FROM
               typology
             WHERE
-              typologyId = $1 
-            AND 
-              typologyCfg = $2
+              typologyId = $1
             AND
-              tenantId = $3`,
-      values: [typologyId, typologyCfg, tenantId],
-    };
+              typologyCfg = $2`,
+        values: [typologyId, typologyCfg],
+      };
 
-    const queryRes = await manager._configuration.query<{ configuration: TypologyConfig }>(query);
+      const queryRes = await client.query<{ configuration: TypologyConfig }>(query);
+      await client.query('COMMIT');
+      const toReturn = queryRes.rows.length > 0 ? queryRes.rows[0].configuration : undefined;
 
-    const toReturn = queryRes.rows.length > 0 ? queryRes.rows[0].configuration : undefined;
-    if (toReturn && manager.nodeCache) {
-      manager.nodeCache.set(cacheKey, toReturn, cacheConfig?.localCacheTTL ?? 3000);
+      if (toReturn && manager.nodeCache) {
+        manager.nodeCache.set(cacheKey, toReturn, cacheConfig?.localCacheTTL ?? 3000);
+      }
+      return toReturn;
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
     }
-    return toReturn;
   };
 
   manager.getNetworkMap = async (): Promise<NetworkMap[]> => {
@@ -110,6 +130,7 @@ export async function configurationBuilder(
     };
 
     const queryRes = await manager._configuration.query<{ configuration: NetworkMap }>(query);
-    return queryRes.rows.length > 0 ? queryRes.rows.map((value) => value.configuration) : [];
+
+    return queryRes.rows.map(({ configuration }) => configuration);
   };
 }
