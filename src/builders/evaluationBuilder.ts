@@ -30,15 +30,27 @@ export async function evaluationBuilder(manager: EvaluationDB, evaluationConfig:
   }
 
   manager.getReportByMessageId = async (messageid: string, tenantId: string): Promise<Evaluation | undefined> => {
-    const query: PgQueryConfig = {
-      text: 'SELECT evaluation FROM evaluation WHERE messageId = $1 AND tenantId = $2',
-      values: [messageid, tenantId],
-    };
+    const client = await manager._evaluation.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query('SELECT public.set_tenant_id($1)', [tenantId]);
 
-    const queryRes = await manager._evaluation.query<{ evaluation: Evaluation }>(query);
-    const toReturn = queryRes.rows.length > 0 ? queryRes.rows[0].evaluation : undefined;
+      const query: PgQueryConfig = {
+        text: 'SELECT evaluation FROM evaluation WHERE messageId = $1',
+        values: [messageid, tenantId],
+      };
 
-    return toReturn;
+      const queryRes = await client.query<{ evaluation: Evaluation }>(query);
+      await client.query('COMMIT');
+      const toReturn = queryRes.rows.length > 0 ? queryRes.rows[0].evaluation : undefined;
+
+      return toReturn;
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
+    }
   };
 
   manager.saveEvaluationResult = async (
@@ -55,12 +67,23 @@ export async function evaluationBuilder(manager: EvaluationDB, evaluationConfig:
       report: alert,
       dataCache,
     };
+    const client = await manager._evaluation.connect();
+    await client.query('BEGIN');
+    await client.query('SELECT public.set_tenant_id($1)', [transaction.TenantId]);
 
-    const query: PgQueryConfig = {
-      text: 'INSERT INTO evaluation (evaluation) VALUES ($1) ON CONFLICT (messageId, tenantId) DO NOTHING',
-      values: [data],
-    };
+    try {
+      const query: PgQueryConfig = {
+        text: 'INSERT INTO evaluation (evaluation) VALUES ($1) ON CONFLICT (messageId, tenantId) DO NOTHING',
+        values: [data],
+      };
 
-    await manager._evaluation.query(query);
+      await client.query(query);
+      await client.query('COMMIT');
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
+    }
   };
 }
