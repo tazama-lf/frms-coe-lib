@@ -362,6 +362,48 @@ describe('CreateDatabaseManager', () => {
     ]);
   });
 
+  it('should create a manager with FAILING eventHistory methods', async () => {
+    const testTypes = <RedisService & EventHistoryDB>{};
+    const dbManager: typeof testTypes = globalManager satisfies EventHistoryDB;
+
+    jest.spyOn(dbManager._eventHistory, 'connect').mockImplementation(() => {
+      return new Promise((resolve) => {
+        const mockClient = {
+          query: jest.fn().mockRejectedValueOnce(new Error('Query failed')).mockResolvedValueOnce(undefined),
+          release: jest.fn(),
+        };
+        resolve(mockClient);
+      });
+    });
+
+    await expect(dbManager.saveTransactionDetails(mockTR)).rejects.toThrow();
+
+    await expect(dbManager.saveAccount('test', 'tenantId')).rejects.toThrow();
+    await expect(dbManager.saveAccountHolder('test', 'testID', 'testTime', 'tenantId')).rejects.toThrow();
+    await expect(dbManager.saveEntity('test', 'tenantId', 'testTime')).rejects.toThrow();
+    await expect(dbManager.saveCondition({} as EntityCondition)).rejects.toThrow();
+    await expect(dbManager.saveGovernedAsCreditorByEdge('test1', 'test2', {} as ConditionEdge)).rejects.toThrow();
+    await expect(dbManager.saveGovernedAsDebtorByEdge('test1', 'test2', {} as ConditionEdge)).rejects.toThrow();
+    await expect(dbManager.saveGovernedAsCreditorAccountByEdge('test1', 'test2', {} as ConditionEdge)).rejects.toThrow();
+    await expect(dbManager.saveGovernedAsDebtorAccountByEdge('test1', 'test2', {} as ConditionEdge)).rejects.toThrow();
+    await expect(dbManager.getConditions(true, 'tenantId')).rejects.toThrow();
+    await expect(dbManager.getEntity('test1', 'test2', 'tenantId')).rejects.toThrow();
+    await expect(dbManager.getAccount('test1', 'test2', 'test3', 'tenantId')).rejects.toThrow();
+    await expect(
+      dbManager.updateExpiryDateOfDebtorAccountEdges('sourceKey', 'destinationKey', '2024-09-05T21:00:00.999Z', 'tenantId'),
+    ).rejects.toThrow();
+    await expect(
+      dbManager.updateExpiryDateOfCreditorAccountEdges('sourceKey', 'destinationKey', '2024-09-05T21:00:00.999Z', 'tenantId'),
+    ).rejects.toThrow();
+    await expect(
+      dbManager.updateExpiryDateOfDebtorEntityEdges('sourceKey', 'destinationKey', '2024-09-05T21:00:00.999Z', 'tenantId'),
+    ).rejects.toThrow();
+    await expect(
+      dbManager.updateExpiryDateOfCreditorEntityEdges('sourceKey', 'destinationKey', '2024-09-05T21:00:00.999Z', 'tenantId'),
+    ).rejects.toThrow();
+    await expect(dbManager.updateCondition('_testkey1', '2024-09-05T21:00:00.999Z', 'tenantId')).rejects.toThrow();
+  });
+
   it('should create a manager with redis methods', async () => {
     const testTypes = <RedisService>{};
     const dbManager: typeof testTypes = globalManager satisfies RedisService;
