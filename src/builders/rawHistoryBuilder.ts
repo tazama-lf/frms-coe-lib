@@ -35,8 +35,8 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
       await client.query('SELECT public.set_tenant_id($1)', [tenantId]);
 
       const query: PgQueryConfig = {
-        text: 'SELECT document FROM pacs008 WHERE endToEndId = $1 AND tenantId = $2',
-        values: [endToEndId, tenantId],
+        text: 'SELECT document FROM pacs008 WHERE endToEndId = $1',
+        values: [endToEndId],
       };
 
       const queryRes = await client.query<{ document: Pacs008 }>(query);

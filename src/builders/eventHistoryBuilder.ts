@@ -310,8 +310,8 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
       await client.query('SELECT public.set_tenant_id($1)', [tenantId]);
       const id = `${entityId}${schemeProprietary}`;
       const query: PgQueryConfig = {
-        text: 'SELECT id, creDtTm, tenantId FROM entity WHERE id = $1 AND tenantId = $2',
-        values: [id, tenantId],
+        text: 'SELECT id, creDtTm, tenantId FROM entity WHERE id = $1',
+        values: [id],
       };
 
       const queryRes = await client.query<Entity>(query);
@@ -339,8 +339,8 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
       await client.query('SELECT public.set_tenant_id($1)', [tenantId]);
       const id = `${accountId}${schemeProprietary}${agtMemberId}`;
       const query: PgQueryConfig = {
-        text: 'SELECT id, tenantId FROM account WHERE id = $1 AND tenantId = $2',
-        values: [id, tenantId],
+        text: 'SELECT id, tenantId FROM account WHERE id = $1',
+        values: [id],
       };
 
       const queryRes = await client.query<Account>(query);
@@ -375,10 +375,8 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
         WHERE
           source = $2
         AND
-          destination = $3
-        AND
-          tenantId = $4`,
-        values: [expireDateTime, source, destination, tenantId],
+          destination = $3`,
+        values: [expireDateTime, source, destination],
       };
 
       await client.query(query);
@@ -410,10 +408,8 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
         WHERE
           source = $2
         AND
-          destination = $3
-        AND
-          tenantId = $4`,
-        values: [expireDateTime, source, destination, tenantId],
+          destination = $3`,
+        values: [expireDateTime, source, destination],
       };
 
       await client.query(query);
@@ -445,10 +441,8 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
         WHERE
           source = $2
         AND
-          destination = $3
-        AND
-          tenantId = $4`,
-        values: [expireDateTime, source, destination, tenantId],
+          destination = $3`,
+        values: [expireDateTime, source, destination],
       };
 
       await client.query(query);
@@ -480,10 +474,8 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
         WHERE
           source = $2
         AND
-          destination = $3
-        AND
-          tenantId = $4`,
-        values: [expireDateTime, source, destination, tenantId],
+          destination = $3`,
+        values: [expireDateTime, source, destination],
       };
       await client.query(query);
       await client.query('COMMIT');
@@ -507,10 +499,8 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
         SET
           condition = jsonb_set(condition, '{xprtnDtTm}', to_jsonb($1::text), true)
         WHERE
-          id = $2
-        AND
-          tenantId = $3`,
-        values: [expireDateTime, conditionId, tenantId],
+          id = $2`,
+        values: [expireDateTime, conditionId],
       };
       await client.query(query);
       await client.query('COMMIT');
@@ -556,7 +546,6 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
                   AND (e."xprtndttm"::timestamptz > NOW() OR e."xprtndttm" IS NULL)
               )
             )
-          AND e.tenantId = $4
         ),
         gov_debtor AS (
             SELECT
@@ -580,7 +569,6 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
                       AND (e."xprtndttm"::timestamptz > NOW() OR e."xprtndttm" IS NULL)
                   )
               )
-            AND e.tenantId = $4
         )
         SELECT jsonb_build_object(
             'governed_as_creditor_by',
@@ -588,7 +576,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
             'governed_as_debtor_by',
               COALESCE((SELECT jsonb_agg(d) FROM gov_debtor AS d), '[]'::jsonb)
         ) AS result_gov;`,
-        values: [entityId, schemeProprietary, retrieveAll, tenantId],
+        values: [entityId, schemeProprietary, retrieveAll],
       };
 
       const queryRes = await client.query<{ result_gov: RawConditionResponse }>(query);
@@ -638,7 +626,6 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
                       AND (e."xprtndttm"::timestamptz > NOW() OR e."xprtndttm" IS NULL)
                   )
               )
-            AND e.tenantId = $5
         ),
         gov_debtor AS (
             SELECT
@@ -660,7 +647,6 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
                       AND (e."xprtndttm"::timestamptz > NOW() OR e."xprtndttm" IS NULL)
                   )
               )
-            AND e.tenantId = $5
         )
         SELECT jsonb_build_object(
             'governed_as_creditor_account_by',
@@ -668,7 +654,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
             'governed_as_debtor_account_by',
               COALESCE((SELECT jsonb_agg(d) FROM gov_debtor AS d), '[]'::jsonb)
         ) AS result_gov;`,
-        values: [entityId, schemeProprietary, agt, retrieveAll, tenantId],
+        values: [entityId, schemeProprietary, agt, retrieveAll],
       };
       const queryRes = await client.query<{ result_gov: RawConditionResponse }>(query);
       await client.query('COMMIT');
