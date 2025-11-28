@@ -37,7 +37,7 @@ export async function evaluationBuilder(manager: EvaluationDB, evaluationConfig:
 
       const query: PgQueryConfig = {
         text: 'SELECT evaluation FROM evaluation WHERE messageId = $1',
-        values: [messageid, tenantId],
+        values: [messageid],
       };
 
       const queryRes = await client.query<{ evaluation: Evaluation }>(query);
