@@ -68,10 +68,10 @@ export async function evaluationBuilder(manager: EvaluationDB, evaluationConfig:
       dataCache,
     };
     const client = await manager._evaluation.connect();
-    await client.query('BEGIN');
-    await client.query('SELECT public.set_tenant_id($1)', [transaction.TenantId]);
 
     try {
+      await client.query('BEGIN');
+      await client.query('SELECT public.set_tenant_id($1)', [transaction.TenantId]);
       const query: PgQueryConfig = {
         text: 'INSERT INTO evaluation (evaluation) VALUES ($1) ON CONFLICT (messageId, tenantId) DO NOTHING',
         values: [data],
