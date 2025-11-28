@@ -213,7 +213,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
         text: `INSERT INTO governed_as_debtor_account_by
               (source, destination, evtTp, incptnDtTm, xprtnDtTm)
             VALUES
-              ($1, $2, $3, $4, $5, $6)
+              ($1, $2, $3, $4, $5)
             ON CONFLICT
               (source, destination, tenantId) DO NOTHING
             RETURNING *`,
