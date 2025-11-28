@@ -271,11 +271,16 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
       await client.query('BEGIN');
       await client.query('SELECT public.set_tenant_id($1)', [tenantId]);
       const now = new Date().toISOString();
-      let toFilter = '$1::text IS NULL';
+      let toFilter = 'TRUE';
+      let values: unknown[] = [];
 
       if (activeOnly) {
         toFilter = `
-        (condition #>> '{xprtnDtTm}')::timestamp > $2`;
+        (
+          (condition #>> '{xprtnDtTm}') IS NULL
+          OR (condition #>> '{xprtnDtTm}')::timestamp > $1
+        )`;
+        values = [now];
       }
 
       const query: PgQueryConfig = {
@@ -285,9 +290,8 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
         FROM
           condition
         WHERE
-          ${toFilter}
-        AND tenantId = $1`,
-        values: activeOnly ? [tenantId, now] : [tenantId],
+          ${toFilter}`,
+        values,
       };
 
       const queryRes = await client.query<{ condition: Condition }>(query);
