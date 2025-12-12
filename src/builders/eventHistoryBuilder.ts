@@ -181,7 +181,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
             VALUES
               ($1, $2, $3, $4, $5)
             ON CONFLICT
-              (source, destination) DO NOTHING
+              (source, destination, tenantId) DO NOTHING
             RETURNING *`,
         values: [accountEntityId, conditionId, conditionEdge.evtTp, conditionEdge.incptnDtTm, conditionEdge.xprtnDtTm],
       };
