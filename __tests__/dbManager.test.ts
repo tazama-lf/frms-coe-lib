@@ -156,11 +156,15 @@ const getMockTypology = (): Typology => {
 
 describe('CreateDatabaseManager', () => {
   beforeEach(() => {
-    jest.spyOn(globalManager._rawHistory, 'query').mockImplementation((query: string): Promise<any> => {
-      return new Promise((resolve, reject) => {
-        resolve({
-          rows: [{ document: 'MOCK-QUERY' }],
-        });
+    jest.spyOn(globalManager._rawHistory, 'connect').mockImplementation(() => {
+      return new Promise((resolve) => {
+        const mockClient = {
+          query: jest.fn().mockResolvedValue({
+            rows: [{ document: 'MOCK-QUERY' }],
+          }),
+          release: jest.fn(),
+        };
+        resolve(mockClient);
       });
     });
     jest.spyOn(globalManager._configuration, 'query').mockImplementation((query: string): Promise<any> => {
@@ -170,15 +174,26 @@ describe('CreateDatabaseManager', () => {
         });
       });
     });
-
-    jest.spyOn(globalManager._eventHistory, 'query').mockImplementation((query: string): Promise<any> => {
-      return new Promise((resolve, reject) => {
-        resolve({
-          rows: [
-            'MOCK-QUERY', // for save calls
-            { condition: 'MOCK-QUERY' }, // for condition queries,
-          ],
-        });
+    jest.spyOn(globalManager._configuration, 'connect').mockImplementation(() => {
+      return new Promise((resolve) => {
+        const mockClient = {
+          query: jest.fn().mockResolvedValue({
+            rows: [{ configuration: 'MOCK-QUERY' }],
+          }),
+          release: jest.fn(),
+        };
+        resolve(mockClient);
+      });
+    });
+    jest.spyOn(globalManager._eventHistory, 'connect').mockImplementation(() => {
+      return new Promise((resolve) => {
+        const mockClient = {
+          query: jest.fn().mockResolvedValue({
+            rows: ['MOCK-QUERY', { condition: 'MOCK-QUERY' }],
+          }),
+          release: jest.fn(),
+        };
+        resolve(mockClient);
       });
     });
   });
@@ -198,6 +213,21 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.saveTransactionHistoryPain013(testPacs002 as unknown as Pain013)).toEqual(undefined);
     expect(await dbManager.saveTransactionHistoryPacs008(testPacs002 as unknown as Pacs008)).toEqual(undefined);
     expect(await dbManager.saveTransactionHistoryPacs002(testPacs002)).toEqual(undefined);
+
+    jest.spyOn(dbManager._rawHistory, 'connect').mockImplementation(() => {
+      return new Promise((resolve) => {
+        const mockClient = {
+          query: jest.fn().mockRejectedValueOnce(new Error('Query failed')).mockResolvedValueOnce(undefined),
+          release: jest.fn(),
+        };
+        resolve(mockClient);
+      });
+    });
+
+    await expect(dbManager.saveTransactionHistoryPain001(testPacs002 as unknown as Pain001)).rejects.toThrow();
+    await expect(dbManager.saveTransactionHistoryPain013(testPacs002 as unknown as Pain013)).rejects.toThrow();
+    await expect(dbManager.saveTransactionHistoryPacs008(testPacs002 as unknown as Pacs008)).rejects.toThrow();
+    await expect(dbManager.saveTransactionHistoryPacs002(testPacs002 as unknown as Pacs002)).rejects.toThrow();
   });
 
   it('should create a manager with configuration methods', async () => {
@@ -230,11 +260,15 @@ describe('CreateDatabaseManager', () => {
 
     const dbManager = await CreateDatabaseManager(confConfig);
 
-    jest.spyOn(dbManager._configuration, 'query').mockImplementation((query: string): Promise<any> => {
-      return new Promise((resolve, reject) => {
-        resolve({
-          rows: [{ configuration: 'MOCK-QUERY' }],
-        });
+    jest.spyOn(dbManager._configuration, 'connect').mockImplementation(() => {
+      return new Promise((resolve) => {
+        const mockClient = {
+          query: jest.fn().mockResolvedValue({
+            rows: [{ configuration: 'MOCK-QUERY' }],
+          }),
+          release: jest.fn(),
+        };
+        resolve(mockClient);
       });
     });
 
@@ -292,11 +326,15 @@ describe('CreateDatabaseManager', () => {
       await dbManager.updateExpiryDateOfCreditorEntityEdges('sourceKey', 'destinationKey', '2024-09-05T21:00:00.999Z', 'tenantId'),
     ).toEqual(undefined);
     expect(await dbManager.updateCondition('_testkey1', '2024-09-05T21:00:00.999Z', 'tenantId')).toEqual(undefined);
-    jest.spyOn(globalManager._eventHistory, 'query').mockImplementation((query: string): Promise<any> => {
-      return new Promise((resolve, reject) => {
-        resolve({
-          rows: [{ result_gov: { governed_as_creditor_by: 'MOCK-QUERY', governed_as_debtor_by: 'MOCK-QUERY' } }],
-        });
+    jest.spyOn(globalManager._eventHistory, 'connect').mockImplementation(() => {
+      return new Promise((resolve) => {
+        const mockClient = {
+          query: jest.fn().mockResolvedValue({
+            rows: [{ result_gov: { governed_as_creditor_by: 'MOCK-QUERY', governed_as_debtor_by: 'MOCK-QUERY' } }],
+          }),
+          release: jest.fn(),
+        };
+        resolve(mockClient);
       });
     });
     expect(await dbManager.getEntityConditionsByGraph('test1', 'test2', 'tenantId')).toEqual([
@@ -305,11 +343,15 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.getEntityConditionsByGraph('test1', 'test2', 'tenantId', true)).toEqual([
       { governed_as_creditor_by: 'MOCK-QUERY', governed_as_debtor_by: 'MOCK-QUERY' },
     ]);
-    jest.spyOn(globalManager._eventHistory, 'query').mockImplementation((query: string): Promise<any> => {
-      return new Promise((resolve, reject) => {
-        resolve({
-          rows: [{ result_gov: { governed_as_creditor_account_by: 'MOCK-QUERY', governed_as_debtor_account_by: 'MOCK-QUERY' } }],
-        });
+    jest.spyOn(globalManager._eventHistory, 'connect').mockImplementation(() => {
+      return new Promise((resolve) => {
+        const mockClient = {
+          query: jest.fn().mockResolvedValue({
+            rows: [{ result_gov: { governed_as_creditor_account_by: 'MOCK-QUERY', governed_as_debtor_account_by: 'MOCK-QUERY' } }],
+          }),
+          release: jest.fn(),
+        };
+        resolve(mockClient);
       });
     });
     expect(await dbManager.getAccountConditionsByGraph('test1', 'test2', 'tenantId', 'ntty')).toEqual([
@@ -318,6 +360,48 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.getAccountConditionsByGraph('test1', 'test2', 'tenantId', 'ntty', true)).toEqual([
       { governed_as_creditor_account_by: 'MOCK-QUERY', governed_as_debtor_account_by: 'MOCK-QUERY' },
     ]);
+  });
+
+  it('should create a manager with FAILING eventHistory methods', async () => {
+    const testTypes = <RedisService & EventHistoryDB>{};
+    const dbManager: typeof testTypes = globalManager satisfies EventHistoryDB;
+
+    jest.spyOn(dbManager._eventHistory, 'connect').mockImplementation(() => {
+      return new Promise((resolve) => {
+        const mockClient = {
+          query: jest.fn().mockRejectedValueOnce(new Error('Query failed')).mockResolvedValueOnce(undefined),
+          release: jest.fn(),
+        };
+        resolve(mockClient);
+      });
+    });
+
+    await expect(dbManager.saveTransactionDetails(mockTR)).rejects.toThrow();
+
+    await expect(dbManager.saveAccount('test', 'tenantId')).rejects.toThrow();
+    await expect(dbManager.saveAccountHolder('test', 'testID', 'testTime', 'tenantId')).rejects.toThrow();
+    await expect(dbManager.saveEntity('test', 'tenantId', 'testTime')).rejects.toThrow();
+    await expect(dbManager.saveCondition({} as EntityCondition)).rejects.toThrow();
+    await expect(dbManager.saveGovernedAsCreditorByEdge('test1', 'test2', {} as ConditionEdge)).rejects.toThrow();
+    await expect(dbManager.saveGovernedAsDebtorByEdge('test1', 'test2', {} as ConditionEdge)).rejects.toThrow();
+    await expect(dbManager.saveGovernedAsCreditorAccountByEdge('test1', 'test2', {} as ConditionEdge)).rejects.toThrow();
+    await expect(dbManager.saveGovernedAsDebtorAccountByEdge('test1', 'test2', {} as ConditionEdge)).rejects.toThrow();
+    await expect(dbManager.getConditions(true, 'tenantId')).rejects.toThrow();
+    await expect(dbManager.getEntity('test1', 'test2', 'tenantId')).rejects.toThrow();
+    await expect(dbManager.getAccount('test1', 'test2', 'test3', 'tenantId')).rejects.toThrow();
+    await expect(
+      dbManager.updateExpiryDateOfDebtorAccountEdges('sourceKey', 'destinationKey', '2024-09-05T21:00:00.999Z', 'tenantId'),
+    ).rejects.toThrow();
+    await expect(
+      dbManager.updateExpiryDateOfCreditorAccountEdges('sourceKey', 'destinationKey', '2024-09-05T21:00:00.999Z', 'tenantId'),
+    ).rejects.toThrow();
+    await expect(
+      dbManager.updateExpiryDateOfDebtorEntityEdges('sourceKey', 'destinationKey', '2024-09-05T21:00:00.999Z', 'tenantId'),
+    ).rejects.toThrow();
+    await expect(
+      dbManager.updateExpiryDateOfCreditorEntityEdges('sourceKey', 'destinationKey', '2024-09-05T21:00:00.999Z', 'tenantId'),
+    ).rejects.toThrow();
+    await expect(dbManager.updateCondition('_testkey1', '2024-09-05T21:00:00.999Z', 'tenantId')).rejects.toThrow();
   });
 
   it('should create a manager with redis methods', async () => {
@@ -391,25 +475,43 @@ describe('CreateDatabaseManager', () => {
 
     const dbManager = await CreateDatabaseManager(confConfig);
 
-    jest.spyOn(dbManager._configuration, 'query').mockImplementation((query: string): Promise<any> => {
-      return new Promise((resolve, reject) => {
-        resolve({
-          rows: [{ configuration: 'MOCK-QUERY' }],
-        });
+    const spyFn = jest.spyOn(dbManager._configuration, 'connect').mockImplementation(() => {
+      return new Promise((resolve) => {
+        const mockClient = {
+          query: jest.fn().mockResolvedValue({
+            rows: [{ configuration: 'MOCK-QUERY' }],
+          }),
+          release: jest.fn(),
+        };
+        resolve(mockClient);
       });
     });
 
     expect(await dbManager.getRuleConfig('test-ruleid', 'test-cfg', 'DEFAULT')).toEqual('MOCK-QUERY');
 
-    dbManager.quit();
+    spyFn.mockClear();
+    jest.spyOn(dbManager._configuration, 'connect').mockImplementationOnce(() => {
+      return new Promise((resolve) => {
+        const mockClient = {
+          query: jest.fn().mockRejectedValueOnce(new Error('Query failed')).mockResolvedValueOnce(undefined),
+          release: jest.fn(),
+        };
+        resolve(mockClient);
+      });
+    });
+    await expect(dbManager.getRuleConfig('test-ruleid', 'test-cfg', 'DEFAULT')).rejects.toThrow();
   });
 
   it('should try to use cache for getRuleConfig when cached enabled', async () => {
-    jest.spyOn(globalManager._configuration, 'query').mockImplementation((query: string): Promise<any> => {
-      return new Promise((resolve, reject) => {
-        resolve({
-          rows: [{ configuration: 'MOCK-QUERY' }],
-        });
+    jest.spyOn(globalManager._configuration, 'connect').mockImplementation(() => {
+      return new Promise((resolve) => {
+        const mockClient = {
+          query: jest.fn().mockResolvedValue({
+            rows: [{ configuration: 'MOCK-QUERY' }],
+          }),
+          release: jest.fn(),
+        };
+        resolve(mockClient);
       });
     });
 
@@ -425,25 +527,44 @@ describe('CreateDatabaseManager', () => {
 
     const dbManager = await CreateDatabaseManager(confConfig);
 
-    jest.spyOn(dbManager._configuration, 'query').mockImplementation((query: string): Promise<any> => {
-      return new Promise((resolve, reject) => {
-        resolve({
-          rows: [{ configuration: 'MOCK-QUERY' }],
-        });
+    const spyFn = jest.spyOn(dbManager._configuration, 'connect').mockImplementation(() => {
+      return new Promise((resolve) => {
+        const mockClient = {
+          query: jest.fn().mockResolvedValue({
+            rows: [{ configuration: 'MOCK-QUERY' }],
+          }),
+          release: jest.fn(),
+        };
+        resolve(mockClient);
       });
     });
 
     expect(await dbManager.getTypologyConfig(getMockTypology().id, getMockTypology().cfg, 'DEFAULT')).toEqual('MOCK-QUERY');
 
+    spyFn.mockClear();
+    jest.spyOn(dbManager._configuration, 'connect').mockImplementationOnce(() => {
+      return new Promise((resolve) => {
+        const mockClient = {
+          query: jest.fn().mockRejectedValueOnce(new Error('Query failed')).mockResolvedValueOnce(undefined),
+          release: jest.fn(),
+        };
+        resolve(mockClient);
+      });
+    });
+    await expect(dbManager.getTypologyConfig(getMockTypology().id, getMockTypology().cfg, 'DEFAULT')).rejects.toThrow();
     dbManager.quit();
   });
 
   it('should not try use cache for getTypologyConfig when cached not enabled', async () => {
-    jest.spyOn(globalManager._configuration, 'query').mockImplementation((query: string): Promise<any> => {
-      return new Promise((resolve, reject) => {
-        resolve({
-          rows: [{ configuration: 'MOCK-QUERY' }],
-        });
+    jest.spyOn(globalManager._configuration, 'connect').mockImplementation(() => {
+      return new Promise((resolve) => {
+        const mockClient = {
+          query: jest.fn().mockResolvedValue({
+            rows: [{ configuration: 'MOCK-QUERY' }],
+          }),
+          release: jest.fn(),
+        };
+        resolve(mockClient);
       });
     });
 
@@ -502,11 +623,15 @@ describe('CreateDatabaseManager', () => {
     };
     const dbManager = await CreateDatabaseManager(transHistoryConfig);
 
-    jest.spyOn(dbManager._rawHistory, 'query').mockImplementation((query: string): Promise<any> => {
-      return new Promise((resolve, reject) => {
-        resolve({
-          rows: [{ document: 'MOCK-QUERY' }],
-        });
+    jest.spyOn(dbManager._rawHistory, 'connect').mockImplementation(() => {
+      return new Promise((resolve) => {
+        const mockClient = {
+          query: jest.fn().mockResolvedValue({
+            rows: [{ document: 'MOCK-QUERY' }],
+          }),
+          release: jest.fn(),
+        };
+        resolve(mockClient);
       });
     });
 
@@ -525,11 +650,15 @@ describe('CreateDatabaseManager', () => {
     };
     const dbManager = await CreateDatabaseManager(transHistoryConfig);
 
-    jest.spyOn(dbManager._rawHistory, 'query').mockImplementation((query: string): Promise<any> => {
-      return new Promise((resolve, reject) => {
-        resolve({
-          rows: [{ document: 'MOCK-QUERY' }],
-        });
+    const spyFn = jest.spyOn(dbManager._rawHistory, 'connect').mockImplementation(() => {
+      return new Promise((resolve) => {
+        const mockClient = {
+          query: jest.fn().mockResolvedValue({
+            rows: [{ document: 'MOCK-QUERY' }],
+          }),
+          release: jest.fn(),
+        };
+        resolve(mockClient);
       });
     });
 
@@ -539,6 +668,18 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.isReadyCheck()).toEqual({
       RawHistoryDB: 'Ok',
     });
+
+    spyFn.mockClear();
+    jest.spyOn(dbManager._rawHistory, 'connect').mockImplementationOnce(() => {
+      return new Promise((resolve) => {
+        const mockClient = {
+          query: jest.fn().mockRejectedValueOnce(new Error('Query failed')).mockResolvedValueOnce(undefined),
+          release: jest.fn(),
+        };
+        resolve(mockClient);
+      });
+    });
+    await expect(dbManager.getTransactionPacs008('test', 'tenantId')).rejects.toThrow();
 
     dbManager.quit();
   });
@@ -550,11 +691,15 @@ describe('CreateDatabaseManager', () => {
     let localManager: DatabaseManagerInstance<typeof localConfig>;
     localManager = await CreateDatabaseManager(localConfig);
 
-    jest.spyOn(localManager._evaluation, 'query').mockImplementation((query: string): Promise<any> => {
-      return new Promise((resolve, reject) => {
-        resolve({
-          rows: [{ document: 'MOCK-QUERY' }],
-        });
+    let fnSpy = jest.spyOn(localManager._evaluation, 'connect').mockImplementation(() => {
+      return new Promise((resolve) => {
+        const mockClient = {
+          query: jest.fn().mockResolvedValue({
+            rows: [{ document: 'MOCK-QUERY' }],
+          }),
+          release: jest.fn(),
+        };
+        resolve(mockClient);
       });
     });
 
@@ -574,6 +719,18 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.saveEvaluationResult).toBeDefined();
 
     expect(await dbManager.saveEvaluationResult('testID', testPacs002, testNetworkMap, alert)).toEqual(undefined);
+
+    fnSpy.mockClear();
+    jest.spyOn(localManager._evaluation, 'connect').mockImplementationOnce(() => {
+      return new Promise((resolve) => {
+        const mockClient = {
+          query: jest.fn().mockRejectedValueOnce(new Error('Query failed')).mockResolvedValueOnce(undefined),
+          release: jest.fn(),
+        };
+        resolve(mockClient);
+      });
+    });
+    await expect(dbManager.saveEvaluationResult('testID', testPacs002, testNetworkMap, alert)).rejects.toThrow();
   });
 
   it('should create getReportByMessageId function when evaluation db is defined', async () => {
@@ -583,11 +740,15 @@ describe('CreateDatabaseManager', () => {
     let localManager: DatabaseManagerInstance<typeof localConfig>;
     localManager = await CreateDatabaseManager(localConfig);
 
-    jest.spyOn(localManager._evaluation, 'query').mockImplementation((query: string): Promise<any> => {
-      return new Promise((resolve, reject) => {
-        resolve({
-          rows: [{ evaluation: 'MOCK-EVALUATION' }],
-        });
+    const fnSpy = jest.spyOn(localManager._evaluation, 'connect').mockImplementation(() => {
+      return new Promise((resolve) => {
+        const mockClient = {
+          query: jest.fn().mockResolvedValue({
+            rows: [{ evaluation: 'MOCK-EVALUATION' }],
+          }),
+          release: jest.fn(),
+        };
+        resolve(mockClient);
       });
     });
 
@@ -596,6 +757,18 @@ describe('CreateDatabaseManager', () => {
 
     expect(dbManager.getReportByMessageId).toBeDefined();
     expect(await dbManager.getReportByMessageId('MSGID', 'tenantId')).toEqual('MOCK-EVALUATION');
+
+    fnSpy.mockClear();
+    jest.spyOn(localManager._evaluation, 'connect').mockImplementationOnce(() => {
+      return new Promise((resolve) => {
+        const mockClient = {
+          query: jest.fn().mockRejectedValueOnce(new Error('Query failed')).mockResolvedValueOnce(undefined),
+          release: jest.fn(),
+        };
+        resolve(mockClient);
+      });
+    });
+    await expect(dbManager.getReportByMessageId('MSGID', 'tenantId')).rejects.toThrow();
   });
 
   it('should error gracefully on isReadyCheck for database builders', async () => {
