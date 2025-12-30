@@ -33,6 +33,7 @@
     "@elastic/ecs-pino-format": "^1.5.0",
     "@grpc/grpc-js": "^1.13.4",
     "@grpc/proto-loader": "~0.7.15",
+    "@opensearch-project/opensearch": "^3.5.1",
     "@types/pg": "^8.15.5",
     "@types/uuid": "^10.0.0",
     "dotenv": "^17.2.1",
