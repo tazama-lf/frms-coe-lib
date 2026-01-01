@@ -22,5 +22,7 @@ export interface AuditLogData {
   description: string;
   eventType: string;
   status: 'success' | 'failure' | 'info';
-  metadata?: Record<string, unknown>;
+  tenantId?: string;
+  outcome?: Record<string, unknown>;
+  action_performed?: Record<string, unknown>;
 }

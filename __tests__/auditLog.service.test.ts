@@ -74,7 +74,9 @@ describe('AuditLogger', () => {
         actorEmail: 'john.doe@example.com',
         resourceId: 'account-55',
         resourceType: 'UserAccount',
-        metadata: { extra: 'data' },
+        outcome: { extra: 'data' },
+        action_performed: { performed: 'action' },
+        tenantId: 'tenant-1',
       });
 
       expect(mockIndex).toHaveBeenCalledTimes(1);
@@ -95,7 +97,9 @@ describe('AuditLogger', () => {
           actorEmail: 'john.doe@example.com',
           resourceId: 'account-55',
           resourceType: 'UserAccount',
-          metadata: { extra: 'data' },
+          outcome: { extra: 'data' },
+          action_performed: { performed: 'action' },
+          tenantId: 'tenant-1',
         },
       });
     });

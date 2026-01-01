@@ -38,9 +38,11 @@ export class AuditLogger {
             eventType: { type: 'keyword' },
             description: { type: 'text' },
             status: { type: 'keyword' },
-            resource: { type: 'keyword' },
+            resourceId: { type: 'keyword' },
+            resourceType: { type: 'keyword' },
             sourceIp: { type: 'ip' },
-            metadata: { type: 'object', enabled: true },
+            outcome: { type: 'object', enabled: true },
+            action_performed: { type: 'object', enabled: true },
           },
         },
         settings: {
@@ -100,7 +102,9 @@ export class AuditLogger {
       description: data.description,
       eventType: data.eventType,
       status: data.status,
-      metadata: data.metadata ?? {},
+      action_performed: data.action_performed ?? {},
+      outcome: data.outcome ?? {},
+      tenantId: data.tenantId,
     };
 
     try {
