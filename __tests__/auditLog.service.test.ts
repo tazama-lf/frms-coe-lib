@@ -5,9 +5,9 @@ import { AuditLogger } from '../src/services/auditLog.service';
 // Mock OpenSearch config to avoid env validation during service construction
 jest.mock('../src/config/openSearch.config', () => ({
   openSearchConfig: () => ({
-    node: validateEnvVar('OPENSEARCH_NODE', 'string'),
-    auth: validateEnvVar('OPENSEARCH_USERNAME', 'string'),
-    ssl: validateEnvVar('OPENSEARCH_SSL_REJECT_UNAUTHORIZED', 'boolean'),
+    node: 'http://localhost:9200',
+    auth: 'test-user',
+    ssl: false,
     indexPrefix: 'audit-logs-test',
   }),
 }));
