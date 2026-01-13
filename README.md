@@ -165,6 +165,70 @@ databaseManager = await CreateDatabaseManager(dbConfig);
 
 ```
 
+### 5. **Audit Logging**
+
+The `AuditLogger` provides a singleton service to send critical events to an OpenSearch backend. First, initialize the logger with your service name at application startup. Then, use the instance to log events from anywhere in your application.
+
+**Usage Example:**
+
+*Typescript:*
+```typescript
+import { AuditLogger, AuditLogData } from '@tazama-lf/frms-coe-lib';
+
+// 1. Initialize once at startup
+const auditLogger = AuditLogger.getInstance();
+await auditLogger.init('my-application-service');
+
+// 2. Use it anywhere to log an event
+const logData: AuditLogData = { /* ... event data ... */ };
+await auditLogger.log(logData);
+```
+*Nest JS*
+Create a new file, for example, `src/audit-log/audit-log.module.ts`:
+
+```typescript
+import { Module, Global } from '@nestjs/common';
+import { createAuditProvider } from '@tazama-lf/frms-coe-lib';
+
+@Global() // Makes the provider available everywhere
+@Module({
+  providers: [
+    // Provide the service name here
+    createAuditProvider('case-management-service'), 
+  ],
+  exports: [
+    'AUDIT_LOGGER', // Export the provider by its token
+  ],
+})
+export class AuditLogModule {}
+```
+Then, import this new `AuditLogModule` into the `imports` array of your root `app.module.ts`.
+
+```typescript
+import { AuditLogger, AuditLogData } from '@tazama-lf/frms-coe-lib';
+@Injectable()
+export class MyService {
+  constructor(
+    private readonly auditLoggerService: AuditLogger,
+  ) {}
+    async performAction () {
+      const logData: AuditLogData = { /* ... event data ... */ };
+      await auditLogger.log(logData);
+    }
+}
+```
+
+#### Configuration (Environment Variables)
+
+The library automatically reads these variables from your environment.
+
+| Variable              | Required | Default                  | Description                  |
+| --------------------- | -------- | ------------------------ | ---------------------------- |
+| `OPENSEARCH_NODE`     | Yes      | `http://localhost:9200`  | URL of the OpenSearch Cluster|
+| `OPENSEARCH_USERNAME` | No       | `admin`                  | Basic Auth Username          |
+| `OPENSEARCH_PASSWORD` | No       | `admin`                  | Basic Auth Password          |
+
+
 ## Modules and Classes
 
 1. **ProtoBuf Module**
