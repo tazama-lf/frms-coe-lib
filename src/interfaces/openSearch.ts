@@ -11,7 +11,6 @@ export interface OpenSearchConfig {
 }
 
 export interface AuditLogData {
-  serviceName: string;
   actorId?: string;
   actorRole?: string;
   actorName?: string;

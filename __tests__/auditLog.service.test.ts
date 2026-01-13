@@ -1,14 +1,16 @@
+// SPDX-License-Identifier: Apache-2.0
+
+import { validateEnvVar } from '../src/config';
+import { AuditLogger } from '../src/services/auditLog.service';
 // Mock OpenSearch config to avoid env validation during service construction
 jest.mock('../src/config/openSearch.config', () => ({
   openSearchConfig: () => ({
-    node: 'http://localhost:9200',
-    auth: undefined,
-    ssl: undefined,
+    node: validateEnvVar('OPENSEARCH_NODE', 'string'),
+    auth: validateEnvVar('OPENSEARCH_USERNAME', 'string'),
+    ssl: validateEnvVar('OPENSEARCH_SSL_REJECT_UNAUTHORIZED', 'boolean'),
     indexPrefix: 'audit-logs-test',
   }),
 }));
-
-import { AuditLogger } from '../src/services/auditLog.service';
 
 describe('AuditLogger', () => {
   let logger: AuditLogger;
@@ -41,7 +43,7 @@ describe('AuditLogger', () => {
 
   describe('init()', () => {
     it('should create schema if it does not exist', async () => {
-      await logger.init();
+      await logger.init('test-service');
 
       // FIX: Changed 'v2' to match the actual code
       expect(mockExistsTemplate).toHaveBeenCalledWith({
@@ -52,7 +54,7 @@ describe('AuditLogger', () => {
 
     it('should NOT create schema if it already exists', async () => {
       mockExistsTemplate.mockResolvedValueOnce({ body: true });
-      await logger.init();
+      await logger.init('test-service');
       expect(mockExistsTemplate).toHaveBeenCalled();
       expect(mockPutTemplate).not.toHaveBeenCalled();
     });
@@ -60,7 +62,7 @@ describe('AuditLogger', () => {
 
   describe('log()', () => {
     it('should send correct data to OpenSearch', async () => {
-      await logger.init();
+      await logger.init('TestService');
 
       await logger.log({
         actorId: 'user-123',
@@ -68,7 +70,6 @@ describe('AuditLogger', () => {
         status: 'success',
         description: 'User logged in',
         sourceIp: '127.0.0.1',
-        serviceName: 'AuthService',
         actorRole: 'Admin',
         actorName: 'John Doe',
         actorEmail: 'john.doe@example.com',
@@ -91,7 +92,6 @@ describe('AuditLogger', () => {
           status: 'success',
           description: 'User logged in',
           sourceIp: '127.0.0.1',
-          serviceName: 'AuthService',
           actorRole: 'Admin',
           actorName: 'John Doe',
           actorEmail: 'john.doe@example.com',
@@ -111,7 +111,6 @@ describe('AuditLogger', () => {
       // 3. Run Test
       await expect(
         logger.log({
-          serviceName: 'test',
           actorId: '1',
           eventType: 'FAIL',
           status: 'failure',

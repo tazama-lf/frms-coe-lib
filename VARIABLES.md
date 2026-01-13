@@ -92,3 +92,13 @@ Logging Class: This class needs configuration variables to check the environment
 | -------- | ------- | ------- | 
 | LOG_LEVEL | String | Yes | 
 | SIDECAR_HOST | String | Yes | 
+
+
+### OpenSearch Configuration
+
+| Variables | DataType | Optional | 
+| -------- | ------- | ------- | 
+| OPENSEARCH_NODE | String | No | 
+| OPENSEARCH_USERNAME | String | Yes | 
+| OPENSEARCH_PASSWORD | String | Yes | 
+| OPENSEARCH_SSL_REJECT_UNAUTHORIZED | Boolean | No | 

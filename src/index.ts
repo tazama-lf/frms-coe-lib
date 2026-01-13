@@ -8,7 +8,7 @@ import type { RawHistoryDB } from './interfaces/database/RawHistoryDB';
 import { CreateDatabaseManager, type DatabaseManagerInstance, type ManagerConfig } from './services/dbManager';
 import { LoggerService } from './services/logger';
 import { RedisService } from './services/redis';
-import { AuditProvider } from './providers/auditLog.provider';
+import { createAuditProvider } from './providers/auditLog.provider';
 import { AuditLogger } from './services/auditLog.service';
 
 export {
@@ -22,6 +22,6 @@ export {
   type EventHistoryDB,
   type EvaluationDB,
   type RawHistoryDB,
-  AuditProvider,
+  createAuditProvider,
   AuditLogger,
 };

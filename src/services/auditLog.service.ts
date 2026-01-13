@@ -7,6 +7,11 @@ export class AuditLogger {
   private readonly client: Client;
   private static instance: AuditLogger;
   private isInitialized = false;
+  private readonly createdIndices = new Set<string>();
+  private readonly creatingIndices = new Map<string, Promise<void>>();
+
+  // 1. Store the service name here
+  private serviceName = 'unknown-service';
 
   private constructor() {
     this.client = new Client({
@@ -43,6 +48,7 @@ export class AuditLogger {
             sourceIp: { type: 'ip' },
             outcome: { type: 'object', enabled: true },
             action_performed: { type: 'object', enabled: true },
+            tenantId: { type: 'keyword' },
           },
         },
         settings: {
@@ -61,24 +67,22 @@ export class AuditLogger {
     }
   }
 
-  /**
-   * Run this once on startup to ensure the Index Template exists.
-   */
-  public async init(): Promise<void> {
-    if (this.isInitialized) return;
+  // 2. Init sets the name once
+  public async init(serviceName: string): Promise<void> {
+    if (this.isInitialized) {
+      return;
+    }
 
     try {
+      this.serviceName = serviceName;
       await this.ensureSchema();
+      // [AuditLogger] Initialized for service
       this.isInitialized = true;
     } catch (error) {
-      // We don't throw here to allow app startup, but logs will fail later if not fixed.
+      // [AuditLogger] Init failed'
     }
   }
 
-  /**
-   * STRICT SYNCHRONOUS LOGGING
-   * Blocks the application until OpenSearch confirms the write.
-   */
   public async log(data: AuditLogData): Promise<void> {
     const date = new Date();
     // Monthly Index: audit-logs-YYYY.MM
@@ -91,7 +95,7 @@ export class AuditLogger {
 
     const doc = {
       timestamp: date.toISOString(),
-      serviceName: data.serviceName,
+      serviceName: this.serviceName,
       actorId: data.actorId,
       actorRole: data.actorRole,
       actorName: data.actorName,
@@ -102,8 +106,8 @@ export class AuditLogger {
       description: data.description,
       eventType: data.eventType,
       status: data.status,
-      action_performed: data.action_performed ?? {},
-      outcome: data.outcome ?? {},
+      action_performed: data.action_performed,
+      outcome: data.outcome,
       tenantId: data.tenantId,
     };
 
@@ -114,7 +118,8 @@ export class AuditLogger {
         refresh: 'wait_for',
       });
     } catch (error) {
-      throw new Error('Audit Log Failed: Transaction Aborted.', error instanceof Error ? error : undefined);
+      const cause = error instanceof Error ? error : new Error(String(error));
+      throw new Error('Audit Log Failed: Transaction Aborted.', { cause });
     }
   }
 }
