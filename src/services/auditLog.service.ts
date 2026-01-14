@@ -73,14 +73,9 @@ export class AuditLogger {
       return;
     }
 
-    try {
-      this.serviceName = serviceName;
-      await this.ensureSchema();
-      // [AuditLogger] Initialized for service
-      this.isInitialized = true;
-    } catch (error) {
-      // [AuditLogger] Init failed'
-    }
+    this.serviceName = serviceName;
+    await this.ensureSchema();
+    this.isInitialized = true;
   }
 
   public async log(data: AuditLogData): Promise<void> {
