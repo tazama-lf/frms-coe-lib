@@ -77,9 +77,6 @@ export class AuditLogger {
   }
 
   public async log(data: AuditLogData): Promise<void> {
-    if (!this.isInitialized) {
-      throw new Error('AuditLogService not initialized');
-    }
     const date = new Date();
     // Monthly Index: audit-logs-YYYY.MM
     const MONTH_OFFSET = 1;
