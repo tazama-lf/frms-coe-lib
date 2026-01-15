@@ -5,8 +5,8 @@ import { AuditLogger } from '../src/services/auditLog.service';
 jest.mock('../src/config/openSearch.config', () => ({
   openSearchConfig: () => ({
     node: 'http://localhost:9200',
-    auth: 'test-user',
-    ssl: false,
+    auth: { username: 'test-user', password: 'test-pass' },
+    ssl: { rejectUnauthorized: false },
     indexPrefix: 'audit-logs-test',
   }),
 }));
@@ -22,7 +22,7 @@ describe('AuditLogger', () => {
     logger = AuditLogger.getInstance();
 
     mockIndex = jest.fn().mockResolvedValue({ body: { result: 'created' } });
-    mockExistsTemplate = jest.fn().mockResolvedValue({ body: false });
+    mockExistsTemplate = jest.fn().mockResolvedValue({ statusCode: 404 });
     mockPutTemplate = jest.fn().mockResolvedValue({ body: { acknowledged: true } });
 
     const mockClient = {
@@ -52,7 +52,7 @@ describe('AuditLogger', () => {
     });
 
     it('should NOT create schema if it already exists', async () => {
-      mockExistsTemplate.mockResolvedValueOnce({ body: true });
+      mockExistsTemplate.mockResolvedValueOnce({ statusCode: 200 });
       await logger.init('test-service');
       expect(mockExistsTemplate).toHaveBeenCalled();
       expect(mockPutTemplate).not.toHaveBeenCalled();
