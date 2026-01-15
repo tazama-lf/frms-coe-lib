@@ -23,5 +23,5 @@ export interface AuditLogData {
   status: 'success' | 'failure' | 'info';
   tenantId?: string;
   outcome?: Record<string, unknown>;
-  action_performed?: Record<string, unknown>;
+  actionPerformed?: Record<string, unknown>;
 }

@@ -99,6 +99,6 @@ Logging Class: This class needs configuration variables to check the environment
 | Variables | DataType | Optional | 
 | -------- | ------- | ------- | 
 | OPENSEARCH_NODE | String | No | 
-| OPENSEARCH_USERNAME | String | No | 
-| OPENSEARCH_PASSWORD | String | No | 
+| OPENSEARCH_USERNAME | String | Yes | 
+| OPENSEARCH_PASSWORD | String | Yes | 
 | OPENSEARCH_SSL_REJECT_UNAUTHORIZED | Boolean | No | 

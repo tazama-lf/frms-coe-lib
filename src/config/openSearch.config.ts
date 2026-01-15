@@ -11,9 +11,9 @@ import type { OpenSearchConfig } from '../interfaces/openSearch';
  * const openSearchConfig = openSearchConfig();
  */
 export const openSearchConfig = (): OpenSearchConfig => {
-  const node = validateEnvVar('OPENSEARCH_NODE', 'string').toString();
-  const username = validateEnvVar('OPENSEARCH_USERNAME', 'string').toString();
-  const password = validateEnvVar('OPENSEARCH_PASSWORD', 'string').toString();
+  const node = validateEnvVar('OPENSEARCH_NODE', 'string', true).toString();
+  const username = validateEnvVar('OPENSEARCH_USERNAME', 'string', false)?.toString();
+  const password = validateEnvVar('OPENSEARCH_PASSWORD', 'string', false)?.toString();
   const rejectUnauthorized = validateEnvVar('OPENSEARCH_SSL_REJECT_UNAUTHORIZED', 'boolean', true);
 
   return {

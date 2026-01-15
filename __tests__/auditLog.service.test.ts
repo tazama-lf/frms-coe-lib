@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { validateEnvVar } from '../src/config';
 import { AuditLogger } from '../src/services/auditLog.service';
 // Mock OpenSearch config to avoid env validation during service construction
 jest.mock('../src/config/openSearch.config', () => ({
@@ -76,7 +75,7 @@ describe('AuditLogger', () => {
         resourceId: 'account-55',
         resourceType: 'UserAccount',
         outcome: { extra: 'data' },
-        action_performed: { performed: 'action' },
+        actionPerformed: { performed: 'action' },
         tenantId: 'tenant-1',
       });
 
@@ -98,7 +97,7 @@ describe('AuditLogger', () => {
           resourceId: 'account-55',
           resourceType: 'UserAccount',
           outcome: { extra: 'data' },
-          action_performed: { performed: 'action' },
+          actionPerformed: { performed: 'action' },
           tenantId: 'tenant-1',
         },
       });

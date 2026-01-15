@@ -7,8 +7,6 @@ export class AuditLogger {
   private readonly client: Client;
   private static instance: AuditLogger;
   private isInitialized = false;
-  private readonly createdIndices = new Set<string>();
-  private readonly creatingIndices = new Map<string, Promise<void>>();
 
   // 1. Store the service name here
   private serviceName = 'unknown-service';
@@ -47,7 +45,7 @@ export class AuditLogger {
             resourceType: { type: 'keyword' },
             sourceIp: { type: 'ip' },
             outcome: { type: 'object', enabled: true },
-            action_performed: { type: 'object', enabled: true },
+            actionPerformed: { type: 'object', enabled: true },
             tenantId: { type: 'keyword' },
           },
         },
@@ -59,7 +57,7 @@ export class AuditLogger {
     };
 
     const exists = await this.client.indices.existsTemplate({ name: templateName });
-    if (!exists.body) {
+    if (exists.statusCode === 404) {
       await this.client.indices.putTemplate({
         name: templateName,
         body: templateBody,
@@ -84,9 +82,9 @@ export class AuditLogger {
     const MONTH_OFFSET = 1;
     const PAD_WIDTH = 2;
     const PAD_CHAR = '0';
-    const month = date.getMonth() + MONTH_OFFSET;
+    const month = date.getUTCMonth() + MONTH_OFFSET;
     const monthStr = String(month).padStart(PAD_WIDTH, PAD_CHAR);
-    const indexName = `${openSearchConfig().indexPrefix}-${date.getFullYear()}.${monthStr}`;
+    const indexName = `${openSearchConfig().indexPrefix}-${date.getUTCFullYear()}.${monthStr}`;
 
     const doc = {
       timestamp: date.toISOString(),
@@ -101,7 +99,7 @@ export class AuditLogger {
       description: data.description,
       eventType: data.eventType,
       status: data.status,
-      action_performed: data.action_performed,
+      actionPerformed: data.actionPerformed,
       outcome: data.outcome,
       tenantId: data.tenantId,
     };
