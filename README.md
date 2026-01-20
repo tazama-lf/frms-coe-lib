@@ -204,7 +204,7 @@ export class AuditLogModule {}
 ```
 Then, import this new `AuditLogModule` into the `imports` array of your root `app.module.ts`.
 
-*How to Use*
+#### How to Use
 ```typescript
 import { AuditLogger } from '@tazama-lf/frms-coe-lib';
 @Injectable()
@@ -243,6 +243,7 @@ The library automatically reads these variables from your environment.
 | `OPENSEARCH_NODE`     | Yes      | `http://localhost:9200`  | URL of the OpenSearch Cluster|
 | `OPENSEARCH_USERNAME` | No       | `admin`                  | Basic Auth Username          |
 | `OPENSEARCH_PASSWORD` | No       | `admin`                  | Basic Auth Password          |
+| `OPENSEARCH_SSL_REJECT_UNAUTHORIZED` | No       | true                 | Reject unauthorized SSL certificates          |
 
 
 ## Modules and Classes
