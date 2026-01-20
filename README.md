@@ -204,16 +204,34 @@ export class AuditLogModule {}
 ```
 Then, import this new `AuditLogModule` into the `imports` array of your root `app.module.ts`.
 
+*How to Use*
 ```typescript
 import { AuditLogger, AuditLogData } from '@tazama-lf/frms-coe-lib';
 @Injectable()
 export class MyService {
   constructor(
     private readonly auditLoggerService: AuditLogger,
+    // other services
   ) {}
     async performAction () {
-      const logData: AuditLogData = { /* ... event data ... */ };
-      await auditLogger.log(logData);
+      // existing code
+      this.auditLoggerService.log({
+         eventType: 'Manual Case Creation',
+         actorId: '7234-4nsdj-nnmf',
+         actorRole: 'actorRole',
+         actorName: 'actorName'
+         actorEmail: 'actor@gmail.com'
+         eventType: 'update_name'
+         sourceIp: '127.0.0.1',
+         description: `Manual case created`,
+         status: 'success',
+         resourceType: 'Case',
+         resourceId: userId,
+         action_performed: { name: 'Ali' },
+         outcome: { success: true, newValue: { name: 'Ahmed' } },
+         serviceName: 'cms-backend',
+         tenantId: tenantId,
+     })
     }
 }
 ```
