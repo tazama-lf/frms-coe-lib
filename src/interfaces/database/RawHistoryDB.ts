@@ -40,4 +40,11 @@ export interface RawHistoryDB {
    * @memberof RawHistoryDB
    */
   saveTransactionHistoryPacs002: (transaction: Pacs002) => Promise<void>;
+
+  /**
+   * @param tableName Name of the table to save transaction history into (dynamic)
+   *
+   * @memberof RawHistoryDB
+   */
+  saveDynamicTransactionHistory: (tableName: string, tran: Record<string, unknown>) => Promise<void>;
 }

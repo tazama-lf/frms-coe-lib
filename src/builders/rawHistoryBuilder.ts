@@ -49,6 +49,21 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
     await manager._rawHistory.query(query);
   };
 
+  manager.saveDynamicTransactionHistory = async (tableName: string, tran: Record<string, unknown>): Promise<void> => {
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]{0,62}$/.test(tableName)) {
+      throw new Error(
+        `Invalid table name format: ${tableName}. Table names must start with a letter or underscore and contain only letters, digits, and underscores (max 63 characters).`,
+      );
+    }
+
+    const query: PgQueryConfig = {
+      text: `INSERT INTO ${tableName} (document) VALUES ($1)`,
+      values: [tran],
+    };
+
+    await manager._rawHistory.query(query);
+  };
+
   manager.saveTransactionHistoryPain013 = async (tran: Pain013): Promise<void> => {
     const query: PgQueryConfig = {
       text: 'INSERT INTO pain013 (document) VALUES ($1) ON CONFLICT (EndToEndId, tenantId) DO NOTHING',
