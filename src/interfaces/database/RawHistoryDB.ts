@@ -2,6 +2,7 @@
 
 import type { Pool } from 'pg';
 import type { Pacs002, Pacs008, Pain001, Pain013 } from '..';
+import type { QuarantineRecord } from '../../builders/rawHistoryBuilder';
 
 export interface RawHistoryDB {
   _rawHistory: Pool;
@@ -42,7 +43,17 @@ export interface RawHistoryDB {
   saveTransactionHistoryPacs002: (transaction: Pacs002) => Promise<void>;
 
   /**
+   *
+   * @param record Record to be saved into the quarantine table
+   *
+   * @memberof RawHistoryDB
+   */
+
+  saveToQuarantine: (record: QuarantineRecord) => Promise<void>;
+
+  /**
    * @param tableName Name of the table to save transaction history into (dynamic)
+   * @param tran Transaction record to be saved
    *
    * @memberof RawHistoryDB
    */
