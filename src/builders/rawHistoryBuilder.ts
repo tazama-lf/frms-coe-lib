@@ -62,12 +62,14 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
       );
     }
 
+    const randomMessageId = `msg-${Math.random().toString(36).substring(2, 15)}`;
+
     const query: PgQueryConfig = {
       text: `INSERT INTO ${tableName} (document, credttm, messageid, endtoendid, debtoraccountid, creditoraccountid, tenantid) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
       values: [
         tran,
         trackedFields?.CreDtTm ?? '',
-        trackedFields?.MsgId ?? '',
+        trackedFields?.MsgId ?? randomMessageId,
         trackedFields?.EndToEndId ?? '',
         trackedFields?.dbtrAcctId ?? '',
         trackedFields?.cdtrAcctId ?? '',
