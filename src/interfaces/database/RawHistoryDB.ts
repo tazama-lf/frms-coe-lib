@@ -6,13 +6,13 @@ import type { Pacs002, Pacs008, Pain001, Pain013 } from '..';
 // this is in wrong place right now. This will move to right place
 export interface QuarantineRecord {
   id: string;
-  correlation_id: string;
+  correlation_id: string | null;
   tenant_id: string;
   endpoint_path: string;
-  config_id: string;
-  version: string;
+  config_id: string | null;
+  version: string | null;
   error: string;
-  raw_payload: Record<string, unknown>;
+  raw_payload: string;
   status: string;
 }
 
