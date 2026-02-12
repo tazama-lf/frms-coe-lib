@@ -5,22 +5,10 @@ import { Pool, type PoolConfig } from 'pg';
 import { isDatabaseReady } from '../builders/utils';
 import type { Pacs002, Pacs008, Pain001, Pain013 } from '../interfaces';
 import type { PgQueryConfig } from '../interfaces/database';
+import type { QuarantineRecord, trackedFields } from '../interfaces/database/RawHistoryDB';
 
 import { readyChecks, type DBConfig, type RawHistoryDB } from '../services/dbManager';
 import { getSSLConfig } from './utils';
-
-// this is in wrong place right now. This will move to right place
-export interface QuarantineRecord {
-  id: string;
-  correlation_id: string;
-  tenant_id: string;
-  endpoint_path: string;
-  config_id: string;
-  version: string;
-  error: string;
-  raw_payload: Record<string, unknown>;
-  status: string;
-}
 
 export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig: DBConfig): Promise<void> {
   const conf: PoolConfig = {
@@ -62,15 +50,6 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
 
     await manager._rawHistory.query(query);
   };
-
-  interface trackedFields {
-    CreDtTm: string;
-    MsgId: string;
-    EndToEndId: string;
-    dbtrAcctId: string;
-    cdtrAcctId: string;
-    TenantId: string;
-  }
 
   manager.saveDynamicTransactionHistory = async (
     tableName: string,

@@ -13,3 +13,4 @@ export type * from './NetworkMap';
 export type * from './RedisConfig';
 export type * from './event-flow/ConditionEdge';
 export type * from './event-flow/EntityConditionEdge';
+export { type trackedFields, type QuarantineRecord } from './database/RawHistoryDB';

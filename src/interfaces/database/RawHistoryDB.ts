@@ -2,7 +2,28 @@
 
 import type { Pool } from 'pg';
 import type { Pacs002, Pacs008, Pain001, Pain013 } from '..';
-import type { QuarantineRecord } from '../../builders/rawHistoryBuilder';
+
+// this is in wrong place right now. This will move to right place
+export interface QuarantineRecord {
+  id: string;
+  correlation_id: string;
+  tenant_id: string;
+  endpoint_path: string;
+  config_id: string;
+  version: string;
+  error: string;
+  raw_payload: Record<string, unknown>;
+  status: string;
+}
+
+export interface trackedFields {
+  CreDtTm: string;
+  MsgId: string;
+  EndToEndId: string;
+  dbtrAcctId: string;
+  cdtrAcctId: string;
+  TenantId: string;
+}
 
 export interface RawHistoryDB {
   _rawHistory: Pool;
@@ -57,5 +78,5 @@ export interface RawHistoryDB {
    *
    * @memberof RawHistoryDB
    */
-  saveDynamicTransactionHistory: (tableName: string, tran: Record<string, unknown>) => Promise<void>;
+  saveDynamicTransactionHistory: (tableName: string, tran: Record<string, unknown>, trackedFields?: trackedFields) => Promise<void>;
 }
