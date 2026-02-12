@@ -63,7 +63,20 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
     await manager._rawHistory.query(query);
   };
 
-  manager.saveDynamicTransactionHistory = async (tableName: string, tran: Record<string, unknown>): Promise<void> => {
+  interface trackedFields {
+    CreDtTm: string;
+    MsgId: string;
+    EndToEndId: string;
+    dbtrAcctId: string;
+    cdtrAcctId: string;
+    TenantId: string;
+  }
+
+  manager.saveDynamicTransactionHistory = async (
+    tableName: string,
+    tran: Record<string, unknown>,
+    trackedFields?: trackedFields,
+  ): Promise<void> => {
     if (!/^[a-zA-Z_][a-zA-Z0-9_]{0,62}$/.test(tableName)) {
       throw new Error(
         `Invalid table name format: ${tableName}. Table names must start with a letter or underscore and contain only letters, digits, and underscores (max 63 characters).`,
@@ -71,8 +84,16 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
     }
 
     const query: PgQueryConfig = {
-      text: `INSERT INTO ${tableName} (document) VALUES ($1)`,
-      values: [tran],
+      text: `INSERT INTO ${tableName} (document, credttm, messageid, endtoendid, debtoraccountid, creditoraccountid, tenantid) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      values: [
+        tran,
+        trackedFields?.CreDtTm ?? '',
+        trackedFields?.MsgId ?? '',
+        trackedFields?.EndToEndId ?? '',
+        trackedFields?.dbtrAcctId ?? '',
+        trackedFields?.cdtrAcctId ?? '',
+        trackedFields?.TenantId ?? '',
+      ],
     };
 
     await manager._rawHistory.query(query);
