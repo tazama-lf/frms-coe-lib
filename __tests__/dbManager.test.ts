@@ -268,7 +268,7 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.updateCondition).toBeDefined();
 
     expect(await dbManager.saveTransactionDetails(mockTR)).toEqual(undefined);
-    expect(await dbManager.saveAccount('test', 'tenantId')).toEqual(undefined);
+    expect(await dbManager.saveAccount('test', 'tenantId', '2024-02-20T10:30:00.000Z')).toEqual(undefined);
     expect(await dbManager.saveAccountHolder('test', 'testID', 'testTime', 'tenantId')).toEqual(undefined);
     expect(await dbManager.saveEntity('test', 'tenantId', 'testTime')).toEqual(undefined);
     expect(await dbManager.saveCondition({} as EntityCondition)).toEqual(undefined);
@@ -318,6 +318,97 @@ describe('CreateDatabaseManager', () => {
     expect(await dbManager.getAccountConditionsByGraph('test1', 'test2', 'tenantId', 'ntty', true)).toEqual([
       { governed_as_creditor_account_by: 'MOCK-QUERY', governed_as_debtor_account_by: 'MOCK-QUERY' },
     ]);
+  });
+
+  it('should verify CreDtTm parameter in saveAccount function', async () => {
+    const testTypes = <RedisService & EventHistoryDB>{};
+    const dbManager: typeof testTypes = globalManager satisfies EventHistoryDB;
+
+    // Mock the query method to capture the query parameters
+    const querySpy = jest.spyOn(globalManager._eventHistory, 'query');
+    querySpy.mockImplementation((query: any) => Promise.resolve({ rows: [] }));
+
+    const testAccountId = 'test-account-123';
+    const testTenantId = 'test-tenant-456';
+    const testCreDtTm = '2024-02-20T15:45:30.123Z';
+
+    // Call saveAccount with CreDtTm parameter
+    await dbManager.saveAccount(testAccountId, testTenantId, testCreDtTm);
+
+    // Verify the query was called with correct parameters
+    expect(querySpy).toHaveBeenCalledWith({
+      text: 'INSERT INTO account (id, tenantId, creDtTm) VALUES ($1, $2, $3) ON CONFLICT (id, tenantId) DO NOTHING',
+      values: [testAccountId, testTenantId, testCreDtTm],
+    });
+
+    querySpy.mockClear();
+  });
+
+  it('should handle different CreDtTm formats in saveAccount', async () => {
+    const testTypes = <RedisService & EventHistoryDB>{};
+    const dbManager: typeof testTypes = globalManager satisfies EventHistoryDB;
+
+    const querySpy = jest.spyOn(globalManager._eventHistory, 'query');
+    querySpy.mockImplementation((query: any) => Promise.resolve({ rows: [] }));
+
+    // Test with different timestamp formats
+    const testCases = [
+      {
+        accountId: 'account-001',
+        tenantId: 'tenant-001',
+        creDtTm: '2024-02-20T10:30:00.000Z',
+        description: 'ISO 8601 with milliseconds',
+      },
+      {
+        accountId: 'account-002',
+        tenantId: 'tenant-002',
+        creDtTm: '2024-02-20T14:22:15.999Z',
+        description: 'ISO 8601 with different milliseconds',
+      },
+      {
+        accountId: 'account-003',
+        tenantId: 'tenant-003',
+        creDtTm: '2024-01-15T08:00:00.000Z',
+        description: 'Different date',
+      },
+    ];
+
+    for (const testCase of testCases) {
+      await dbManager.saveAccount(testCase.accountId, testCase.tenantId, testCase.creDtTm);
+
+      expect(querySpy).toHaveBeenCalledWith({
+        text: 'INSERT INTO account (id, tenantId, creDtTm) VALUES ($1, $2, $3) ON CONFLICT (id, tenantId) DO NOTHING',
+        values: [testCase.accountId, testCase.tenantId, testCase.creDtTm],
+      });
+    }
+
+    expect(querySpy).toHaveBeenCalledTimes(testCases.length);
+    querySpy.mockClear();
+  });
+
+  it('should preserve CreDtTm parameter order in saveAccount query', async () => {
+    const testTypes = <RedisService & EventHistoryDB>{};
+    const dbManager: typeof testTypes = globalManager satisfies EventHistoryDB;
+
+    const querySpy = jest.spyOn(globalManager._eventHistory, 'query');
+    querySpy.mockImplementation((query: any) => Promise.resolve({ rows: [] }));
+
+    await dbManager.saveAccount('acc-id', 'tenant-id', '2024-02-20T12:00:00.000Z');
+
+    const expectedQuery = {
+      text: 'INSERT INTO account (id, tenantId, creDtTm) VALUES ($1, $2, $3) ON CONFLICT (id, tenantId) DO NOTHING',
+      values: ['acc-id', 'tenant-id', '2024-02-20T12:00:00.000Z'],
+    };
+
+    expect(querySpy).toHaveBeenCalledWith(expectedQuery);
+
+    // Verify parameter order: key, tenantId, CreDtTm
+    const actualCall = querySpy.mock.calls[0][0] as any;
+    expect(actualCall.values[0]).toBe('acc-id'); // key parameter (id)
+    expect(actualCall.values[1]).toBe('tenant-id'); // tenantId parameter
+    expect(actualCall.values[2]).toBe('2024-02-20T12:00:00.000Z'); // CreDtTm parameter
+
+    querySpy.mockClear();
   });
 
   it('should create a manager with redis methods', async () => {
