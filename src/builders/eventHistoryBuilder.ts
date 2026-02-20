@@ -39,10 +39,10 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
     await manager._eventHistory.query(query);
   };
 
-  manager.saveAccount = async (key: string, tenantId: string): Promise<void> => {
+  manager.saveAccount = async (key: string, tenantId: string, CreDtTm: string): Promise<void> => {
     const query: PgQueryConfig = {
-      text: 'INSERT INTO account (id, tenantId) VALUES ($1, $2) ON CONFLICT (id, tenantId) DO NOTHING',
-      values: [key, tenantId],
+      text: 'INSERT INTO account (id, tenantId, creDtTm) VALUES ($1, $2, $3) ON CONFLICT (id, tenantId) DO NOTHING',
+      values: [key, tenantId, CreDtTm],
     };
 
     await manager._eventHistory.query(query);
