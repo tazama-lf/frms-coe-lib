@@ -5,6 +5,7 @@ export interface RuleConfig {
   cfg: string;
   config: Config;
   tenantId: string;
+  creDtTm?: string;
   desc?: string;
 }
 
