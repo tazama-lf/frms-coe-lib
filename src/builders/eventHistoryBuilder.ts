@@ -346,17 +346,21 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
   };
 
   manager.updateCondition = async (conditionId: string, expireDateTime: string, tenantId: string): Promise<void> => {
+    const nowDateTime = new Date().toISOString();
     const query: PgQueryConfig = {
       text: `
         UPDATE 
           condition
         SET 
-          condition = jsonb_set(condition, '{xprtnDtTm}', to_jsonb($1::text), true)
+           condition = jsonb_set(
+              jsonb_set(condition, '{xprtnDtTm}', to_jsonb($1::text), true),
+              '{updDtTm}', to_jsonb($4::text), true
+          )
         WHERE 
           id = $2
         AND
           tenantId = $3`,
-      values: [expireDateTime, conditionId, tenantId],
+      values: [expireDateTime, conditionId, tenantId, nowDateTime],
     };
 
     await manager._eventHistory.query(query);
