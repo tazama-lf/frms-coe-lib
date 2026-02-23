@@ -105,7 +105,7 @@ export async function configurationBuilder(
             FROM
               network_map
             WHERE
-              configuration->'active' = $1`,
+              active = $1`,
       values: [true],
     };
 
