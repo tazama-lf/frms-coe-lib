@@ -5,7 +5,7 @@ import type { DataCache } from '..';
 import type { MetaData } from '../metaData';
 
 export interface RuleRequest {
-  transaction: unknown;
+  transaction: any;
   networkMap: NetworkMap;
   DataCache: DataCache;
   metaData?: MetaData;
