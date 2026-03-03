@@ -36,6 +36,14 @@ export interface RawHistoryDB {
   getTransactionPacs008: (endToEndId: string, tenantId: string) => Promise<Pacs008 | undefined>;
 
   /**
+   * @param endToEndId An endToEndId String used to filter on the EndToEndId field
+   * @param tenantId The tenantId String to filter on the TenantId field
+   * @param tableName The name of the table to query
+   * @memberof RawHistoryDB
+   */
+  getTransactionAny: (endToEndId: string, tenantId: string, tableName: string) => Promise<Record<string, unknown> | undefined>;
+
+  /**
    * @param transaction Transaction of Type Pain001 to store
    *
    * @memberof RawHistoryDB
