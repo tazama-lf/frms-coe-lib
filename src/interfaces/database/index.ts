@@ -1,4 +1,5 @@
 export type { ConfigurationDB } from './ConfigurationDB';
+export type { EnrichmentDB } from './EnrichmentDB';
 export type { EventHistoryDB } from './EventHistoryDB';
 export type { EvaluationDB } from './EvaluationDB';
 export type { RawHistoryDB } from './RawHistoryDB';
