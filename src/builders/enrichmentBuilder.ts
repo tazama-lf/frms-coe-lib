@@ -26,27 +26,6 @@ export async function enrichmentBuilder(manager: EnrichmentDB, enrichmentConfig:
     readyChecks.EnrichmentDB = `err, ${util.inspect(err)}`;
   }
 
-  manager.saveEnrichmentData = async (id: string, data: Record<string, unknown>): Promise<void> => {
-    const query: PgQueryConfig = {
-      text: 'INSERT INTO enrichment (id, data) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET data = $2',
-      values: [id, data],
-    };
-
-    await manager._enrichment.query(query);
-  };
-
-  manager.getEnrichmentData = async (id: string): Promise<Record<string, unknown> | undefined> => {
-    const query: PgQueryConfig = {
-      text: 'SELECT data FROM enrichment WHERE id = $1',
-      values: [id],
-    };
-
-    const queryRes = await manager._enrichment.query<{ data: Record<string, unknown> }>(query);
-    const toReturn = queryRes.rows.length > 0 ? queryRes.rows[0].data : undefined;
-
-    return toReturn;
-  };
-
   manager.ingestData = async (text: string, values: unknown[] = []): Promise<void> => {
     const query: PgQueryConfig = {
       text,
