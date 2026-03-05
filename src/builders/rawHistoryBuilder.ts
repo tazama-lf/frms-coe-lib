@@ -106,8 +106,8 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
         trackedFields?.CreDtTm ?? '',
         trackedFields?.MsgId ?? randomMessageId,
         trackedFields?.EndToEndId ?? '',
-        trackedFields?.dbtrAcctId ?? '',
-        trackedFields?.cdtrAcctId ?? '',
+        trackedFields?.dbtrAcctId ?? null,
+        trackedFields?.cdtrAcctId ?? null,
         trackedFields?.TenantId ?? '',
       ],
     };
