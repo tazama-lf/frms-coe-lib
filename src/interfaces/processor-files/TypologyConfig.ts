@@ -9,6 +9,7 @@ export interface TypologyConfig {
   rules: TypologyRuleConfig[];
   expression: ExpressionMathJSON;
   tenantId: string;
+  creDtTm?: string;
   workflow: WorkFlow;
 }
 export interface TypologyRuleConfig {
