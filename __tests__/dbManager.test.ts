@@ -650,71 +650,53 @@ describe('CreateDatabaseManager', () => {
   it('should correctly set updDtTm and not change creDtTm in updateCondition', async () => {
     const testTypes = <RedisService & EventHistoryDB>{};
     const dbManager: typeof testTypes = globalManager satisfies EventHistoryDB;
-
     // Mock Date to control the current time for updDtTm
     const mockCurrentTime = '2024-02-23T15:30:45.123Z';
     const originalDate = global.Date;
-
     // Create a mock Date class
     const MockDate = class extends Date {
       constructor() {
         super(mockCurrentTime);
       }
-
       static now() {
         return new Date(mockCurrentTime).getTime();
       }
     };
-
     // Override toISOString to return our mock time
     MockDate.prototype.toISOString = function () {
       return mockCurrentTime;
     };
-
     global.Date = MockDate as any;
-
     const querySpy = jest.spyOn(globalManager._eventHistory, 'query');
     querySpy.mockImplementation((query: any) => Promise.resolve({ rows: [] }));
-
-    const conditionId = 'test-condition-123';
-    const expireDateTime = '2024-12-31T23:59:59.999Z';
-    const tenantId = 'test-tenant-456';
-
-    await dbManager.updateCondition(conditionId, expireDateTime, tenantId);
-
-    // Verify the query was called with the correct structure
-    expect(querySpy).toHaveBeenCalledTimes(1);
-
-    const actualCall = querySpy.mock.calls[0][0] as any;
-
-    // Verify the SQL query structure
-    expect(actualCall.text).toContain('UPDATE');
-    expect(actualCall.text).toContain('condition');
-    expect(actualCall.text).toContain('jsonb_set');
-    expect(actualCall.text).toContain('xprtnDtTm');
-    expect(actualCall.text).toContain('updDtTm');
-    expect(actualCall.text).toContain('WHERE');
-    expect(actualCall.text).toContain('id = $2');
-    expect(actualCall.text).toContain('tenantId = $3');
-
-    // Verify parameters are in the correct order: [expireDateTime, conditionId, tenantId, nowDateTime]
-    expect(actualCall.values).toHaveLength(4);
-    expect(actualCall.values[0]).toBe(expireDateTime); // $1 - expireDateTime for xprtnDtTm
-    expect(actualCall.values[1]).toBe(conditionId); // $2 - conditionId for WHERE clause
-    expect(actualCall.values[2]).toBe(tenantId); // $3 - tenantId for WHERE clause
-    expect(actualCall.values[3]).toBe(mockCurrentTime); // $4 - nowDateTime for updDtTm
-
-    // Verify that only xprtnDtTm and updDtTm are being updated, not creDtTm
-    expect(actualCall.text).not.toContain('creDtTm');
-
-    // Verify the nested jsonb_set structure for both fields
-    expect(actualCall.text).toContain("jsonb_set(condition, '{xprtnDtTm}', to_jsonb($1::text), true)");
-    expect(actualCall.text).toContain('jsonb_set(');
-    expect(actualCall.text).toContain("'{updDtTm}', to_jsonb($4::text), true");
-
-    // Restore original Date
-    global.Date = originalDate;
-    querySpy.mockClear();
+    try {
+      const conditionId = 'test-condition-123';
+      const expireDateTime = '2024-12-31T23:59:59.999Z';
+      const tenantId = 'test-tenant-456';
+      await dbManager.updateCondition(conditionId, expireDateTime, tenantId);
+      expect(querySpy).toHaveBeenCalledTimes(1);
+      const actualCall = querySpy.mock.calls[0][0] as any;
+      expect(actualCall.text).toContain('UPDATE');
+      expect(actualCall.text).toContain('condition');
+      expect(actualCall.text).toContain('jsonb_set');
+      expect(actualCall.text).toContain('xprtnDtTm');
+      expect(actualCall.text).toContain('updDtTm');
+      expect(actualCall.text).toContain('WHERE');
+      expect(actualCall.text).toContain('id = $2');
+      expect(actualCall.text).toContain('tenantId = $3');
+      expect(actualCall.values).toHaveLength(4);
+      expect(actualCall.values[0]).toBe(expireDateTime);
+      expect(actualCall.values[1]).toBe(conditionId);
+      expect(actualCall.values[2]).toBe(tenantId);
+      expect(actualCall.values[3]).toBe(mockCurrentTime);
+      expect(actualCall.text).not.toContain('creDtTm');
+      expect(actualCall.text).toContain("jsonb_set(condition, '{xprtnDtTm}', to_jsonb($1::text), true)");
+      expect(actualCall.text).toContain('jsonb_set(');
+      expect(actualCall.text).toContain("'{updDtTm}', to_jsonb($4::text), true");
+    } finally {
+      global.Date = originalDate;
+      querySpy.mockRestore();
+    }
   });
 
   it('should handle different expireDateTime formats in updateCondition', async () => {
