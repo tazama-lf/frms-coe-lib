@@ -760,4 +760,209 @@ describe('CreateDatabaseManager', () => {
     expect(querySpy).toHaveBeenCalledTimes(testCases.length);
     querySpy.mockClear();
   });
+
+  it('should verify CreDtTm parameter in saveAccount function', async () => {
+    const testTypes = <RedisService & EventHistoryDB>{};
+    const dbManager: typeof testTypes = globalManager satisfies EventHistoryDB;
+
+    // Mock the query method to capture the query parameters
+    const querySpy = jest.spyOn(globalManager._eventHistory, 'query');
+    querySpy.mockImplementation((query: any) => Promise.resolve({ rows: [] }));
+
+    const testAccountId = 'test-account-123';
+    const testTenantId = 'test-tenant-456';
+    const testCreDtTm = '2024-02-20T15:45:30.123Z';
+
+    // Call saveAccount with CreDtTm parameter
+    await dbManager.saveAccount(testAccountId, testTenantId, testCreDtTm);
+
+    // Verify the query was called with correct parameters
+    expect(querySpy).toHaveBeenCalledWith({
+      text: 'INSERT INTO account (id, tenantId, creDtTm) VALUES ($1, $2, $3) ON CONFLICT (id, tenantId) DO NOTHING',
+      values: [testAccountId, testTenantId, testCreDtTm],
+    });
+
+    querySpy.mockClear();
+  });
+
+  it('should handle different CreDtTm formats in saveAccount', async () => {
+    const testTypes = <RedisService & EventHistoryDB>{};
+    const dbManager: typeof testTypes = globalManager satisfies EventHistoryDB;
+
+    const querySpy = jest.spyOn(globalManager._eventHistory, 'query');
+    querySpy.mockImplementation((query: any) => Promise.resolve({ rows: [] }));
+
+    // Test with different timestamp formats
+    const testCases = [
+      {
+        accountId: 'account-001',
+        tenantId: 'tenant-001',
+        creDtTm: '2024-02-20T10:30:00.000Z',
+        description: 'ISO 8601 with milliseconds',
+      },
+      {
+        accountId: 'account-002',
+        tenantId: 'tenant-002',
+        creDtTm: '2024-02-20T14:22:15.999Z',
+        description: 'ISO 8601 with different milliseconds',
+      },
+      {
+        accountId: 'account-003',
+        tenantId: 'tenant-003',
+        creDtTm: '2024-01-15T08:00:00.000Z',
+        description: 'Different date',
+      },
+    ];
+
+    for (const testCase of testCases) {
+      await dbManager.saveAccount(testCase.accountId, testCase.tenantId, testCase.creDtTm);
+
+      expect(querySpy).toHaveBeenCalledWith({
+        text: 'INSERT INTO account (id, tenantId, creDtTm) VALUES ($1, $2, $3) ON CONFLICT (id, tenantId) DO NOTHING',
+        values: [testCase.accountId, testCase.tenantId, testCase.creDtTm],
+      });
+    }
+
+    expect(querySpy).toHaveBeenCalledTimes(testCases.length);
+    querySpy.mockClear();
+  });
+
+  it('should preserve CreDtTm parameter order in saveAccount query', async () => {
+    const testTypes = <RedisService & EventHistoryDB>{};
+    const dbManager: typeof testTypes = globalManager satisfies EventHistoryDB;
+
+    const querySpy = jest.spyOn(globalManager._eventHistory, 'query');
+    querySpy.mockImplementation((query: any) => Promise.resolve({ rows: [] }));
+
+    await dbManager.saveAccount('acc-id', 'tenant-id', '2024-02-20T12:00:00.000Z');
+
+    const expectedQuery = {
+      text: 'INSERT INTO account (id, tenantId, creDtTm) VALUES ($1, $2, $3) ON CONFLICT (id, tenantId) DO NOTHING',
+      values: ['acc-id', 'tenant-id', '2024-02-20T12:00:00.000Z'],
+    };
+
+    expect(querySpy).toHaveBeenCalledWith(expectedQuery);
+
+    // Verify parameter order: key, tenantId, CreDtTm
+    const actualCall = querySpy.mock.calls[0][0] as any;
+    expect(actualCall.values[0]).toBe('acc-id'); // key parameter (id)
+    expect(actualCall.values[1]).toBe('tenant-id'); // tenantId parameter
+    expect(actualCall.values[2]).toBe('2024-02-20T12:00:00.000Z'); // CreDtTm parameter
+
+    querySpy.mockClear();
+  });
+
+  it('should correctly set updDtTm and not change creDtTm in updateCondition', async () => {
+    const testTypes = <RedisService & EventHistoryDB>{};
+    const dbManager: typeof testTypes = globalManager satisfies EventHistoryDB;
+
+    // Mock Date to control the current time for updDtTm
+    const mockCurrentTime = '2024-02-23T15:30:45.123Z';
+    const originalDate = global.Date;
+
+    // Create a mock Date class
+    const MockDate = class extends Date {
+      constructor() {
+        super(mockCurrentTime);
+      }
+
+      static now() {
+        return new Date(mockCurrentTime).getTime();
+      }
+    };
+
+    // Override toISOString to return our mock time
+    MockDate.prototype.toISOString = function () {
+      return mockCurrentTime;
+    };
+
+    global.Date = MockDate as any;
+
+    const querySpy = jest.spyOn(globalManager._eventHistory, 'query');
+    querySpy.mockImplementation((query: any) => Promise.resolve({ rows: [] }));
+
+    const conditionId = 'test-condition-123';
+    const expireDateTime = '2024-12-31T23:59:59.999Z';
+    const tenantId = 'test-tenant-456';
+
+    await dbManager.updateCondition(conditionId, expireDateTime, tenantId);
+
+    // Verify the query was called with the correct structure
+    expect(querySpy).toHaveBeenCalledTimes(1);
+
+    const actualCall = querySpy.mock.calls[0][0] as any;
+
+    // Verify the SQL query structure
+    expect(actualCall.text).toContain('UPDATE');
+    expect(actualCall.text).toContain('condition');
+    expect(actualCall.text).toContain('jsonb_set');
+    expect(actualCall.text).toContain('xprtnDtTm');
+    expect(actualCall.text).toContain('updDtTm');
+    expect(actualCall.text).toContain('WHERE');
+    expect(actualCall.text).toContain('id = $2');
+    expect(actualCall.text).toContain('tenantId = $3');
+
+    // Verify parameters are in the correct order: [expireDateTime, conditionId, tenantId, nowDateTime]
+    expect(actualCall.values).toHaveLength(4);
+    expect(actualCall.values[0]).toBe(expireDateTime); // $1 - expireDateTime for xprtnDtTm
+    expect(actualCall.values[1]).toBe(conditionId); // $2 - conditionId for WHERE clause
+    expect(actualCall.values[2]).toBe(tenantId); // $3 - tenantId for WHERE clause
+    expect(actualCall.values[3]).toBe(mockCurrentTime); // $4 - nowDateTime for updDtTm
+
+    // Verify that only xprtnDtTm and updDtTm are being updated, not creDtTm
+    expect(actualCall.text).not.toContain('creDtTm');
+
+    // Verify the nested jsonb_set structure for both fields
+    expect(actualCall.text).toContain("jsonb_set(condition, '{xprtnDtTm}', to_jsonb($1::text), true)");
+    expect(actualCall.text).toContain('jsonb_set(');
+    expect(actualCall.text).toContain("'{updDtTm}', to_jsonb($4::text), true");
+
+    // Restore original Date
+    global.Date = originalDate;
+    querySpy.mockClear();
+  });
+
+  it('should handle different expireDateTime formats in updateCondition', async () => {
+    const testTypes = <RedisService & EventHistoryDB>{};
+    const dbManager: typeof testTypes = globalManager satisfies EventHistoryDB;
+
+    const querySpy = jest.spyOn(globalManager._eventHistory, 'query');
+    querySpy.mockImplementation((query: any) => Promise.resolve({ rows: [] }));
+
+    const testCases = [
+      {
+        conditionId: 'condition-001',
+        expireDateTime: '2024-12-31T23:59:59.999Z',
+        tenantId: 'tenant-001',
+        description: 'End of year expiry',
+      },
+      {
+        conditionId: 'condition-002',
+        expireDateTime: '2025-06-15T12:30:00.000Z',
+        tenantId: 'tenant-002',
+        description: 'Mid-year expiry',
+      },
+      {
+        conditionId: 'condition-003',
+        expireDateTime: '2024-03-01T00:00:00.000Z',
+        tenantId: 'tenant-003',
+        description: 'Start of month expiry',
+      },
+    ];
+
+    for (const testCase of testCases) {
+      await dbManager.updateCondition(testCase.conditionId, testCase.expireDateTime, testCase.tenantId);
+
+      const lastCall = querySpy.mock.calls[querySpy.mock.calls.length - 1][0] as any;
+
+      // Verify correct parameter values for each test case
+      expect(lastCall.values[0]).toBe(testCase.expireDateTime); // expireDateTime
+      expect(lastCall.values[1]).toBe(testCase.conditionId); // conditionId
+      expect(lastCall.values[2]).toBe(testCase.tenantId); // tenantId
+      expect(lastCall.values[3]).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/); // nowDateTime (ISO format)
+    }
+
+    expect(querySpy).toHaveBeenCalledTimes(testCases.length);
+    querySpy.mockClear();
+  });
 });
