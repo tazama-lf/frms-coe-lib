@@ -268,7 +268,7 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.updateCondition).toBeDefined();
 
     expect(await dbManager.saveTransactionDetails(mockTR)).toEqual(undefined);
-    expect(await dbManager.saveAccount('test', 'tenantId')).toEqual(undefined);
+    expect(await dbManager.saveAccount('test', 'tenantId', 'testTime')).toEqual(undefined);
     expect(await dbManager.saveAccountHolder('test', 'testID', 'testTime', 'tenantId')).toEqual(undefined);
     expect(await dbManager.saveEntity('test', 'tenantId', 'testTime')).toEqual(undefined);
     expect(await dbManager.saveCondition({} as EntityCondition)).toEqual(undefined);
