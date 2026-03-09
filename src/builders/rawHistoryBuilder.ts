@@ -7,6 +7,8 @@ import type { Pacs002, Pacs008, Pain001, Pain013 } from '../interfaces';
 import type { PgQueryConfig } from '../interfaces/database';
 import { readyChecks, type DBConfig, type RawHistoryDB } from '../services/dbManager';
 import { getSSLConfig } from './utils';
+import type { QuarantineRecord } from '../interfaces/DEMS/QuarantineRecord';
+import type { TrackedFields } from '../interfaces/DEMS/TrackedFields';
 
 export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig: DBConfig): Promise<void> {
   const conf: PoolConfig = {
@@ -74,5 +76,78 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
     };
 
     await manager._rawHistory.query(query);
+  };
+
+  // ---------------------
+
+  manager.saveToQuarantine = async (record: QuarantineRecord): Promise<void> => {
+    const quarantineQuery: PgQueryConfig = {
+      text: 'INSERT INTO dems_quarantine (id, correlation_id, tenant_id, endpoint_path, config_id, version, error, raw_payload, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+      values: [
+        record.id,
+        record.correlation_id,
+        record.tenant_id,
+        record.endpoint_path,
+        record.config_id,
+        record.version,
+        record.error,
+        record.raw_payload,
+        record.status,
+      ],
+    };
+
+    await manager._rawHistory.query(quarantineQuery);
+  };
+
+  manager.saveDynamicTransactionHistory = async (
+    tableName: string,
+    tran: Record<string, unknown>,
+    trackedFields?: TrackedFields,
+  ): Promise<void> => {
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]{0,62}$/.test(tableName)) {
+      throw new Error(
+        `Invalid table name format: ${tableName}. Table names must start with a letter or underscore and contain only letters, digits, and underscores (max 63 characters).`,
+      );
+    }
+
+    const randomMessageId = `msg-${Math.random().toString(36).substring(2, 15)}`;
+
+    const query: PgQueryConfig = {
+      text: `INSERT INTO ${tableName} (document, credttm, messageid, endtoendid, debtoraccountid, creditoraccountid, tenantid) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      values: [
+        tran,
+        trackedFields?.CreDtTm ?? '',
+        trackedFields?.MsgId ?? randomMessageId,
+        trackedFields?.EndToEndId ?? '',
+        trackedFields?.dbtrAcctId ?? null,
+        trackedFields?.cdtrAcctId ?? null,
+        trackedFields?.TenantId ?? '',
+      ],
+    };
+
+    await manager._rawHistory.query(query);
+  };
+
+  manager.getTransactionAny = async (
+    endToEndId: string,
+    tenantId: string,
+    tableName: string,
+  ): Promise<Record<string, unknown> | undefined> => {
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]{0,62}$/.test(tableName)) {
+      throw new Error(
+        `Invalid table name format: ${tableName}. Table names must start with a letter or underscore and contain only letters, digits, and underscores (max 63 characters).`,
+      );
+    }
+
+    const query: PgQueryConfig = {
+      text: `SELECT document FROM ${tableName} WHERE endToEndId = $1 AND tenantId = $2`,
+      values: [endToEndId.trim(), tenantId.trim()],
+    };
+
+    //disable any eslintng for this line because we have already validated the table name and this is the only way to do it
+    const queryRes = await manager._rawHistory.query<{ document: Record<string, unknown> }>(query);
+    const toReturn = queryRes.rows.length > 0 ? queryRes.rows[0].document : undefined;
+
+    return toReturn;
   };
 }
