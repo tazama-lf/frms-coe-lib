@@ -8,6 +8,7 @@ import type { RawHistoryDB } from './interfaces/database/RawHistoryDB';
 import { CreateDatabaseManager, type DatabaseManagerInstance, type ManagerConfig } from './services/dbManager';
 import { LoggerService } from './services/logger';
 import { RedisService } from './services/redis';
+import type { EnrichmentDB } from './interfaces/database/EnrichmentDB';
 
 export {
   CreateDatabaseManager,
@@ -20,4 +21,5 @@ export {
   type EventHistoryDB,
   type EvaluationDB,
   type RawHistoryDB,
+  type EnrichmentDB,
 };

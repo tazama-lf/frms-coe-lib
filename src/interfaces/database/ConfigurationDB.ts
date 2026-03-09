@@ -35,4 +35,49 @@ export interface ConfigurationDB {
    * @memberof ConfigurationDB
    */
   getNetworkMap: () => Promise<NetworkMap[]>;
+
+  /**
+   * @param {string} path path to filter on
+   * @param {string} tenantId tenant identifier
+   * @returns {Promise<Record<string, unknown> | undefined>}
+   *
+   * @memberof ConfigurationDB
+   */
+  getPathPushJob: (path: string, tenantId: string) => Promise<Record<string, unknown> | undefined>;
+
+  /**
+   * @returns {Promise<Record<string, unknown> | undefined>} default push job with active publishing status
+   *
+   * @memberof ConfigurationDB
+   */
+  getDefaultPushJob: () => Promise<Array<Record<string, unknown>>>;
+
+  /**
+   * @param {'push' | 'pull'} type job type (push or pull)
+   * @param {string} id job identifier
+   * @returns {Promise<Record<string, unknown> | undefined>}
+   *
+   * @memberof ConfigurationDB
+   */
+  getIdPushJob: (type: 'push' | 'pull', id: string) => Promise<Record<string, unknown> | undefined>;
+
+  /**
+   * @param {string} tenantId tenant identifier
+   * @param {string} jobId job identifier
+   * @param {number} counts total counts
+   * @param {number} processedCounts processed counts
+   * @param {string} exception exception details
+   * @param {string} jobType job type
+   * @returns {Promise<void>}
+   *
+   * @memberof ConfigurationDB
+   */
+  insertJobHistory: (
+    tenantId: string,
+    jobId: string,
+    counts: number,
+    processedCounts: number,
+    exception: string | null,
+    jobType: string,
+  ) => Promise<void>;
 }

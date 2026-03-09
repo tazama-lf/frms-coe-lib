@@ -112,4 +112,68 @@ export async function configurationBuilder(
     const queryRes = await manager._configuration.query<{ configuration: NetworkMap }>(query);
     return queryRes.rows.length > 0 ? queryRes.rows.map((value) => value.configuration) : [];
   };
+
+  manager.getPathPushJob = async (path: string, tenantId: string): Promise<Record<string, unknown> | undefined> => {
+    const query: PgQueryConfig = {
+      text: 'SELECT * FROM tcs_push_jobs WHERE path = $1 AND tenant_id = $2 LIMIT 1;',
+      values: [path, tenantId],
+    };
+
+    const queryRes = await manager._configuration.query<Record<string, unknown>>(query);
+    return queryRes.rows.length > 0 ? queryRes.rows[0] : undefined;
+  };
+
+  manager.getDefaultPushJob = async (): Promise<Array<Record<string, unknown>>> => {
+    const query: PgQueryConfig = {
+      text: "SELECT * FROM tcs_push_jobs WHERE status IN('STATUS_08_DEPLOYED', 'STATUS_06_EXPORTED','STATUS_04_APPROVED') AND publishing_status = 'active'",
+      values: [],
+    };
+
+    const queryRes = await manager._configuration.query<Record<string, unknown>>(query);
+    return queryRes.rows;
+  };
+
+  manager.getIdPushJob = async (type: 'push' | 'pull', id: string): Promise<Record<string, unknown> | undefined> => {
+    const text =
+      type === 'push'
+        ? `
+          SELECT *
+          FROM tcs_push_jobs
+          WHERE id = $1
+          LIMIT 1;
+        `
+        : `
+        SELECT 
+          j.*, 
+           s.cron
+            FROM tcs_pull_jobs j
+             LEFT JOIN tcs_cron_jobs s ON j.schedule_id = s.id
+              WHERE j.id = $1
+               LIMIT 1;
+        `;
+
+    const query: PgQueryConfig = {
+      text,
+      values: [id],
+    };
+
+    const queryRes = await manager._configuration.query<Record<string, unknown>>(query);
+    return queryRes.rows.length > 0 ? queryRes.rows[0] : undefined;
+  };
+
+  manager.insertJobHistory = async (
+    tenantId: string,
+    jobId: string,
+    counts: number,
+    processedCounts: number,
+    exception: string | null,
+    jobType: string,
+  ): Promise<void> => {
+    const query: PgQueryConfig = {
+      text: 'INSERT INTO job_history (tenant_id, job_id, counts, processed_counts, exception, job_type) VALUES ($1, $2, $3, $4, $5, $6);',
+      values: [tenantId, jobId, counts, processedCounts, exception, jobType],
+    };
+
+    await manager._configuration.query(query);
+  };
 }
