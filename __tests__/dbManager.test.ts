@@ -357,6 +357,10 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.getRuleConfig).toBeDefined();
     expect(dbManager.getNetworkMap).toBeDefined();
     expect(dbManager.getTypologyConfig).toBeDefined();
+    expect(dbManager.getPathPushJob).toBeDefined();
+    expect(dbManager.getDefaultPushJob).toBeDefined();
+    expect(dbManager.getIdPushJob).toBeDefined();
+    expect(dbManager.insertJobHistory).toBeDefined();
 
     // eventHistory
     expect(dbManager.saveTransactionDetails).toBeDefined();
