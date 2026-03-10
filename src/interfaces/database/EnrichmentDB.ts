@@ -6,21 +6,6 @@ export interface EnrichmentDB {
   _enrichment: Pool;
 
   /**
-   * Save enrichment data to the database
-   * @param id Unique identifier for the enrichment record
-   * @param data Enrichment data payload
-   * @memberof EnrichmentDB
-   */
-  saveEnrichmentData: (id: string, data: Record<string, unknown>) => Promise<void>;
-
-  /**
-   * Retrieve enrichment data by identifier
-   * @param id Unique identifier for the enrichment record
-   * @memberof EnrichmentDB
-   */
-  getEnrichmentData: (id: string) => Promise<Record<string, unknown> | undefined>;
-
-  /**
    * Execute a custom query on the enrichment database
    * @param text SQL query text
    * @param values Query parameters
