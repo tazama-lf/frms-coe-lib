@@ -2,7 +2,7 @@
 
 import * as util from 'node:util';
 import { Pool, type PoolConfig } from 'pg';
-import { isDatabaseReady } from '../builders/utils';
+import { isDatabaseReady, validateTableName } from '../builders/utils';
 import type { PgQueryConfig } from '../interfaces/database';
 import { type DBConfig, type EnrichmentDB, readyChecks } from '../services/dbManager';
 import { getSSLConfig } from './utils';
@@ -36,8 +36,11 @@ export async function enrichmentBuilder(manager: EnrichmentDB, enrichmentConfig:
   };
 
   manager.createTable = async (tableName: string): Promise<void> => {
+    // Validate table name to prevent SQL injection
+    const validatedTableName = validateTableName(tableName);
+
     const createQuery = `
-        CREATE TABLE IF NOT EXISTS ${tableName} (
+        CREATE TABLE IF NOT EXISTS ${validatedTableName} (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           data JSONB NOT NULL,
           job_id TEXT NOT NULL,
@@ -55,9 +58,12 @@ export async function enrichmentBuilder(manager: EnrichmentDB, enrichmentConfig:
   };
 
   manager.deleteRows = async (tableName: string): Promise<void> => {
+    // Validate table name to prevent SQL injection
+    const validatedTableName = validateTableName(tableName);
+
     const query: PgQueryConfig = {
       text: `
-       DELETE FROM ${tableName};
+       DELETE FROM ${validatedTableName};
       `,
       values: [],
     };

@@ -15,14 +15,16 @@ export interface EnrichmentDB {
 
   /**
    * Create a new table in the enrichment database
-   * @param tableName Name of the table to create
+   * @param tableName Name of the table to create (must match pattern: /^[a-zA-Z_][a-zA-Z0-9_]{0,62}$/)
+   * @throws {Error} If tableName contains invalid characters or exceeds length limit
    * @memberof EnrichmentDB
    */
   createTable: (tableName: string) => Promise<void>;
 
   /**
    * Delete all rows from a table
-   * @param tableName Name of the table to delete rows from
+   * @param tableName Name of the table to delete rows from (must match pattern: /^[a-zA-Z_][a-zA-Z0-9_]{0,62}$/)
+   * @throws {Error} If tableName contains invalid characters or exceeds length limit
    * @memberof EnrichmentDB
    */
   deleteRows: (tableName: string) => Promise<void>;

@@ -128,6 +128,46 @@ describe('EnrichmentBuilder', () => {
       await expect(manager.createTable('test_table')).rejects.toThrow('Table creation failed');
     });
 
+    it('should reject invalid table names', async () => {
+      const invalidNames = [
+        '', // empty
+        '123_invalid', // starts with digit
+        'table-name', // contains dash
+        'table name', // contains space
+        'table@name', // contains special character
+        'a'.repeat(64), // too long (64 characters)
+        'table$name', // contains dollar sign
+        'table.name', // contains dot
+      ];
+
+      for (const invalidName of invalidNames) {
+        await expect(manager.createTable(invalidName)).rejects.toThrow(/Invalid table name|Table name cannot be empty/);
+      }
+    });
+
+    it('should accept valid table names', async () => {
+      const mockQuery = jest.spyOn(manager._enrichment, 'query').mockResolvedValue({} as never);
+
+      const validNames = [
+        'valid_table',
+        '_starts_with_underscore',
+        'Table123',
+        'a', // single character
+        'A_B_C_123_xyz',
+        'a'.repeat(63), // exactly 63 characters (max allowed)
+      ];
+
+      for (const validName of validNames) {
+        await manager.createTable(validName);
+        expect(mockQuery).toHaveBeenCalledWith(
+          expect.objectContaining({
+            text: expect.stringContaining(`CREATE TABLE IF NOT EXISTS ${validName}`),
+            values: [],
+          }),
+        );
+      }
+    });
+
     it('should create table with special characters in name', async () => {
       const mockQuery = jest.spyOn(manager._enrichment, 'query').mockResolvedValue({} as never);
       const tableName = 'test_table_2024';
@@ -176,6 +216,44 @@ describe('EnrichmentBuilder', () => {
         text: expect.stringContaining(`DELETE FROM ${tableName}`),
         values: [],
       });
+    });
+
+    it('should reject invalid table names for deleteRows', async () => {
+      const invalidNames = [
+        '', // empty
+        '123_invalid', // starts with digit
+        'table-name', // contains dash
+        'table name', // contains space
+        'table@name', // contains special character
+        'a'.repeat(64), // too long (64 characters)
+        'table$name', // contains dollar sign
+        'table.name', // contains dot
+      ];
+
+      for (const invalidName of invalidNames) {
+        await expect(manager.deleteRows(invalidName)).rejects.toThrow(/Invalid table name|Table name cannot be empty/);
+      }
+    });
+
+    it('should accept valid table names for deleteRows', async () => {
+      const mockQuery = jest.spyOn(manager._enrichment, 'query').mockResolvedValue({} as never);
+
+      const validNames = [
+        'valid_table',
+        '_starts_with_underscore',
+        'Table123',
+        'a', // single character
+        'A_B_C_123_xyz',
+        'a'.repeat(63), // exactly 63 characters (max allowed)
+      ];
+
+      for (const validName of validNames) {
+        await manager.deleteRows(validName);
+        expect(mockQuery).toHaveBeenCalledWith({
+          text: expect.stringContaining(`DELETE FROM ${validName}`),
+          values: [],
+        });
+      }
     });
   });
 
