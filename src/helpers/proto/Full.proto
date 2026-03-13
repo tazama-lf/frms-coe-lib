@@ -341,6 +341,15 @@ message FRMSMessage {
         Txinfandsts TxInfAndSts = 2;
     }
 
+    // TransferAmount message descriptor
+    message TransferAmount {
+        string cnic = 1;
+        string msgid = 2;
+        int64 amount = 3;
+        string country = 4;
+        string currency = 5;
+    }
+
     // Report
     message Transaction {
         string TxTp = 1;
@@ -349,6 +358,7 @@ message FRMSMessage {
         Fitoficstmrcdttrf FIToFICstmrCdtTrf = 3;
         Cstmrcdttrfinitn CstmrCdtTrfInitn = 4;
         Cdtrpmtactvtnreq CdtrPmtActvtnReq = 5;
+        TransferAmount TransferAmount = 7;
     }
 
     message Rules {
