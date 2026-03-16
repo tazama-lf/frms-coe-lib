@@ -12,6 +12,7 @@ export interface ConditionDetails extends Pick<Condition, 'incptnDtTm' | 'xprtnD
   condRsn: string;
   usr: string;
   creDtTm: string;
+  updDtTm?: string;
   prsptvs: Array<Pick<Condition, 'prsptv' | 'evtTp' | 'incptnDtTm' | 'xprtnDtTm'>>;
 }
 
