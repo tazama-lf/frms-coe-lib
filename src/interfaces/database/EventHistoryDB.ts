@@ -18,10 +18,11 @@ export interface EventHistoryDB {
   /**
    * @param key string account identifier we are storing
    * @param tenantId The tenantId String to filter on the TenantId field
+   * @param creDtTm creation date time string timestamp
    *
    * @memberof EventHistoryDB
    */
-  saveAccount: (key: string, tenantId: string) => Promise<void>;
+  saveAccount: (key: string, tenantId: string, creDtTm: string) => Promise<void>;
 
   /**
    * @param entityId string entity identifier we are storing
