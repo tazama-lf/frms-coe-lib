@@ -15,7 +15,7 @@ export function sanitizeSensitiveData(payload: string): string {
       // Social security numbers
       .replace(/\b\d{3}[\s-]?\d{2}[\s-]?\d{4}\b/g, 'XXX-XX-XXXX')
       // Email addresses
-      .replace(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g, '[EMAIL_REDACTED]')
+      .replace(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g, '[EMAIL_REDACTED]')
       // Phone numbers (various patterns)
       .replace(/\b(?:\+?1[\s-]?)?\(?\d{3}\)?[\s-]?\d{3}[\s-]?\d{4}\b/g, '[PHONE_REDACTED]')
       // Account numbers (generic pattern for sequences of 8+ digits)
