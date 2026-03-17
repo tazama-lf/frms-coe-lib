@@ -125,6 +125,19 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
       );
     }
 
+    // Validate critical tracked fields to prevent silent data loss
+    if (!trackedFields?.EndToEndId) {
+      throw new Error('EndToEndId is required for transaction history - records without EndToEndId cannot be retrieved');
+    }
+
+    if (!trackedFields?.TenantId) {
+      throw new Error('TenantId is required for transaction history - essential for data isolation');
+    }
+
+    if (!trackedFields?.CreDtTm) {
+      throw new Error('CreDtTm (creation date/time) is required for transaction history - essential for audit trail');
+    }
+
     const randomMessageId = `msg-${Math.random().toString(36).substring(2, 15)}`;
 
     const query: PgQueryConfig = {
@@ -134,12 +147,12 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
       ),
       values: [
         tran,
-        trackedFields?.CreDtTm ?? '',
-        trackedFields?.MsgId ?? randomMessageId,
-        trackedFields?.EndToEndId ?? '',
-        trackedFields?.dbtrAcctId ?? null,
-        trackedFields?.cdtrAcctId ?? null,
-        trackedFields?.TenantId ?? '',
+        trackedFields.CreDtTm,
+        trackedFields.MsgId ?? randomMessageId,
+        trackedFields.EndToEndId,
+        trackedFields.dbtrAcctId ?? null,
+        trackedFields.cdtrAcctId ?? null,
+        trackedFields.TenantId,
       ],
     };
 
