@@ -39,10 +39,10 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
     await manager._eventHistory.query(query);
   };
 
-  manager.saveAccount = async (key: string, tenantId: string): Promise<void> => {
+  manager.saveAccount = async (key: string, tenantId: string, creDtTm: string): Promise<void> => {
     const query: PgQueryConfig = {
-      text: 'INSERT INTO account (id, tenantId) VALUES ($1, $2) ON CONFLICT (id, tenantId) DO NOTHING',
-      values: [key, tenantId],
+      text: 'INSERT INTO account (id, tenantId, creDtTm) VALUES ($1, $2, $3) ON CONFLICT (id, tenantId) DO NOTHING',
+      values: [key, tenantId, creDtTm],
     };
 
     await manager._eventHistory.query(query);
@@ -346,17 +346,21 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
   };
 
   manager.updateCondition = async (conditionId: string, expireDateTime: string, tenantId: string): Promise<void> => {
+    const nowDateTime = new Date().toISOString();
     const query: PgQueryConfig = {
       text: `
         UPDATE 
           condition
         SET 
-          condition = jsonb_set(condition, '{xprtnDtTm}', to_jsonb($1::text), true)
+           condition = jsonb_set(
+              jsonb_set(condition, '{xprtnDtTm}', to_jsonb($1::text), true),
+              '{updDtTm}', to_jsonb($4::text), true
+          )
         WHERE 
           id = $2
         AND
           tenantId = $3`,
-      values: [expireDateTime, conditionId, tenantId],
+      values: [expireDateTime, conditionId, tenantId, nowDateTime],
     };
 
     await manager._eventHistory.query(query);
