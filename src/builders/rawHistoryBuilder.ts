@@ -88,13 +88,15 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
     // Validate and sanitize raw payload
     let sanitizedPayload = record.raw_payload;
 
-    // Size validation - truncate if too large
-    if (sanitizedPayload.length > MAX_PAYLOAD_SIZE) {
-      sanitizedPayload = sanitizedPayload.substring(0, MAX_PAYLOAD_SIZE) + '... [truncated]';
-    }
-
-    // Sanitize sensitive data patterns
+    // Sanitize sensitive data patterns first to avoid exposing partial tokens
     sanitizedPayload = sanitizeSensitiveData(sanitizedPayload);
+
+    // Size validation - truncate sanitized payload if too large
+    const TRUNCATION_SUFFIX = '... [truncated]';
+    if (sanitizedPayload.length > MAX_PAYLOAD_SIZE) {
+      const allowedLength = MAX_PAYLOAD_SIZE - TRUNCATION_SUFFIX.length;
+      sanitizedPayload = sanitizedPayload.substring(0, allowedLength) + TRUNCATION_SUFFIX;
+    }
 
     const quarantineQuery: PgQueryConfig = {
       text: 'INSERT INTO dems_quarantine (id, correlation_id, tenant_id, endpoint_path, config_id, version, error, raw_payload, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
