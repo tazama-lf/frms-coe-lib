@@ -10,6 +10,9 @@ import { readyChecks, type DBConfig, type RawHistoryDB } from '../services/dbMan
 import { getSSLConfig } from './utils';
 import type { QuarantineRecord } from '../interfaces/DEMS/QuarantineRecord';
 import type { TrackedFields } from '../interfaces/DEMS/TrackedFields';
+import { sanitizeSensitiveData } from '../helpers/dataSanitization';
+
+const MAX_PAYLOAD_SIZE = 1024 * 1024; // 1MB
 
 export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig: DBConfig): Promise<void> {
   const conf: PoolConfig = {
@@ -82,6 +85,17 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
   // ---------------------
 
   manager.saveToQuarantine = async (record: QuarantineRecord): Promise<void> => {
+    // Validate and sanitize raw payload
+    let sanitizedPayload = record.raw_payload;
+
+    // Size validation - truncate if too large
+    if (sanitizedPayload.length > MAX_PAYLOAD_SIZE) {
+      sanitizedPayload = sanitizedPayload.substring(0, MAX_PAYLOAD_SIZE) + '... [truncated]';
+    }
+
+    // Sanitize sensitive data patterns
+    sanitizedPayload = sanitizeSensitiveData(sanitizedPayload);
+
     const quarantineQuery: PgQueryConfig = {
       text: 'INSERT INTO dems_quarantine (id, correlation_id, tenant_id, endpoint_path, config_id, version, error, raw_payload, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
       values: [
@@ -92,7 +106,7 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
         record.config_id,
         record.version,
         record.error,
-        record.raw_payload,
+        sanitizedPayload, // Use sanitized payload instead of raw
         record.status,
       ],
     };
