@@ -2,6 +2,7 @@
 
 import * as util from 'node:util';
 import { Pool, type PoolConfig } from 'pg';
+import pgFormat from 'pg-format';
 import { isDatabaseReady } from '../builders/utils';
 import type { Pacs002, Pacs008, Pain001, Pain013 } from '../interfaces';
 import type { PgQueryConfig } from '../interfaces/database';
@@ -113,7 +114,10 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
     const randomMessageId = `msg-${Math.random().toString(36).substring(2, 15)}`;
 
     const query: PgQueryConfig = {
-      text: `INSERT INTO ${tableName} (document, credttm, messageid, endtoendid, debtoraccountid, creditoraccountid, tenantid) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      text: pgFormat(
+        'INSERT INTO %I (document, credttm, messageid, endtoendid, debtoraccountid, creditoraccountid, tenantid) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        tableName,
+      ),
       values: [
         tran,
         trackedFields?.CreDtTm ?? '',
@@ -140,7 +144,7 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
     }
 
     const query: PgQueryConfig = {
-      text: `SELECT document FROM ${tableName} WHERE endToEndId = $1 AND tenantId = $2`,
+      text: pgFormat('SELECT document FROM %I WHERE endToEndId = $1 AND tenantId = $2', tableName),
       values: [endToEndId.trim(), tenantId.trim()],
     };
 
