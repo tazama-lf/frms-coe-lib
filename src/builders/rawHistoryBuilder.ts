@@ -151,10 +151,10 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
         tran,
         trackedFields.CreDtTm,
         trackedFields.MsgId ?? randomMessageId,
-        trackedFields.EndToEndId,
+        trackedFields.EndToEndId.trim(),
         trackedFields.dbtrAcctId ?? null,
         trackedFields.cdtrAcctId ?? null,
-        trackedFields.TenantId,
+        trackedFields.TenantId.trim(),
       ],
     };
 
@@ -177,7 +177,6 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
       values: [endToEndId.trim(), tenantId.trim()],
     };
 
-    //disable any eslintng for this line because we have already validated the table name and this is the only way to do it
     const queryRes = await manager._rawHistory.query<{ document: Record<string, unknown> }>(query);
     const toReturn = queryRes.rows.length > 0 ? queryRes.rows[0].document : undefined;
 
