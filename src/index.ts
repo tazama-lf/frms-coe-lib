@@ -21,3 +21,5 @@ export {
   type EvaluationDB,
   type RawHistoryDB,
 };
+
+export type * from './interfaces';

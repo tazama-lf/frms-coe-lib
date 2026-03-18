@@ -15,6 +15,8 @@ import {
   Typology,
 } from '../src/interfaces';
 import { Alert } from '../src/interfaces/processor-files/Alert';
+import { QuarantineRecord } from '../src/interfaces/DEMS/QuarantineRecord';
+import { TrackedFields } from '../src/interfaces/DEMS/TrackedFields';
 import { CreateDatabaseManager, DatabaseManagerInstance, LocalCacheConfig } from '../src/services/dbManager';
 
 // redis and postgres are mocked
@@ -596,6 +598,215 @@ describe('CreateDatabaseManager', () => {
 
     expect(dbManager.getReportByMessageId).toBeDefined();
     expect(await dbManager.getReportByMessageId('MSGID', 'tenantId')).toEqual('MOCK-EVALUATION');
+  });
+
+  it('should test saveToQuarantine function', async () => {
+    const transHistoryConfig = {
+      rawHistory: {
+        ...rawHistoryConfig,
+      },
+    };
+    const dbManager = await CreateDatabaseManager(transHistoryConfig);
+
+    jest.spyOn(dbManager._rawHistory, 'query').mockImplementation((query: string): Promise<any> => {
+      return new Promise((resolve) => {
+        resolve({ rows: [] });
+      });
+    });
+
+    const mockQuarantineRecord: QuarantineRecord = {
+      id: 'test-id',
+      correlation_id: 'correlation-123',
+      tenant_id: 'tenant-1',
+      endpoint_path: '/api/test',
+      config_id: 'config-123',
+      version: '1.0.0',
+      error: 'Test error message',
+      raw_payload: '{}',
+      status: 'QUARANTINED',
+    };
+
+    expect(dbManager.saveToQuarantine).toBeDefined();
+    expect(await dbManager.saveToQuarantine(mockQuarantineRecord)).toEqual(undefined);
+
+    dbManager.quit();
+  });
+
+  it('should test saveDynamicTransactionHistory function', async () => {
+    const transHistoryConfig = {
+      rawHistory: {
+        ...rawHistoryConfig,
+      },
+    };
+    const dbManager = await CreateDatabaseManager(transHistoryConfig);
+
+    jest.spyOn(dbManager._rawHistory, 'query').mockImplementation((query: string): Promise<any> => {
+      return new Promise((resolve) => {
+        resolve({ rows: [] });
+      });
+    });
+
+    const mockTransaction: Record<string, unknown> = {
+      id: 'transaction-123',
+      amount: 1000,
+      currency: 'USD',
+    };
+
+    const mockTrackedFields: TrackedFields = {
+      CreDtTm: '2023-01-01T10:00:00Z',
+      MsgId: 'msg-123',
+      EndToEndId: 'e2e-123',
+      dbtrAcctId: 'debtor-account-123',
+      cdtrAcctId: 'creditor-account-123',
+      TenantId: 'tenant-1',
+    };
+
+    expect(dbManager.saveDynamicTransactionHistory).toBeDefined();
+    expect(await dbManager.saveDynamicTransactionHistory('test_table', mockTransaction, mockTrackedFields)).toEqual(undefined);
+
+    // Test without required trackedFields (should now throw errors due to validation)
+    await expect(dbManager.saveDynamicTransactionHistory('test_table_2', mockTransaction)).rejects.toThrow(
+      'EndToEndId is required for transaction history - records without EndToEndId cannot be retrieved',
+    );
+
+    dbManager.quit();
+  });
+
+  it('should test saveDynamicTransactionHistory function with invalid table name', async () => {
+    const transHistoryConfig = {
+      rawHistory: {
+        ...rawHistoryConfig,
+      },
+    };
+    const dbManager = await CreateDatabaseManager(transHistoryConfig);
+
+    const mockTransaction: Record<string, unknown> = {
+      id: 'transaction-123',
+    };
+
+    expect(dbManager.saveDynamicTransactionHistory).toBeDefined();
+
+    // Test invalid table names
+    await expect(dbManager.saveDynamicTransactionHistory('123invalid', mockTransaction)).rejects.toThrow(
+      'Invalid table name format: 123invalid. Table names must start with a letter or underscore and contain only letters, digits, and underscores (max 63 characters).',
+    );
+
+    await expect(dbManager.saveDynamicTransactionHistory('table-with-dashes', mockTransaction)).rejects.toThrow(
+      'Invalid table name format: table-with-dashes. Table names must start with a letter or underscore and contain only letters, digits, and underscores (max 63 characters).',
+    );
+
+    await expect(dbManager.saveDynamicTransactionHistory('table with spaces', mockTransaction)).rejects.toThrow(
+      'Invalid table name format: table with spaces. Table names must start with a letter or underscore and contain only letters, digits, and underscores (max 63 characters).',
+    );
+
+    dbManager.quit();
+  });
+
+  it('should test saveDynamicTransactionHistory function with missing required tracked fields', async () => {
+    const transHistoryConfig = {
+      rawHistory: {
+        ...rawHistoryConfig,
+      },
+    };
+    const dbManager = await CreateDatabaseManager(transHistoryConfig);
+
+    const mockTransaction: Record<string, unknown> = {
+      id: 'transaction-123',
+    };
+
+    expect(dbManager.saveDynamicTransactionHistory).toBeDefined();
+
+    // Test missing EndToEndId
+    const trackedFieldsNoEndToEndId: TrackedFields = {
+      CreDtTm: '2023-01-01T10:00:00Z',
+      TenantId: 'tenant-1',
+    } as TrackedFields;
+
+    await expect(dbManager.saveDynamicTransactionHistory('test_table', mockTransaction, trackedFieldsNoEndToEndId)).rejects.toThrow(
+      'EndToEndId is required for transaction history - records without EndToEndId cannot be retrieved',
+    );
+
+    // Test missing TenantId
+    const trackedFieldsNoTenantId: TrackedFields = {
+      CreDtTm: '2023-01-01T10:00:00Z',
+      EndToEndId: 'e2e-123',
+    } as TrackedFields;
+
+    await expect(dbManager.saveDynamicTransactionHistory('test_table', mockTransaction, trackedFieldsNoTenantId)).rejects.toThrow(
+      'TenantId is required for transaction history - essential for data isolation',
+    );
+
+    // Test missing CreDtTm
+    const trackedFieldsNoCreDtTm: TrackedFields = {
+      EndToEndId: 'e2e-123',
+      TenantId: 'tenant-1',
+    } as TrackedFields;
+
+    await expect(dbManager.saveDynamicTransactionHistory('test_table', mockTransaction, trackedFieldsNoCreDtTm)).rejects.toThrow(
+      'CreDtTm (creation date/time) is required for transaction history - essential for audit trail',
+    );
+
+    dbManager.quit();
+  });
+
+  it('should test getTransactionAny function', async () => {
+    const transHistoryConfig = {
+      rawHistory: {
+        ...rawHistoryConfig,
+      },
+    };
+    const dbManager = await CreateDatabaseManager(transHistoryConfig);
+
+    jest.spyOn(dbManager._rawHistory, 'query').mockImplementation((query: string): Promise<any> => {
+      return new Promise((resolve) => {
+        resolve({
+          rows: [{ document: { id: 'test-transaction', amount: 1000 } }],
+        });
+      });
+    });
+
+    expect(dbManager.getTransactionAny).toBeDefined();
+
+    const result = await dbManager.getTransactionAny('e2e-123', 'tenant-1', 'test_table');
+    expect(result).toEqual({ id: 'test-transaction', amount: 1000 });
+
+    // Test when no rows are returned
+    jest.spyOn(dbManager._rawHistory, 'query').mockImplementation((query: string): Promise<any> => {
+      return new Promise((resolve) => {
+        resolve({ rows: [] });
+      });
+    });
+
+    const emptyResult = await dbManager.getTransactionAny('non-existent', 'tenant-1', 'test_table');
+    expect(emptyResult).toEqual(undefined);
+
+    dbManager.quit();
+  });
+
+  it('should test getTransactionAny function with invalid table name', async () => {
+    const transHistoryConfig = {
+      rawHistory: {
+        ...rawHistoryConfig,
+      },
+    };
+    const dbManager = await CreateDatabaseManager(transHistoryConfig);
+
+    expect(dbManager.getTransactionAny).toBeDefined();
+
+    // Test invalid table names
+    await expect(dbManager.getTransactionAny('e2e-123', 'tenant-1', '123invalid')).rejects.toThrow(
+      'Invalid table name format: 123invalid. Table names must start with a letter or underscore and contain only letters, digits, and underscores (max 63 characters).',
+    );
+
+    await expect(dbManager.getTransactionAny('e2e-123', 'tenant-1', 'table-with-dashes')).rejects.toThrow(
+      'Invalid table name format: table-with-dashes. Table names must start with a letter or underscore and contain only letters, digits, and underscores (max 63 characters).',
+    );
+
+    await expect(dbManager.getTransactionAny('e2e-123', 'tenant-1', 'table with spaces')).rejects.toThrow(
+      'Invalid table name format: table with spaces. Table names must start with a letter or underscore and contain only letters, digits, and underscores (max 63 characters).',
+    );
+
+    dbManager.quit();
   });
 
   it('should error gracefully on isReadyCheck for database builders', async () => {
