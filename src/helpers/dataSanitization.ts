@@ -18,8 +18,9 @@ export function sanitizeSensitiveData(payload: string): string {
       .replace(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g, '[EMAIL_REDACTED]')
       // Phone numbers (various patterns)
       .replace(/\b(?:\+?1[\s-]?)?\(?\d{3}\)?[\s-]?\d{3}[\s-]?\d{4}\b/g, '[PHONE_REDACTED]')
-      // Account numbers (generic pattern for sequences of 8+ digits)
-      .replace(/\b\d{8,}\b/g, '[ACCOUNT_REDACTED]')
+      // Account numbers (context-aware patterns to avoid redacting amounts, dates, IDs)
+      .replace(/(["']?(?:account|acct)(?:_?(?:number|num|no|id))?["']?\s*:\s*["']?)\d{8,}(["']?)/gi, '$1[ACCOUNT_REDACTED]$2')
+      .replace(/(["']?(?:iban|bban)["']?\s*:\s*["']?)([A-Z]{2}\d{2}[A-Z0-9]{4,})(["']?)/gi, '$1[ACCOUNT_REDACTED]$3')
       // Common password fields in JSON
       .replace(/(["']?password["']?\s*:\s*["'])[^"']*(["'])/gi, '$1[REDACTED]$2')
       .replace(/(["']?pin["']?\s*:\s*["'])[^"']*(["'])/gi, '$1[REDACTED]$2')
