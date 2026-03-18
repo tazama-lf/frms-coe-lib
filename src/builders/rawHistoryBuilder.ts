@@ -10,7 +10,6 @@ import { readyChecks, type DBConfig, type RawHistoryDB } from '../services/dbMan
 import { getSSLConfig } from './utils';
 import type { QuarantineRecord } from '../interfaces/DEMS/QuarantineRecord';
 import type { TrackedFields } from '../interfaces/DEMS/TrackedFields';
-import { sanitizeSensitiveData } from '../helpers/dataSanitization';
 
 const MAX_PAYLOAD_SIZE = 1024 * 1024; // 1MB
 
@@ -85,17 +84,10 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
   // ---------------------
 
   manager.saveToQuarantine = async (record: QuarantineRecord): Promise<void> => {
-    // Validate and sanitize raw payload
-    let sanitizedPayload = record.raw_payload;
+    let payload = record.raw_payload;
 
-    // Sanitize sensitive data patterns first to avoid exposing partial tokens
-    sanitizedPayload = sanitizeSensitiveData(sanitizedPayload);
-
-    // Size validation - truncate sanitized payload if too large
-    const TRUNCATION_SUFFIX = '... [truncated]';
-    if (sanitizedPayload.length > MAX_PAYLOAD_SIZE) {
-      const allowedLength = MAX_PAYLOAD_SIZE - TRUNCATION_SUFFIX.length;
-      sanitizedPayload = sanitizedPayload.substring(0, allowedLength) + TRUNCATION_SUFFIX;
+    if (payload.length > MAX_PAYLOAD_SIZE) {
+      payload = payload.substring(0, MAX_PAYLOAD_SIZE) + '... [truncated]';
     }
 
     const quarantineQuery: PgQueryConfig = {
@@ -108,7 +100,7 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
         record.config_id,
         record.version,
         record.error,
-        sanitizedPayload, // Use sanitized payload instead of raw
+        payload,
         record.status,
       ],
     };
