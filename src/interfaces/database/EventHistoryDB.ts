@@ -16,6 +16,15 @@ export interface EventHistoryDB {
   saveTransactionDetails: (td: TransactionDetails) => Promise<void>;
 
   /**
+   * @param tableName tableName of the table to save the data in
+   * @param key string identifier we are storing
+   * @param data Record<string, unknown> data object we are storing
+   *
+   * @memberof EventHistoryDB
+   */
+  saveInDataModelTable: (tableName: string, key: string, data: Record<string, unknown>) => Promise<void>;
+
+  /**
    * @param key string account identifier we are storing
    * @param tenantId The tenantId String to filter on the TenantId field
    * @param creDtTm creation date time string timestamp
