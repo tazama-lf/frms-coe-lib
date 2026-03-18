@@ -25,3 +25,5 @@ export {
   type RawHistoryDB,
   type EnrichmentDB,
 };
+
+export type * from './interfaces';
