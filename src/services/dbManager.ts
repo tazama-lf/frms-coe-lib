@@ -15,6 +15,8 @@ import type { ConfigurationDB } from '../interfaces/database/ConfigurationDB';
 import type { EvaluationDB } from '../interfaces/database/EvaluationDB';
 import type { EventHistoryDB } from '../interfaces/database/EventHistoryDB';
 import type { RawHistoryDB } from '../interfaces/database/RawHistoryDB';
+import { enrichmentBuilder } from '../builders/enrichmentBuilder';
+import type { EnrichmentDB } from '../interfaces/database/EnrichmentDB';
 
 export let readyChecks: Record<string, unknown> = {};
 
@@ -39,6 +41,7 @@ interface ManagerConfig {
   configuration?: DBConfig;
   redisConfig?: RedisConfig;
   localCacheConfig?: LocalCacheConfig;
+  enrichment?: DBConfig;
 }
 
 interface ManagerStatus {
@@ -51,13 +54,16 @@ interface ManagerStatus {
   quit: () => unknown;
 }
 
-export type DatabaseManagerType = Partial<ManagerStatus & EventHistoryDB & RawHistoryDB & EvaluationDB & ConfigurationDB & RedisService>;
+export type DatabaseManagerType = Partial<
+  ManagerStatus & EventHistoryDB & RawHistoryDB & EvaluationDB & ConfigurationDB & EnrichmentDB & RedisService
+>;
 
 type DatabaseManagerInstance<T extends ManagerConfig> = ManagerStatus &
   (T extends { eventHistory: DBConfig } ? EventHistoryDB : Record<string, unknown>) &
   (T extends { rawHistory: DBConfig } ? RawHistoryDB : Record<string, unknown>) &
   (T extends { evaluation: DBConfig } ? EvaluationDB : Record<string, unknown>) &
   (T extends { configuration: DBConfig } ? ConfigurationDB : Record<string, unknown>) &
+  (T extends { enrichment: DBConfig } ? EnrichmentDB : Record<string, unknown>) &
   (T extends { redisConfig: RedisConfig } ? RedisService : Record<string, unknown>);
 
 /**
@@ -89,6 +95,10 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
     await configurationBuilder(manager as ConfigurationDB, config.configuration, config.localCacheConfig);
   }
 
+  if (config.enrichment) {
+    await enrichmentBuilder(manager as EnrichmentDB, config.enrichment);
+  }
+
   manager.isReadyCheck = () => readyChecks;
 
   manager.quit = () => {
@@ -97,6 +107,7 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
     manager._eventHistory?.end();
     manager._rawHistory?.end();
     manager._evaluation?.end();
+    manager._enrichment?.end();
   };
 
   if (Object.values(readyChecks).some((status) => status !== 'Ok')) {
@@ -133,4 +144,4 @@ export async function CreateStorageManager<T extends ManagerConfig>(
   }
 }
 
-export type { ConfigurationDB, DatabaseManagerInstance, EvaluationDB, EventHistoryDB, ManagerConfig, RawHistoryDB };
+export type { ConfigurationDB, DatabaseManagerInstance, EvaluationDB, EventHistoryDB, EnrichmentDB, ManagerConfig, RawHistoryDB };
