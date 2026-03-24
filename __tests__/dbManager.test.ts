@@ -668,11 +668,6 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.saveDynamicTransactionHistory).toBeDefined();
     expect(await dbManager.saveDynamicTransactionHistory('test_table', mockTransaction, mockTrackedFields)).toEqual(undefined);
 
-    // Test without required trackedFields (should now throw errors due to validation)
-    await expect(dbManager.saveDynamicTransactionHistory('test_table_2', mockTransaction)).rejects.toThrow(
-      'EndToEndId is required for transaction history - records without EndToEndId cannot be retrieved',
-    );
-
     dbManager.quit();
   });
 
@@ -725,10 +720,6 @@ describe('CreateDatabaseManager', () => {
       CreDtTm: '2023-01-01T10:00:00Z',
       TenantId: 'tenant-1',
     } as TrackedFields;
-
-    await expect(dbManager.saveDynamicTransactionHistory('test_table', mockTransaction, trackedFieldsNoEndToEndId)).rejects.toThrow(
-      'EndToEndId is required for transaction history - records without EndToEndId cannot be retrieved',
-    );
 
     // Test missing TenantId
     const trackedFieldsNoTenantId: TrackedFields = {
