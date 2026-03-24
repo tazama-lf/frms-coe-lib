@@ -22,7 +22,7 @@ export interface EventHistoryDB {
    *
    * @memberof EventHistoryDB
    */
-  saveInDataModelTable: (tableName: string, key: string, data: Record<string, unknown>) => Promise<void>;
+  saveInDataModelTable: (tableName: string, key: string, data: Record<string, unknown>, tenantId: string, creDtTm: string) => Promise<void>;
 
   /**
    * @param key string account identifier we are storing

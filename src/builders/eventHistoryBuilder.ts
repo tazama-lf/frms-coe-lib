@@ -41,10 +41,16 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
 
   // -----
   // table name is already safe - validated at DEMS level - and this function is only used internally with fixed table names, so no risk of SQL injection
-  manager.saveInDataModelTable = async (tableName: string, key: string, data: Record<string, unknown>): Promise<void> => {
+  manager.saveInDataModelTable = async (
+    tableName: string,
+    key: string,
+    data: Record<string, unknown>,
+    tenantId: string,
+    creDtTm: string,
+  ): Promise<void> => {
     const query: PgQueryConfig = {
-      text: `INSERT INTO ${tableName} (_key, data) VALUES ($1, $2)`,
-      values: [key, data],
+      text: `INSERT INTO ${tableName} (_key, data, tenantId, creDtTm) VALUES ($1, $2, $3, $4)`,
+      values: [key, data, tenantId, creDtTm],
     };
 
     await manager._eventHistory.query(query);
