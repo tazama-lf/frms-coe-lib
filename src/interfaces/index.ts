@@ -5,7 +5,7 @@ export type * from './Pain.013.001.09';
 export type * from './Pacs.008.001.10';
 export type * from './Pacs.002.001.12';
 export type * from './BaseMessage';
-export type * from './TransferAmount';
+// export type * from './TransferAmount';
 export type * from './TransactionDetails';
 export type * from './rule/RuleConfig';
 export type * from './rule/DataCache';

@@ -341,13 +341,16 @@ message FRMSMessage {
         Txinfandsts TxInfAndSts = 2;
     }
 
+    message Payload {
+        string Json = 1;
+    }
+
     // TransferAmount message descriptor
-    message TransferAmount {
-        string cnic = 1;
-        string msgid = 2;
-        int64 amount = 3;
-        string country = 4;
-        string currency = 5;
+    message BaseMessage {
+        string TxTp = 1;
+        string TenantId = 2;
+        Payload Payload = 3;
+        dataCache DataCache = 4;
     }
 
     // Report
@@ -358,7 +361,6 @@ message FRMSMessage {
         Fitoficstmrcdttrf FIToFICstmrCdtTrf = 3;
         Cstmrcdttrfinitn CstmrCdtTrfInitn = 4;
         Cdtrpmtactvtnreq CdtrPmtActvtnReq = 5;
-        TransferAmount TransferAmount = 7;
     }
 
     message Rules {
@@ -558,4 +560,5 @@ message FRMSMessage {
     string alreadySent = 14;
 
     ConditionEdge conditionEdge = 15;
+    BaseMessage baseMessage = 17;
 }

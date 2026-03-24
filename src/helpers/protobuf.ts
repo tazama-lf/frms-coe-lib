@@ -17,6 +17,72 @@ const ConditionsMessage = conditions.lookupType('Conditions');
 const CacheConditionsMessage = conditions.lookupType('CacheConditions');
 const CacheSimpleConditionsMessage = conditions.lookupType('SimpleConditions');
 
+const normaliseBaseMessagePayload = (data: Record<string, unknown>): Record<string, unknown> => {
+  const baseMessage =
+    (data.BaseMessage as Record<string, unknown> | undefined) ?? (data.baseMessage as Record<string, unknown> | undefined);
+  if (!baseMessage) {
+    return data;
+  }
+
+  const payload = baseMessage.Payload as Record<string, unknown> | string | undefined;
+  if (payload === undefined || payload === null) {
+    return data;
+  }
+
+  if (typeof payload === 'object' && 'Json' in payload) {
+    return {
+      ...data,
+      baseMessage,
+    };
+  }
+
+  const payloadJson = typeof payload === 'string' ? payload : JSON.stringify(payload);
+
+  return {
+    ...data,
+    baseMessage: {
+      ...baseMessage,
+      Payload: {
+        Json: payloadJson,
+      },
+    },
+  };
+};
+
+const denormaliseBaseMessagePayload = (data: Record<string, unknown>): Record<string, unknown> => {
+  const baseMessage =
+    (data.BaseMessage as Record<string, unknown> | undefined) ?? (data.baseMessage as Record<string, unknown> | undefined);
+  if (!baseMessage) {
+    return data;
+  }
+
+  const payload = baseMessage.Payload as Record<string, unknown> | undefined;
+  if (!payload) {
+    return data;
+  }
+
+  const payloadJson = payload.Json;
+  if (typeof payloadJson !== 'string') {
+    return data;
+  }
+
+  try {
+    const parsedPayload = JSON.parse(payloadJson) as unknown;
+    return {
+      ...data,
+      BaseMessage: {
+        ...baseMessage,
+        Payload: parsedPayload,
+      },
+    };
+  } catch {
+    return {
+      ...data,
+      BaseMessage: baseMessage,
+    };
+  }
+};
+
 /**
  * Create a Message `Buffer` derived from a byte array resulting from the input type
  *
@@ -25,10 +91,27 @@ const CacheSimpleConditionsMessage = conditions.lookupType('SimpleConditions');
  */
 export const createMessageBuffer = (data: Record<string, unknown>): Buffer | undefined => {
   try {
-    const msg = FRMSMessage.create(data);
+    const normalisedData = normaliseBaseMessagePayload(data);
+    const msg = FRMSMessage.create(normalisedData);
     const enc = FRMSMessage.encode(msg).finish() as Buffer;
     return enc;
   } catch (error) {
+    return undefined;
+  }
+};
+
+/**
+ * Decodes a Message `Buffer` and denormalises BaseMessage payload JSON back to plain object when possible.
+ *
+ * @param {Buffer} buffer The byte array to decode
+ * @returns {Record<string, unknown> | undefined} The decoded message object, or `undefined` if an error occurred
+ */
+export const decodeMessageBuffer = (buffer: Buffer): Record<string, unknown> | undefined => {
+  try {
+    const decodedMessage = FRMSMessage.decode(buffer);
+    const objectMessage = FRMSMessage.toObject(decodedMessage) as Record<string, unknown>;
+    return denormaliseBaseMessagePayload(objectMessage);
+  } catch {
     return undefined;
   }
 };

@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import {
+  createMessageBuffer,
   createCacheConditionsBuffer,
   createConditionsBuffer,
   createSimpleConditionsBuffer,
+  decodeMessageBuffer,
   decodeCacheConditionsBuffer,
   decodeConditionsBuffer,
   decodeSimpleConditionsBuffer,
@@ -141,5 +143,60 @@ describe('Should serialise/deserialise EFRuP conditions', () => {
     const deserialisedConditions = decodeSimpleConditionsBuffer(bufConds!);
     expect(deserialisedConditions).toBeDefined();
     expect(deserialisedConditions).toEqual(items);
+  });
+});
+
+describe('Should serialise/deserialise BaseMessage payload', () => {
+  test('se/deserialise BaseMessage with dynamic payload object', () => {
+    const message = {
+      BaseMessage: {
+        TxTp: 'custom.type.001',
+        TenantId: 'tenantId',
+        Payload: {
+          anyKey: 'anyValue',
+          nested: {
+            flag: true,
+            count: 2,
+          },
+          items: ['a', 'b'],
+        },
+      },
+    };
+
+    const buffer = createMessageBuffer(message);
+    expect(buffer).toBeDefined();
+
+    const decoded = decodeMessageBuffer(buffer!);
+    expect(decoded).toBeDefined();
+
+    expect(decoded?.BaseMessage).toEqual({
+      TxTp: message.BaseMessage.TxTp,
+      TenantId: message.BaseMessage.TenantId,
+      Payload: message.BaseMessage.Payload,
+    });
+  });
+
+  test('keeps raw payload when BaseMessage.Payload.Json is malformed', () => {
+    const message = {
+      BaseMessage: {
+        TxTp: 'custom.type.002',
+        TenantId: 'tenantId',
+        Payload: {
+          Json: '{"invalid":',
+        },
+      },
+    };
+
+    const buffer = createMessageBuffer(message);
+    expect(buffer).toBeDefined();
+
+    const decoded = decodeMessageBuffer(buffer!);
+    expect(decoded).toBeDefined();
+
+    expect(decoded?.BaseMessage).toEqual({
+      TxTp: message.BaseMessage.TxTp,
+      TenantId: message.BaseMessage.TenantId,
+      Payload: message.BaseMessage.Payload,
+    });
   });
 });
