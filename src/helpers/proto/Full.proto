@@ -345,10 +345,11 @@ message FRMSMessage {
         string Json = 1;
     }
 
-    // TransferAmount message descriptor
+    // New Base Message descriptor
     message BaseMessage {
         string TxTp = 1;
         string TenantId = 2;
+        string MsgId = 5;
         Payload Payload = 3;
         dataCache DataCache = 4;
     }
@@ -396,6 +397,7 @@ message FRMSMessage {
         uint32 prcgTmDP = 1;
         string traceParent = 2;
         uint32 prcgTmED = 3;
+        string endpointPath = 4;
     }
 
     message Ruleresults {
