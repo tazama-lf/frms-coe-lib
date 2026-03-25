@@ -1,6 +1,6 @@
 {
   "name": "@tazama-lf/frms-coe-lib",
-  "version": "7.0.1-rc.ak.01",
+  "version": "7.0.1-rc.ak.11",
   "description": "Tazama package library",
   "main": "lib/index.js",
   "repository": {

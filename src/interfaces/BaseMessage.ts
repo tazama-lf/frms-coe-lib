@@ -8,6 +8,7 @@ export interface BaseMessage {
   TenantId: string;
   MsgId: string;
   Payload: Record<string, unknown>;
+  endpointPath?: string;
   DataCache?: DataCache;
 }
 
