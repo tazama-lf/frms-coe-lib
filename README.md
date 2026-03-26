@@ -8,6 +8,7 @@
   - [2. **Logger Service**](#2-logger-service)
   - [3. **Apm Integration**](#3-apm-integration)
   - [4. **Redis Service**](#4-redis-service)
+  - [5. **Schema-Safe Dot Notation Access**](#5-schema-safe-dot-notation-access)
 - [Modules and Classes](#modules-and-classes)
 - [Configuration](#configuration)
   - [Environment Variables](#environment-variables)
@@ -164,6 +165,30 @@ let databaseManager: DatabaseManagerInstance<typeof dbConfig>;
 databaseManager = await CreateDatabaseManager(dbConfig);
 
 ```
+
+### 5. **Schema-Safe Dot Notation Access**
+
+Use `createSafeObjectFromEndpoint` to load endpoint schema from distributed Redis and access payload values via dot notation with runtime validation.
+
+**Usage Example:**
+```typescript
+import { createSafeObjectFromEndpoint } from '@tazama-lf/frms-coe-lib';
+
+const endpointPath = '/cbe/v1/fable003';
+const safeObject = await createSafeObjectFromEndpoint(endpointPath, payload);
+const amount = safeObject.storyamount.amount;
+```
+
+**Endpoint key requirements:**
+- `endpointPath` must exactly match the Redis key populated by EMS.
+- Expected format is slash-separated with leading slash (for example `/tenant/version/domain/messageType`).
+- Key matching is strict (case and punctuation sensitive).
+
+**Failure policy (fail-fast):**
+- Missing schema cache key throws.
+- Inactive schema (`publishing_status != 'active'`) throws.
+- Accessing a path not defined in schema throws.
+- Type mismatch at read-time throws (with primitive coercion where applicable).
 
 ## Modules and Classes
 

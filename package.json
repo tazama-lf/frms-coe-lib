@@ -1,6 +1,6 @@
 {
   "name": "@tazama-lf/frms-coe-lib",
-  "version": "7.0.1-rc.ak.13",
+  "version": "7.0.1-rc.ak.15",
   "description": "Tazama package library",
   "main": "lib/index.js",
   "repository": {
@@ -16,6 +16,7 @@
   },
   "scripts": {
     "build": "npx rimraf lib && tsc --project tsconfig.json && copyfiles src/helpers/proto/*.proto lib/helpers/proto -f",
+    "publish:dev": "npm publish --tag psl-dev-ahmad-khalid",
     "test": "jest --config=jest.config.ts --passWithNoTests",
     "clean": "npx rimraf lib node_modules coverage package-lock.json",
     "fix": "npm run fix:prettier && npm run fix:eslint",

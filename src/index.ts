@@ -10,11 +10,13 @@ import type { RawHistoryDB } from './interfaces/database/RawHistoryDB';
 import { CreateDatabaseManager, type DatabaseManagerInstance, type ManagerConfig } from './services/dbManager';
 import { LoggerService } from './services/logger';
 import { RedisService } from './services/redis';
+import { createSafeObjectFromEndpoint } from './helpers/safeObjectFromSchema';
 
 export {
   CreateDatabaseManager,
   LoggerService,
   RedisService,
+  createSafeObjectFromEndpoint,
   validateTableName,
   type ConfigurationDB,
   type DatabaseManagerInstance,

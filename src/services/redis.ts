@@ -8,6 +8,10 @@ import { once } from 'node:events';
 type RedisData = string | number | Buffer;
 const MAX_RETRIES = 10;
 const RECONNECT_DELAY_MS = 500;
+const PRIMARY_SERVER_INDEX = 0;
+const EMPTY_MEMBER_COUNT = 0;
+const MULTI_RESULT_COMMAND_INDEX = 1;
+const MULTI_RESULT_VALUE_INDEX = 1;
 
 export class RedisService {
   public _redisClient: Redis | Cluster;
@@ -31,8 +35,8 @@ export class RedisService {
     } else {
       this._redisClient = new Redis({
         db: config.db,
-        host: config.servers[0].host,
-        port: config.servers[0].port,
+        host: config.servers[PRIMARY_SERVER_INDEX].host,
+        port: config.servers[PRIMARY_SERVER_INDEX].port,
         password: config.password,
         retryStrategy(times) {
           if (times >= MAX_RETRIES) {
@@ -87,6 +91,39 @@ export class RedisService {
     }
   }
 
+  async getEndpointSchemaBundle(endpointPath: string): Promise<Record<string, unknown>> {
+    const cachedValue = await this.getJson(endpointPath);
+    if (!cachedValue) {
+      throw new Error(`No schema cache found for endpointPath '${endpointPath}'`);
+    }
+
+    let parsedBundle: unknown;
+    try {
+      parsedBundle = JSON.parse(cachedValue) as unknown;
+    } catch {
+      throw new Error(`Invalid schema cache payload for endpointPath '${endpointPath}'`);
+    }
+
+    if (typeof parsedBundle !== 'object' || parsedBundle === null) {
+      throw new Error(`Invalid schema cache object for endpointPath '${endpointPath}'`);
+    }
+
+    const bundleRecord = parsedBundle as Record<string, unknown>;
+    if (
+      'publishing_status' in bundleRecord &&
+      typeof bundleRecord.publishing_status === 'string' &&
+      bundleRecord.publishing_status !== 'active'
+    ) {
+      throw new Error(`Schema for endpointPath '${endpointPath}' is not active`);
+    }
+
+    if (!('schema' in bundleRecord) || typeof bundleRecord.schema !== 'object' || bundleRecord.schema === null) {
+      throw new Error(`Schema field missing or invalid for endpointPath '${endpointPath}'`);
+    }
+
+    return bundleRecord;
+  }
+
   async getBuffer(key: string): Promise<Record<string, unknown>> {
     try {
       const res = await this._redisClient.getBuffer(key);
@@ -114,7 +151,7 @@ export class RedisService {
         return FRMSMessage.toObject(decodedMember);
       });
 
-      if (!res || membersBuffer.length === 0) {
+      if (membersBuffer.length === EMPTY_MEMBER_COUNT) {
         return [];
       }
 
@@ -147,11 +184,7 @@ export class RedisService {
    * @returns {Promise<void>} A Promise that resolves when the JSON value is successfully stored in Redis.
    */
   async setJson(key: string, value: string, expire: number): Promise<void> {
-    const res = await this._redisClient.set(key, value, 'EX', expire);
-
-    if (res !== 'OK') {
-      throw new Error('Error while setting key in redis');
-    }
+    await this._redisClient.set(key, value, 'EX', expire);
   }
 
   /**
@@ -161,15 +194,10 @@ export class RedisService {
    * This version accepts `Buffer` and `number` times in addition
    */
   async set(key: string, value: RedisData, expire?: number): Promise<void> {
-    let res;
     if (expire) {
-      res = await this._redisClient.set(key, value, 'EX', expire);
+      await this._redisClient.set(key, value, 'EX', expire);
     } else {
-      res = await this._redisClient.set(key, value);
-    }
-
-    if (res !== 'OK') {
-      throw new Error('Error while setting key in redis');
+      await this._redisClient.set(key, value);
     }
   }
 
@@ -184,7 +212,7 @@ export class RedisService {
     const valueMessage = FRMSMessage.create(value);
     const valueBuffer = FRMSMessage.encode(valueMessage).finish() as Buffer;
     const res = await this._redisClient.sadd(key, valueBuffer);
-    if (res === 0) {
+    if (res === EMPTY_MEMBER_COUNT) {
       throw new Error(`Member already exists for key ${key}`);
     }
   }
@@ -201,14 +229,14 @@ export class RedisService {
       const valueMessage = FRMSMessage.create(value);
       const valueBuffer = FRMSMessage.encode(valueMessage).finish() as Buffer;
       const res = await this._redisClient.multi().sadd(key, valueBuffer).smembersBuffer(key).exec();
-      const result = res ? (res[1][1] as Uint8Array[]) : undefined;
+      const result = res ? (res[MULTI_RESULT_COMMAND_INDEX][MULTI_RESULT_VALUE_INDEX] as Uint8Array[]) : undefined;
 
       const membersBuffer = result?.map((member) => {
         const decodedMember = FRMSMessage.decode(member);
         return FRMSMessage.toObject(decodedMember);
       });
 
-      if (!res || membersBuffer?.length === 0) {
+      if (!res || membersBuffer?.length === EMPTY_MEMBER_COUNT) {
         return [];
       }
 
@@ -230,8 +258,8 @@ export class RedisService {
     const valueBuffer = FRMSMessage.encode(valueMessage).finish() as Buffer;
     const res = await this._redisClient.multi().sadd(key, valueBuffer).scard(key).exec();
 
-    if (res?.[1]?.[1]) {
-      return res[1][1] as number;
+    if (res?.[MULTI_RESULT_COMMAND_INDEX]?.[MULTI_RESULT_VALUE_INDEX]) {
+      return res[MULTI_RESULT_COMMAND_INDEX][MULTI_RESULT_VALUE_INDEX] as number;
     } else {
       throw new Error('addOneGetAll failed to return properly');
     }
