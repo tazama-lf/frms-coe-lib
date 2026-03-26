@@ -144,4 +144,4 @@ export async function CreateStorageManager<T extends ManagerConfig>(
   }
 }
 
-export type { ConfigurationDB, DatabaseManagerInstance, EnrichmentDB, EvaluationDB, EventHistoryDB, ManagerConfig, RawHistoryDB };
+export type { ConfigurationDB, DatabaseManagerInstance, EvaluationDB, EventHistoryDB, EnrichmentDB, ManagerConfig, RawHistoryDB };
