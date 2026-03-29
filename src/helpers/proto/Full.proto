@@ -345,16 +345,6 @@ message FRMSMessage {
         string Json = 1;
     }
 
-    // New Base Message descriptor
-    message BaseMessage {
-        string TxTp = 1;
-        string TenantId = 2;
-        string MsgId = 5;
-        Payload Payload = 3;
-        dataCache DataCache = 4;
-        string endpointPath = 6;
-    }
-
     // Report
     message Transaction {
         string TxTp = 1;
@@ -363,6 +353,10 @@ message FRMSMessage {
         Fitoficstmrcdttrf FIToFICstmrCdtTrf = 3;
         Cstmrcdttrfinitn CstmrCdtTrfInitn = 4;
         Cdtrpmtactvtnreq CdtrPmtActvtnReq = 5;
+        string MsgId = 7;
+        Payload Payload = 8;
+        string endpointPath = 9;
+        dataCache DataCache = 10;
     }
 
     message Rules {
@@ -562,5 +556,4 @@ message FRMSMessage {
     string alreadySent = 14;
 
     ConditionEdge conditionEdge = 15;
-    BaseMessage baseMessage = 17;
 }

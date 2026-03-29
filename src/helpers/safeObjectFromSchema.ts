@@ -1,5 +1,6 @@
 import { RedisService } from '../services/redis';
 import { validateRedisConfig } from '../config/redis.config';
+import type { RedisConfig } from '../interfaces';
 
 type JsonRecord = Record<string, unknown>;
 export interface SafeObject {
@@ -23,6 +24,56 @@ interface SafeObjectOptions {
 
 const schemaCompileCache = new Map<string, SchemaCacheEntry>();
 let redisServiceSingleton: RedisService | undefined;
+
+const parseBooleanEnv = (value: string | undefined): boolean | undefined => {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const normalised = value.trim().toLowerCase();
+  if (normalised === 'true') {
+    return true;
+  }
+
+  if (normalised === 'false') {
+    return false;
+  }
+
+  return undefined;
+};
+
+const parseNumberEnv = (value: string | undefined): number | undefined => {
+  if (value === undefined || value.trim() === '') {
+    return undefined;
+  }
+
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return undefined;
+  }
+
+  return parsed;
+};
+
+const getEmsCompatibleRedisConfigFromEnv = (): RedisConfig | null => {
+  const host = process.env.REDIS_HOST?.trim();
+  const port = parseNumberEnv(process.env.REDIS_PORT);
+  const password = process.env.REDIS_PASSWORD ?? '';
+
+  if (!host || port === undefined || !password) {
+    return null;
+  }
+
+  const db = parseNumberEnv(process.env.REDIS_DB) ?? 0;
+  const isCluster = parseBooleanEnv(process.env.REDIS_IS_CLUSTER) ?? false;
+
+  return {
+    db,
+    servers: [{ host, port }],
+    password,
+    isCluster,
+  };
+};
 
 const isObject = (value: unknown): value is JsonRecord => typeof value === 'object' && value !== null && !Array.isArray(value);
 
@@ -221,8 +272,21 @@ const getOrCreateRedisService = async (providedRedisService?: SchemaLookupRedisS
     return redisServiceSingleton;
   }
 
-  const managerConfig = validateRedisConfig(false);
-  const { redisConfig } = managerConfig;
+  let redisConfig: RedisConfig | undefined;
+
+  try {
+    const managerConfig = validateRedisConfig(false);
+    redisConfig = managerConfig.redisConfig;
+  } catch (error) {
+    const emsCompatibleConfig = getEmsCompatibleRedisConfigFromEnv();
+    if (emsCompatibleConfig) {
+      redisServiceSingleton = await RedisService.create(emsCompatibleConfig);
+      return redisServiceSingleton;
+    }
+
+    throw error;
+  }
+
   if (!redisConfig || redisConfig.distributedCacheEnabled === false) {
     throw new Error('Distributed Redis cache is not enabled for schema lookups');
   }

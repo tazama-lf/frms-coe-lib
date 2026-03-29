@@ -147,11 +147,13 @@ describe('Should serialise/deserialise EFRuP conditions', () => {
 });
 
 describe('Should serialise/deserialise BaseMessage payload', () => {
-  test('se/deserialise BaseMessage with dynamic payload object', () => {
+  test('se/deserialise transaction BaseMessage with dynamic payload object', () => {
     const message = {
-      BaseMessage: {
+      transaction: {
         TxTp: 'custom.type.001',
         TenantId: 'tenantId',
+        MsgId: 'msg-001',
+        endpointPath: '/cbe/1.0.0/frms-stories/fable003',
         Payload: {
           anyKey: 'anyValue',
           nested: {
@@ -169,18 +171,21 @@ describe('Should serialise/deserialise BaseMessage payload', () => {
     const decoded = decodeMessageBuffer(buffer!);
     expect(decoded).toBeDefined();
 
-    expect(decoded?.BaseMessage).toEqual({
-      TxTp: message.BaseMessage.TxTp,
-      TenantId: message.BaseMessage.TenantId,
-      Payload: message.BaseMessage.Payload,
+    expect(decoded?.transaction).toEqual({
+      TxTp: message.transaction.TxTp,
+      TenantId: message.transaction.TenantId,
+      MsgId: message.transaction.MsgId,
+      endpointPath: message.transaction.endpointPath,
+      Payload: message.transaction.Payload,
     });
   });
 
-  test('keeps raw payload when BaseMessage.Payload.Json is malformed', () => {
+  test('keeps raw payload when transaction BaseMessage Payload.Json is malformed', () => {
     const message = {
-      BaseMessage: {
+      transaction: {
         TxTp: 'custom.type.002',
         TenantId: 'tenantId',
+        MsgId: 'msg-002',
         Payload: {
           Json: '{"invalid":',
         },
@@ -193,10 +198,55 @@ describe('Should serialise/deserialise BaseMessage payload', () => {
     const decoded = decodeMessageBuffer(buffer!);
     expect(decoded).toBeDefined();
 
-    expect(decoded?.BaseMessage).toEqual({
-      TxTp: message.BaseMessage.TxTp,
-      TenantId: message.BaseMessage.TenantId,
-      Payload: message.BaseMessage.Payload,
+    expect(decoded?.transaction).toEqual({
+      TxTp: message.transaction.TxTp,
+      TenantId: message.transaction.TenantId,
+      MsgId: message.transaction.MsgId,
+      Payload: message.transaction.Payload,
     });
+  });
+
+  test('rejects non-pacs002 transaction when MsgId is missing', () => {
+    const invalidMessage = {
+      transaction: {
+        TxTp: 'custom.type.004',
+        TenantId: 'tenantId',
+        Payload: {
+          amount: 500,
+        },
+      },
+    };
+
+    const buffer = createMessageBuffer(invalidMessage);
+    expect(buffer).toBeUndefined();
+  });
+
+  test('rejects non-pacs002 transaction when Payload is missing', () => {
+    const invalidMessage = {
+      transaction: {
+        TxTp: 'custom.type.005',
+        TenantId: 'tenantId',
+        MsgId: 'msg-005',
+      },
+    };
+
+    const buffer = createMessageBuffer(invalidMessage);
+    expect(buffer).toBeUndefined();
+  });
+
+  test('rejects deprecated top-level BaseMessage shape', () => {
+    const deprecatedMessage = {
+      BaseMessage: {
+        TxTp: 'custom.type.003',
+        TenantId: 'tenantId',
+        MsgId: 'msg-003',
+        Payload: {
+          anyKey: 'anyValue',
+        },
+      },
+    };
+
+    const buffer = createMessageBuffer(deprecatedMessage);
+    expect(buffer).toBeUndefined();
   });
 });
