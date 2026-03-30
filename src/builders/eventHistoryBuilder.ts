@@ -48,13 +48,6 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
     tenantId: string,
     creDtTm: string,
   ): Promise<void> => {
-  manager.saveInDataModelTable = async (
-    tableName: string,
-    key: string,
-    data: Record<string, unknown>,
-    tenantId: string,
-    creDtTm: string,
-  ): Promise<void> => {
     const query: PgQueryConfig = {
       text: `INSERT INTO ${tableName} (_key, data, tenantId, creDtTm) VALUES ($1, $2, $3, $4) ON CONFLICT (_key) DO NOTHING`,
       values: [key, data, tenantId, creDtTm],
