@@ -119,11 +119,6 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
       );
     }
 
-    // Validate critical tracked fields to prevent silent data loss
-    if (!trackedFields?.EndToEndId) {
-      throw new Error('EndToEndId is required for transaction history - records without EndToEndId cannot be retrieved');
-    }
-
     if (!trackedFields?.TenantId) {
       throw new Error('TenantId is required for transaction history - essential for data isolation');
     }
@@ -143,7 +138,7 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
         tran,
         trackedFields.CreDtTm,
         trackedFields.MsgId ?? randomMessageId,
-        trackedFields.EndToEndId.trim(),
+        trackedFields.EndToEndId?.trim() ?? trackedFields.MsgId?.trim(),
         trackedFields.dbtrAcctId ?? null,
         trackedFields.cdtrAcctId ?? null,
         trackedFields.TenantId.trim(),
