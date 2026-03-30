@@ -23,5 +23,6 @@ export interface NetworkMap {
   cfg: string;
   tenantId: string;
   creDtTm?: string;
+  updDtTm?: string;
   messages: Message[];
 }
