@@ -716,12 +716,6 @@ describe('CreateDatabaseManager', () => {
 
     expect(dbManager.saveDynamicTransactionHistory).toBeDefined();
 
-    // Test missing EndToEndId
-    const trackedFieldsNoEndToEndId: TrackedFields = {
-      CreDtTm: '2023-01-01T10:00:00Z',
-      TenantId: 'tenant-1',
-    } as TrackedFields;
-
     // Test missing TenantId
     const trackedFieldsNoTenantId: TrackedFields = {
       CreDtTm: '2023-01-01T10:00:00Z',
@@ -742,6 +736,65 @@ describe('CreateDatabaseManager', () => {
       'CreDtTm (creation date/time) is required for transaction history - essential for audit trail',
     );
 
+    dbManager.quit();
+  });
+
+  it('should use MsgId as fallback for endtoendid when EndToEndId is absent', async () => {
+    const transHistoryConfig = {
+      rawHistory: {
+        ...rawHistoryConfig,
+      },
+    };
+    const dbManager = await CreateDatabaseManager(transHistoryConfig);
+
+    const querySpy = jest.spyOn(dbManager._rawHistory, 'query').mockImplementation((): Promise<any> => {
+      return Promise.resolve({ rows: [] });
+    });
+
+    const trackedFieldsNoEndToEndId: TrackedFields = {
+      CreDtTm: '2023-01-01T10:00:00Z',
+      MsgId: 'msg-fallback-123',
+      TenantId: 'tenant-1',
+    } as TrackedFields;
+
+    const mockTransaction: Record<string, unknown> = { id: 'transaction-123' };
+
+    await dbManager.saveDynamicTransactionHistory('test_table', mockTransaction, trackedFieldsNoEndToEndId);
+
+    const calledQuery = querySpy.mock.calls[0][0] as any;
+    // endtoendid is the 4th value ($4) — index 3
+    expect(calledQuery.values[3]).toBe('msg-fallback-123');
+
+    querySpy.mockRestore();
+    dbManager.quit();
+  });
+
+  it('should store undefined in endtoendid when both EndToEndId and MsgId are absent', async () => {
+    const transHistoryConfig = {
+      rawHistory: {
+        ...rawHistoryConfig,
+      },
+    };
+    const dbManager = await CreateDatabaseManager(transHistoryConfig);
+
+    const querySpy = jest.spyOn(dbManager._rawHistory, 'query').mockImplementation((): Promise<any> => {
+      return Promise.resolve({ rows: [] });
+    });
+
+    const trackedFieldsNeitherEndToEndIdNorMsgId: TrackedFields = {
+      CreDtTm: '2023-01-01T10:00:00Z',
+      TenantId: 'tenant-1',
+    } as TrackedFields;
+
+    const mockTransaction: Record<string, unknown> = { id: 'transaction-123' };
+
+    await dbManager.saveDynamicTransactionHistory('test_table', mockTransaction, trackedFieldsNeitherEndToEndIdNorMsgId);
+
+    const calledQuery = querySpy.mock.calls[0][0] as any;
+    // When both are absent, endtoendid ($4) is undefined — acceptable for Connection Studio messages
+    expect(calledQuery.values[3]).toBeUndefined();
+
+    querySpy.mockRestore();
     dbManager.quit();
   });
 
