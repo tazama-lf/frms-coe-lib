@@ -3,7 +3,7 @@
 import * as util from 'node:util';
 import { Pool, type PoolConfig } from 'pg';
 import { isDatabaseReady } from '../builders/utils';
-import type { DataCache, NetworkMap, Pacs002 } from '../interfaces';
+import type { DataCache, NetworkMap, SupportedTransactionMessage } from '../interfaces';
 import type { PgQueryConfig } from '../interfaces/database';
 import type { Alert } from '../interfaces/processor-files/Alert';
 import type { Evaluation } from '../interfaces/processor-files/TADPReport';
@@ -43,7 +43,7 @@ export async function evaluationBuilder(manager: EvaluationDB, evaluationConfig:
 
   manager.saveEvaluationResult = async (
     transactionID: string,
-    transaction: Pacs002,
+    transaction: SupportedTransactionMessage,
     networkMap: NetworkMap,
     alert: Alert,
     dataCache?: DataCache,
