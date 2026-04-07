@@ -1,134 +1,85 @@
 # SPDX-License-Identifier: Apache-2.0
 
-name: Publish dev npm package to GitHub
+# This workflow publishes an npm package to the GitHub Package Registry (@tazama-lf scope).
+#
+# Versioning policy:
+#   The version in package.json is the only signal used to determine the dist-tag:
+#     - Prerelease (X.Y.Z-rc.N)  → published under the 'rc' dist-tag  (triggered manually from dev)
+#     - Stable (X.Y.Z)           → published under 'latest' dist-tag   (triggered automatically on merge to main)
+#
+#   Developers set the version in package.json manually. The version-check.yml workflow
+#   enforces that no prerelease version can merge to main.
+#
+# Resolves: https://github.com/tazama-lf/workflows/issues/27
+#
+# Please do not attempt to edit this flow without the direct consent from the DevOps team.
+# This file is managed centrally.
+
+name: Publish npm package to GitHub Packages
 
 on:
   push:
     branches:
-      - 'dev'
-    paths-ignore:
-      - package.json
-      - package-lock.json
+      - main
   workflow_dispatch:
 
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
     permissions:
       packages: write
       contents: read
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js (.npmrc)
-        uses: actions/setup-node@v3
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
-          node-version: 16.x
-          registry-url: https://npm.pkg.github.com/
-          # Defaults to the user or organization that owns the workflow file
-          scope: '@frmscoe'
+          token: ${{ secrets.GH_TOKEN_LIB }}
 
-      - name: Configure Git
-        run: |
-          git config user.email ${{ secrets.GH_EMAIL }}
-          git config user.name ${{ secrets.GH_USERNAME }}
+      - name: Setup Node.js
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f  # v6.3.0
+        with:
+          node-version: '20'
+          registry-url: 'https://npm.pkg.github.com/'
+          scope: '@tazama-lf'
 
-      - name: Version bumping
-        env:
-          GH_TOKEN: '${{ secrets.GH_TOKEN }}'
-        run: |
-          commit_message=$(git log -1 --pretty=%B)
-          echo "Commit message: $commit_message"
-          if [[ "$commit_message" == *'feat!:'* ]]; then
-            npm version major
-          elif [[ "$commit_message" == *"feat:"* ]]; then
-            npm version minor
-          else
-            npm version prerelease --preid=rc
-          fi
+      - name: Set up npm authentication
+        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_TOKEN_LIB }}" >> ~/.npmrc
 
       - name: Install dependencies
         run: npm ci
         env:
-          GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+          NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN_LIB }}
 
-      - name: Build library
+      - name: Build
         run: npm run build
 
       - name: Publish package
-        run: npm publish
-        env:
-          GITHUB_TOKEN: '${{ secrets.GH_TOKEN_LIB }}'
-          NODE_AUTH_TOKEN: '${{ secrets.GH_TOKEN_LIB }}'
-
-      - name: Capture Version
-        id: capture_version
         run: |
-          export version=$(jq -r '.version' package.json)
-          echo "VERSION=$version" >> $GITHUB_ENV
-
-      - name: Push Changes in package.json and make PRs
-        run: |
-          export GH_USERNAME=${{ secrets.GH_USERNAME }}
-          export GH_TOKEN=${{ secrets.GH_TOKEN }}
-          git config --global user.name ${{ secrets.GH_USERNAME }}
-
-          # Clear the GITHUB_TOKEN environment variable and use a temporary file for gh authentication
-          echo "${{ secrets.GH_TOKEN }}" > /tmp/gh_token
-          unset GITHUB_TOKEN
-          unset GH_TOKEN
-          gh auth login --with-token < /tmp/gh_token
-
-          git clone https://${{ secrets.GH_USERNAME }}:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
-          REPO_NAME=$(basename -s .git https://github.com/${{ github.repository }}.git)
-          cd $REPO_NAME
-          echo "Currently in repository directory: $(pwd)"
-
-          if git ls-remote --heads origin version-bump | grep version-bump; then
-            # Branch exists, pull the latest changes
-            git checkout version-bump
-            git pull origin version-bump
+          VERSION=$(node -p "require('./package.json').version")
+          if [[ "$VERSION" == *-* ]]; then
+            # Prerelease version (e.g. 1.2.3-rc.1): publish under the 'rc' dist-tag
+            # so it does not become the default 'latest' install target.
+            npm publish --tag rc
           else
-            # Branch does not exist, create it
-            git checkout -b version-bump
+            npm publish
           fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN_LIB }}
 
-          git config --global user.email ${{ secrets.GH_EMAIL }}
-          git config --global user.name ${{ secrets.GH_USERNAME }}
-
-          # print current version
-          sed -i 's/"version": "[^"]*"/"version": "'"${{ env.VERSION }}"'"/' package.json
-          cat package.json
-          git add .
-          git commit -m "chore: Bump version after publishing to Github NPM" || echo "No changes to commit"
-          git push origin version-bump || git push origin version-bump --force
-
-          gh pr create --title "build: Automated PR; Bump version after publishing to Github NPM" --body "This pull request updates the version in the `package.json` and `package-lock.json` after the package was published." --base dev --head version-bump --assignee ${{ secrets.GH_USERNAME }} --label build || echo "PR already exists, updating existing PR"
-          PR_ID=$(gh pr view --json number -q ".number")
-          echo "PR_ID=$pr_id" >> $GITHUB_ENV
-
-          # Cleanup
-          rm /tmp/gh_token
-
-      # Send Slack Notification
-      - name: Send Slack Notification
+      # Send Slack notification — requires SLACK_WEBHOOK_URL org/repo secret
+      - name: Send Slack notification
+        continue-on-error: true
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          # Fetch the PR ID from the environment
-          PR_ID=${{ env.PR_ID }}
-
-          curl -X POST -H 'Content-type: application/json' --data '{
+          curl --fail -sS -X POST -H 'Content-type: application/json' --data '{
             "blocks": [
               {
                 "type": "header",
                 "text": {
                   "type": "plain_text",
-                  "text": "New NPM GitHub package published :white_check_mark:",
+                  "text": "New npm package published :white_check_mark:",
                   "emoji": true
                 }
               },
@@ -137,20 +88,13 @@ jobs:
                 "fields": [
                   {
                     "type": "mrkdwn",
-                    "text": "*Github Repository:*\nhttps://github.com/${{ github.repository }}"
+                    "text": "*Repository:*\nhttps://github.com/${{ github.repository }}"
                   },
                   {
                     "type": "mrkdwn",
-                    "text": "*Pull Requests:*\n<https://github.com/${{ github.repository }}/pull/${{ steps.capture_pr.outputs.PR_ID }}|List${{ steps.capture_pr.outputs.PR_ID }}>"
+                    "text": "*Triggered by:*\n${{ github.actor }}"
                   }
                 ]
-              },
-              {
-                "type": "section",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": "Please head over to the github repository and merge the PR linked above to update the `package.json` with the newly published npm package."
-                }
               }
             ]
-          }' $SLACK_WEBHOOK_URL
+          }' "$SLACK_WEBHOOK_URL"
