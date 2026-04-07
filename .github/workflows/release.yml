@@ -1,63 +1,43 @@
 # SPDX-License-Identifier: Apache-2.0
 
+# Please do not attempt to edit this flow without the direct consent from the DevOps team. This file is managed centrally.
+
 name: Release Workflow
 
 on:
   repository_dispatch:
     types: [release]
-    properties:
-      milestone_number:
-        type: string
 
 jobs:
   release:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]'
     runs-on: ubuntu-latest
     steps:
       # Checkout the main branch with all history
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4 (upgraded from v2)
         with:
           ref: main
           fetch-depth: 0 # Fetch all tags
 
       # Fetch merged pull request and determine release labels
-      - uses: actions-ecosystem/action-get-merged-pull-request@v1
+      - uses: actions-ecosystem/action-get-merged-pull-request@59afe90821bb0b555082ce8ff1e36b03f91553d9  # v1
         id: get-merged-pull-request
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions-ecosystem/action-release-label@v1
+      - uses: actions-ecosystem/action-release-label@1c7ef83d383a57bf253a2e2e9dfe1b55f445ae15  # v1
         id: release-label
         if: ${{ steps.get-merged-pull-request.outputs.title != null }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       # Get the latest tag in the repository
-      - uses: actions-ecosystem/action-get-latest-tag@v1
+      - uses: actions-ecosystem/action-get-latest-tag@b7c32daec3395a9616f88548363a42652b22d435  # v1
         id: get-latest-tag
         if: ${{ steps.release-label.outputs.level != null }}
         with:
           semver_only: true
-
-      # Setup Node.js environment
-      - name: Setup Node.js (.npmrc)
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20.x
-          registry-url: https://npm.pkg.github.com/
-          scope: '@frmscoe'
-          
-      # Install dependencies
-      - name: Install dependencies
-        run: npm ci
-        env:
-          GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
-
-      # Run Tests
-      - name: Run Tests
-        run: npm test
-        env:
-          STARTUP_TYPE: 'nats'
         
       # Determine the release type (major, minor, patch) based on commit messages  
       - name: Determine Release Type
@@ -66,7 +46,7 @@ jobs:
           PREV_VERSION=$(git describe --abbrev=0 --tags)
           echo "Previous Version: $PREV_VERSION"
           
-          COMMIT_MESSAGES=$(git log $PREV_VERSION^..HEAD --format=%B)
+          COMMIT_MESSAGES=$(git log $PREV_VERSION..HEAD --format=%B)
           echo "Commit Messages: $COMMIT_MESSAGES"
           
           # Determine release type based on commit messages and labels
@@ -78,14 +58,12 @@ jobs:
             RELEASE_TYPE="major"
           elif echo "$COMMIT_MESSAGES" | grep -q -e "feat:"; then
             RELEASE_TYPE="minor"
-          elif echo "$COMMIT_MESSAGES" | grep -q -e "feat:" && (echo "$COMMIT_MESSAGES" | grep -q -e "fix:" || echo "$COMMIT_MESSAGES" | grep -q -e "enhancement:" || echo "$COMMIT_MESSAGES" | grep -q -e "docs:" || echo "$COMMIT_MESSAGES" | grep -q -e "refactor:" || echo "$COMMIT_MESSAGES" | grep -q -e "chore:"); then
-            RELEASE_TYPE="minor"
           elif echo "$COMMIT_MESSAGES" | grep -q -e "fix:" -e "enhancement:" -e "docs:" -e "refactor:" -e "chore:" -e "build:" -e "ci:" -e "perf:" -e "style:" -e "test:" -e "chore(deps):" -e "chore(deps-dev):"; then
             RELEASE_TYPE="patch"
           fi
           
           echo "Release Type: $RELEASE_TYPE"
-          echo "::set-output name=release_type::$RELEASE_TYPE"
+          echo "release_type=$RELEASE_TYPE" >> "$GITHUB_OUTPUT"
         
       # Bump the version based on the determined release type
       - name: Bump Version
@@ -115,21 +93,25 @@ jobs:
           
           NEW_VERSION="v$MAJOR.$MINOR.$PATCH"
           echo "New Version: $NEW_VERSION"
-          echo "::set-output name=new_version::$NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
 
       # Get the milestone details
       - name: Get Milestone Details
         id: get_milestone
+        env:
+          MILESTONE_NUMBER: ${{ github.event.client_payload.milestone_number }}
         run: |
-          # Retrieve the milestone ID from the workflow input
-          MILESTONE_ID=${{ github.event.client_payload.milestone_number }}
-          MILESTONE_RESPONSE=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/milestones/${MILESTONE_ID}")
+          MILESTONE_RESPONSE=$(curl --fail -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/milestones/${MILESTONE_NUMBER}")
           MILESTONE_TITLE=$(echo "$MILESTONE_RESPONSE" | jq -r '.title')
           MILESTONE_DESCRIPTION=$(echo "$MILESTONE_RESPONSE" | jq -r '.description')
           MILESTONE_DATE=$(echo "$MILESTONE_RESPONSE" | jq -r '.due_on')
-          echo "::set-output name=milestone_title::$MILESTONE_TITLE"
-          echo "::set-output name=milestone_description::$MILESTONE_DESCRIPTION"
-          echo "::set-output name=milestone_date::$MILESTONE_DATE"
+          echo "milestone_title=$MILESTONE_TITLE" >> "$GITHUB_OUTPUT"
+          {
+            echo 'milestone_description<<EOF'
+            echo "$MILESTONE_DESCRIPTION"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+          echo "milestone_date=$MILESTONE_DATE" >> "$GITHUB_OUTPUT"
 
       # Generate the changelog based on commit messages and labels
       - name: Generate Changelog
@@ -216,13 +198,17 @@ jobs:
           # Append non-labeled commits to the changelog file
           append_non_labeled_commits
 
-          echo "::set-output name=changelog_file::$CHANGELOG_FILE"
+          echo "changelog_file=$CHANGELOG_FILE" >> "$GITHUB_OUTPUT"
 
       # Read changelog contents into a variable
       - name: Read Changelog Contents
         id: read_changelog
         run: |
-          echo "::set-output name=changelog_contents::$(cat /home/runner/work/changelog.txt)"
+          {
+            echo 'changelog_contents<<EOF'
+            cat /home/runner/work/changelog.txt
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
       
       # Display changelog
       - name: Display Changelog
@@ -230,50 +216,47 @@ jobs:
       
       # Attach changelog as an artifact
       - name: Attach Changelog to Release
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         with:
           name: Changelog
           path: /home/runner/work/changelog.txt
       
       # Create release while including the changelog
       - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.bump_version.outputs.new_version }}
-          release_name: ${{ steps.bump_version.outputs.new_version }}
-          body_path: /home/runner/work/changelog.txt
-          draft: false
-          prerelease: false
+        run: |
+          gh release create "${{ steps.bump_version.outputs.new_version }}" \
+            --title "${{ steps.bump_version.outputs.new_version }}" \
+            --notes-file /home/runner/work/changelog.txt
 
-      # Update the CHANGELOG.md file in the repository
-      - name: Update CHANGELOG.md
-        run: |
-          NEW_VERSION=${{ steps.bump_version.outputs.new_version }}
-          CHANGELOG_CONTENTS=$(cat /home/runner/work/changelog.txt)
-          # Prepend the new changelog content to the existing CHANGELOG.md below SPDX-License-Identifier section
-          echo -e "$(head -n 2 CHANGELOG.md)\n\n## $NEW_VERSION\n\n$CHANGELOG_CONTENTS\n\n$(tail -n +3 CHANGELOG.md)" > CHANGELOG.md
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add CHANGELOG.md
-          git commit -m "chore: Update CHANGELOG.md for $NEW_VERSION"
-          git push origin HEAD:main
+      - name: Send Slack Notification
+        continue-on-error: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          STARTUP_TYPE: 'nats'
-        
-      # Update the VERSION file
-      - name: Update VERSION file
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          NEW_VERSION=${{ steps.bump_version.outputs.new_version }}
-          echo -e "# SPDX-License-Identifier: Apache-2.0\n\n$NEW_VERSION" > VERSION
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add VERSION
-          git commit -m "chore: Update VERSION to $NEW_VERSION"
-          git push origin HEAD:main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          STARTUP_TYPE: 'nats'
+          curl --fail -sS -X POST -H 'Content-type: application/json' --data '{
+            "blocks": [
+              {
+                "type": "header",
+                "text": {
+                  "type": "plain_text",
+                  "text": "New Release Alert :tazama:",
+                  "emoji": true
+                }
+              },
+              {
+                "type": "section",
+                "fields": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Github Repository:*\nhttps://github.com/${{ github.repository }}"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Release:*\n<https://github.com/${{ github.repository }}/releases/tag/${{ steps.bump_version.outputs.new_version }}|Release notes>"
+                  }
+                ]
+              }
+            ]
+          }' "$SLACK_WEBHOOK_URL"

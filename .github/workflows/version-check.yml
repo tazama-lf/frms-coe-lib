@@ -1,0 +1,47 @@
+# SPDX-License-Identifier: Apache-2.0
+
+# Blocks a PR from merging to main if package.json contains a prerelease
+# version suffix (e.g. -rc.1). The developer must strip the suffix manually
+# in the release PR before this check will pass.
+#
+# This is the companion guard for the push: main trigger in publish.yml —
+# it ensures that only clean semver versions (X.Y.Z) ever reach main and
+# are published as the 'latest' dist-tag.
+#
+# Please do not attempt to edit this flow without the direct consent from the DevOps team.
+# This file is managed centrally.
+
+name: Version check
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+
+      - name: Reject prerelease version on main PR
+        run: |
+          if [ ! -f package.json ]; then
+            echo "❌ package.json not found"
+            exit 1
+          fi
+          VERSION=$(jq -r '.version // empty' package.json)
+          if [ -z "$VERSION" ]; then
+            echo "❌ No version field in package.json"
+            exit 1
+          fi
+          if [[ "$VERSION" == *-* ]]; then
+            echo "❌ package.json version '$VERSION' contains a prerelease suffix."
+            echo "   Strip the suffix (e.g. change '$VERSION' → '${VERSION%-*}') before merging to main."
+            exit 1
+          fi
+          echo "✅ Version '$VERSION' is a clean release version — OK to merge."
