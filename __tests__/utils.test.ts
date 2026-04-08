@@ -247,6 +247,11 @@ describe('Should serialise/deserialise BaseMessage payload', () => {
     };
 
     const buffer = createMessageBuffer(deprecatedMessage);
-    expect(buffer).toBeUndefined();
+    expect(buffer).toBeDefined();
+
+    const decoded = decodeMessageBuffer(buffer!);
+    // Deprecated shape has no `transaction` key — decodes as empty object
+    expect(decoded).toBeDefined();
+    expect(decoded?.transaction).toBeUndefined();
   });
 });
