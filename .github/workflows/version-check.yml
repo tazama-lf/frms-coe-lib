@@ -4,7 +4,7 @@
 # version suffix (e.g. -rc.1). The developer must strip the suffix manually
 # in the release PR before this check will pass.
 #
-# This is the companion guard for the push: main trigger in publish.yml —
+# This is the companion guard for the push: main trigger in publish.yml -
 # it ensures that only clean semver versions (X.Y.Z) ever reach main and
 # are published as the 'latest' dist-tag.
 #
@@ -44,4 +44,4 @@ jobs:
             echo "   Strip the suffix (e.g. change '$VERSION' → '${VERSION%-*}') before merging to main."
             exit 1
           fi
-          echo "✅ Version '$VERSION' is a clean release version — OK to merge."
+          echo "✅ Version '$VERSION' is a clean release version - OK to merge."
