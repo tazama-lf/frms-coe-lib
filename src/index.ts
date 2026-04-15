@@ -25,6 +25,7 @@ import {
   isPain001Transaction,
   isPain013Transaction,
 } from './helpers/transactionTypeGuards';
+import type { SimulationDB } from './interfaces/database/SimulationDB';
 
 export {
   CreateDatabaseManager,
@@ -48,6 +49,7 @@ export {
   type EvaluationDB,
   type RawHistoryDB,
   type EnrichmentDB,
+  type SimulationDB,
 };
 
 export type * from './interfaces';
