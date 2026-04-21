@@ -143,7 +143,7 @@ const getMockRequest = (): Pacs002 => {
 
 const getMockNetworkMap = (): NetworkMap => {
   return JSON.parse(
-    '{"messages":[{"id":"001@1.0.0","host":"http://openfaas:8080","cfg":"1.0.0","txTp":"pain.001.001.11","typologies":[{"id":"028@1.0.0","host":"https://example.com/off-frm-typology-processor","cfg":"1.0.0","rules":[{"id":"003@1.0.0","host":"http://openfaas:8080","cfg":"1.0.0"}]},{"id":"029@1.0.0","host":"https://example.com/function/off-frm-typology-processor","cfg":"1.0.0","rules":[{"id":"003@1.0.0","host":"http://openfaas:8080","cfg":"1.0.0"},{"id":"004@1.0.0","host":"http://openfaas:8080","cfg":"1.0.0"}]}]}]}',
+    '{"active":true,"cfg":"1.0.0","creDtTm":"2024-01-01T00:00:00.000Z","updDtTm":"2024-01-01T00:00:00.000Z","tenantId":"DEFAULT","messages":[{"id":"001@1.0.0","host":"http://openfaas:8080","cfg":"1.0.0","txTp":"pain.001.001.11","typologies":[{"id":"028@1.0.0","host":"https://example.com/off-frm-typology-processor","cfg":"1.0.0","rules":[{"id":"003@1.0.0","host":"http://openfaas:8080","cfg":"1.0.0"}]},{"id":"029@1.0.0","host":"https://example.com/function/off-frm-typology-processor","cfg":"1.0.0","rules":[{"id":"003@1.0.0","host":"http://openfaas:8080","cfg":"1.0.0"},{"id":"004@1.0.0","host":"http://openfaas:8080","cfg":"1.0.0"}]}]}]}',
   );
 };
 
@@ -254,6 +254,7 @@ describe('CreateDatabaseManager', () => {
     const dbManager: typeof testTypes = globalManager satisfies EventHistoryDB;
 
     expect(dbManager.saveTransactionDetails).toBeDefined();
+    expect(dbManager.saveInDataModelTable).toBeDefined();
     expect(dbManager.saveAccount).toBeDefined();
     expect(dbManager.saveAccountHolder).toBeDefined();
     expect(dbManager.saveEntity).toBeDefined();
@@ -920,12 +921,6 @@ describe('CreateDatabaseManager', () => {
 
     expect(dbManager.saveDynamicTransactionHistory).toBeDefined();
 
-    // Test missing EndToEndId
-    const trackedFieldsNoEndToEndId: TrackedFields = {
-      CreDtTm: '2023-01-01T10:00:00Z',
-      TenantId: 'tenant-1',
-    } as TrackedFields;
-
     // Test missing TenantId
     const trackedFieldsNoTenantId: TrackedFields = {
       CreDtTm: '2023-01-01T10:00:00Z',
@@ -946,6 +941,65 @@ describe('CreateDatabaseManager', () => {
       'CreDtTm (creation date/time) is required for transaction history - essential for audit trail',
     );
 
+    dbManager.quit();
+  });
+
+  it('should use MsgId as fallback for endtoendid when EndToEndId is absent', async () => {
+    const transHistoryConfig = {
+      rawHistory: {
+        ...rawHistoryConfig,
+      },
+    };
+    const dbManager = await CreateDatabaseManager(transHistoryConfig);
+
+    const querySpy = jest.spyOn(dbManager._rawHistory, 'query').mockImplementation((): Promise<any> => {
+      return Promise.resolve({ rows: [] });
+    });
+
+    const trackedFieldsNoEndToEndId: TrackedFields = {
+      CreDtTm: '2023-01-01T10:00:00Z',
+      MsgId: 'msg-fallback-123',
+      TenantId: 'tenant-1',
+    } as TrackedFields;
+
+    const mockTransaction: Record<string, unknown> = { id: 'transaction-123' };
+
+    await dbManager.saveDynamicTransactionHistory('test_table', mockTransaction, trackedFieldsNoEndToEndId);
+
+    const calledQuery = querySpy.mock.calls[0][0] as any;
+    // endtoendid is the 4th value ($4) — index 3
+    expect(calledQuery.values[3]).toBe('msg-fallback-123');
+
+    querySpy.mockRestore();
+    dbManager.quit();
+  });
+
+  it('should store undefined in endtoendid when both EndToEndId and MsgId are absent', async () => {
+    const transHistoryConfig = {
+      rawHistory: {
+        ...rawHistoryConfig,
+      },
+    };
+    const dbManager = await CreateDatabaseManager(transHistoryConfig);
+
+    const querySpy = jest.spyOn(dbManager._rawHistory, 'query').mockImplementation((): Promise<any> => {
+      return Promise.resolve({ rows: [] });
+    });
+
+    const trackedFieldsNeitherEndToEndIdNorMsgId: TrackedFields = {
+      CreDtTm: '2023-01-01T10:00:00Z',
+      TenantId: 'tenant-1',
+    } as TrackedFields;
+
+    const mockTransaction: Record<string, unknown> = { id: 'transaction-123' };
+
+    await dbManager.saveDynamicTransactionHistory('test_table', mockTransaction, trackedFieldsNeitherEndToEndIdNorMsgId);
+
+    const calledQuery = querySpy.mock.calls[0][0] as any;
+    // When both are absent, endtoendid ($4) is undefined — acceptable for Connection Studio messages
+    expect(calledQuery.values[3]).toBeUndefined();
+
+    querySpy.mockRestore();
     dbManager.quit();
   });
 
@@ -1357,5 +1411,152 @@ describe('CreateDatabaseManager', () => {
 
     expect(querySpy).toHaveBeenCalledTimes(testCases.length);
     querySpy.mockClear();
+  });
+
+  describe('saveInDataModelTable', () => {
+    it('should be defined on the manager', () => {
+      const testTypes = <RedisService & EventHistoryDB>{};
+      const dbManager: typeof testTypes = globalManager satisfies EventHistoryDB;
+
+      expect(dbManager.saveInDataModelTable).toBeDefined();
+    });
+
+    it('should insert data with correct parameterized query', async () => {
+      const querySpy = jest.spyOn(globalManager._eventHistory, 'query');
+      querySpy.mockImplementation((query: any) => Promise.resolve({ rows: [] }));
+
+      const tableName = 'test_table';
+      const key = 'test-key-123';
+      const data = { field1: 'value1', field2: 42 };
+      const tenantId = 'tenant-001';
+      const creDtTm = '2024-01-15T10:00:00.000Z';
+
+      await globalManager.saveInDataModelTable(tableName, key, data, tenantId, creDtTm);
+
+      expect(querySpy).toHaveBeenCalledTimes(1);
+      const calledQuery = querySpy.mock.calls[0][0] as any;
+
+      expect(calledQuery.text).toBe(
+        `INSERT INTO ${tableName} (_key, data, tenantId, creDtTm) VALUES ($1, $2, $3, $4) ON CONFLICT (_key) DO NOTHING`,
+      );
+      expect(calledQuery.values).toEqual([key, data, tenantId, creDtTm]);
+
+      querySpy.mockRestore();
+    });
+
+    it('should use parameterized values for key, data, tenantId, and creDtTm', async () => {
+      const querySpy = jest.spyOn(globalManager._eventHistory, 'query');
+      querySpy.mockImplementation((query: any) => Promise.resolve({ rows: [] }));
+
+      const data = { name: 'test', nested: { deep: true } };
+      await globalManager.saveInDataModelTable('my_table', 'key-abc', data, 'tenant-xyz', '2024-06-01T00:00:00.000Z');
+
+      const calledQuery = querySpy.mock.calls[0][0] as any;
+
+      // Verify all dynamic values are in the parameterized values array, not interpolated in the query text
+      expect(calledQuery.values[0]).toBe('key-abc');
+      expect(calledQuery.values[1]).toEqual(data);
+      expect(calledQuery.values[2]).toBe('tenant-xyz');
+      expect(calledQuery.values[3]).toBe('2024-06-01T00:00:00.000Z');
+
+      querySpy.mockRestore();
+    });
+
+    it('should resolve to undefined on successful insert', async () => {
+      const querySpy = jest.spyOn(globalManager._eventHistory, 'query');
+      querySpy.mockImplementation((query: any) => Promise.resolve({ rows: [] }));
+
+      const result = await globalManager.saveInDataModelTable('test_table', 'key-1', { a: 1 }, 'tenant-1', '2024-01-01T00:00:00.000Z');
+
+      expect(result).toBeUndefined();
+
+      querySpy.mockRestore();
+    });
+
+    it('should propagate database errors', async () => {
+      const dbError = new Error('connection refused');
+      const querySpy = jest.spyOn(globalManager._eventHistory, 'query');
+      querySpy.mockImplementation((query: any) => Promise.reject(dbError));
+
+      await expect(
+        globalManager.saveInDataModelTable('test_table', 'key-1', { a: 1 }, 'tenant-1', '2024-01-01T00:00:00.000Z'),
+      ).rejects.toThrow('connection refused');
+
+      querySpy.mockRestore();
+    });
+
+    it('should include the table name in the SQL text', async () => {
+      const querySpy = jest.spyOn(globalManager._eventHistory, 'query');
+      querySpy.mockImplementation((query: any) => Promise.resolve({ rows: [] }));
+
+      await globalManager.saveInDataModelTable('accounts_data', 'key-1', {}, 'tenant-1', '2024-01-01T00:00:00.000Z');
+
+      const calledQuery = querySpy.mock.calls[0][0] as any;
+      expect(calledQuery.text).toContain('INSERT INTO accounts_data');
+
+      querySpy.mockRestore();
+    });
+
+    it('should handle empty data object', async () => {
+      const querySpy = jest.spyOn(globalManager._eventHistory, 'query');
+      querySpy.mockImplementation((query: any) => Promise.resolve({ rows: [] }));
+
+      await globalManager.saveInDataModelTable('test_table', 'key-empty', {}, 'tenant-1', '2024-01-01T00:00:00.000Z');
+
+      const calledQuery = querySpy.mock.calls[0][0] as any;
+      expect(calledQuery.values[1]).toEqual({});
+
+      querySpy.mockRestore();
+    });
+
+    it('should handle data with nested objects', async () => {
+      const querySpy = jest.spyOn(globalManager._eventHistory, 'query');
+      querySpy.mockImplementation((query: any) => Promise.resolve({ rows: [] }));
+
+      const complexData = {
+        level1: { level2: { level3: 'deep' } },
+        array: [1, 2, 3],
+        nullable: null,
+      };
+
+      await globalManager.saveInDataModelTable('test_table', 'key-nested', complexData, 'tenant-1', '2024-01-01T00:00:00.000Z');
+
+      const calledQuery = querySpy.mock.calls[0][0] as any;
+      expect(calledQuery.values[1]).toEqual(complexData);
+
+      querySpy.mockRestore();
+    });
+
+    it('should use ON CONFLICT (_key) DO NOTHING to handle duplicates', async () => {
+      const querySpy = jest.spyOn(globalManager._eventHistory, 'query');
+      querySpy.mockImplementation((query: any) => Promise.resolve({ rows: [] }));
+
+      await globalManager.saveInDataModelTable('test_table', 'duplicate-key', { a: 1 }, 'tenant-1', '2024-01-01T00:00:00.000Z');
+
+      const calledQuery = querySpy.mock.calls[0][0] as any;
+      expect(calledQuery.text).toContain('ON CONFLICT (_key) DO NOTHING');
+
+      querySpy.mockRestore();
+    });
+
+    it('should work with multiple sequential calls to different tables', async () => {
+      const querySpy = jest.spyOn(globalManager._eventHistory, 'query');
+      querySpy.mockImplementation((query: any) => Promise.resolve({ rows: [] }));
+
+      await globalManager.saveInDataModelTable('table_a', 'key-a', { type: 'a' }, 'tenant-1', '2024-01-01T00:00:00.000Z');
+      await globalManager.saveInDataModelTable('table_b', 'key-b', { type: 'b' }, 'tenant-2', '2024-02-01T00:00:00.000Z');
+
+      expect(querySpy).toHaveBeenCalledTimes(2);
+
+      const firstQuery = querySpy.mock.calls[0][0] as any;
+      const secondQuery = querySpy.mock.calls[1][0] as any;
+
+      expect(firstQuery.text).toContain('INSERT INTO table_a');
+      expect(firstQuery.values[0]).toBe('key-a');
+      expect(secondQuery.text).toContain('INSERT INTO table_b');
+      expect(secondQuery.values[0]).toBe('key-b');
+
+      querySpy.mockRestore();
+    });
   });
 });

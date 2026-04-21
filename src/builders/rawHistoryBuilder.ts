@@ -223,7 +223,7 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
         tran,
         trackedFields.CreDtTm,
         trackedFields.MsgId ?? randomMessageId,
-        trackedFields.EndToEndId?.trim() ?? randomMessageId,
+        trackedFields.EndToEndId?.trim() ?? trackedFields.MsgId?.trim(),
         trackedFields.dbtrAcctId ?? null,
         trackedFields.cdtrAcctId ?? null,
         trackedFields.TenantId.trim(),
