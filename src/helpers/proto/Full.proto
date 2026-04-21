@@ -341,7 +341,7 @@ message FRMSMessage {
         Txinfandsts TxInfAndSts = 2;
     }
 
-    message Payload1 {
+    message Payload {
         string Json = 1;
     }
 
@@ -354,7 +354,7 @@ message FRMSMessage {
         Cstmrcdttrfinitn CstmrCdtTrfInitn = 4;
         Cdtrpmtactvtnreq CdtrPmtActvtnReq = 5;
         string MsgId = 7;
-        Payload1 Payload = 8;
+        Payload Payload = 8;
         string endpointPath = 9;
         dataCache DataCache = 10;
     }
@@ -556,7 +556,4 @@ message FRMSMessage {
     string alreadySent = 14;
 
     ConditionEdge conditionEdge = 15;
-
-    string MsgId = 17;
-    Payload1 Payload = 18;
 }
