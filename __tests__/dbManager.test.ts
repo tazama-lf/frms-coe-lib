@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { v7 } from 'uuid';
+import pgFormat from 'pg-format';
 import { ConfigurationDB, EvaluationDB, EventHistoryDB, RawHistoryDB, RedisService } from '../src';
 import * as isDatabaseReady from '../src/builders/utils';
 import {
@@ -1232,7 +1233,7 @@ describe('CreateDatabaseManager', () => {
       const calledQuery = querySpy.mock.calls[0][0] as any;
 
       expect(calledQuery.text).toBe(
-        `INSERT INTO ${tableName} (_key, data, tenantId, creDtTm) VALUES ($1, $2, $3, $4) ON CONFLICT (_key) DO NOTHING`,
+        pgFormat('INSERT INTO %I (_key, data, tenantId, creDtTm) VALUES ($1, $2, $3, $4) ON CONFLICT (_key) DO NOTHING', tableName),
       );
       expect(calledQuery.values).toEqual([key, data, tenantId, creDtTm]);
 
@@ -1288,6 +1289,24 @@ describe('CreateDatabaseManager', () => {
 
       const calledQuery = querySpy.mock.calls[0][0] as any;
       expect(calledQuery.text).toContain('INSERT INTO accounts_data');
+
+      querySpy.mockRestore();
+    });
+
+    it('should not throw when tenantId or creDtTm is blank and should preserve current query behavior', async () => {
+      const querySpy = jest.spyOn(globalManager._eventHistory, 'query');
+      querySpy.mockImplementation((query: any) => Promise.resolve({ rows: [] }));
+
+      await expect(globalManager.saveInDataModelTable('test_table', 'key-1', { a: 1 }, '', '')).resolves.toBeUndefined();
+      await expect(globalManager.saveInDataModelTable('test_table', 'key-2', { a: 2 }, '   ', '   ')).resolves.toBeUndefined();
+
+      const firstQuery = querySpy.mock.calls[0][0] as any;
+      const secondQuery = querySpy.mock.calls[1][0] as any;
+
+      expect(firstQuery.values[2]).toBe('');
+      expect(firstQuery.values[3]).toBe('');
+      expect(secondQuery.values[2]).toBe('');
+      expect(secondQuery.values[3]).toBe('   ');
 
       querySpy.mockRestore();
     });
