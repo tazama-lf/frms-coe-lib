@@ -57,7 +57,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
 
     const query: PgQueryConfig = {
       text: pgFormat('INSERT INTO %I (_key, data, tenantId, creDtTm) VALUES ($1, $2, $3, $4) ON CONFLICT (_key) DO NOTHING', tableName),
-      values: [key, data, tenantId.trim(), creDtTm],
+      values: [key, data, tenantId, creDtTm],
     };
 
     await manager._eventHistory.query(query);
