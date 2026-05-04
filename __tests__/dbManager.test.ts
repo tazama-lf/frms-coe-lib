@@ -1305,7 +1305,7 @@ describe('CreateDatabaseManager', () => {
 
       expect(firstQuery.values[2]).toBe('');
       expect(firstQuery.values[3]).toBe('');
-      expect(secondQuery.values[2]).toBe('');
+      expect(secondQuery.values[2]).toBe('   ');
       expect(secondQuery.values[3]).toBe('   ');
 
       querySpy.mockRestore();
