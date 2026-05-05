@@ -1,0 +1,365 @@
+# SPDX-License-Identifier: Apache-2.0
+
+# Fires in a library repo when package.json is updated on dev (i.e. after a PR merges).
+# Reads the new rc version, looks up every registered consumer repo in library-consumers.json,
+# updates the exact version pin in each consumer's package.json, regenerates package-lock.json
+# via `npm install --package-lock-only`, commits both files to a shared dep/library-dependency-bump
+# branch, and creates or updates a single PR per consumer targeting dev.
+#
+# Multiple library bumps coalesce: if dep/library-dependency-bump already exists in a consumer
+# (from a prior library rollout), the new commit is pushed on top of the existing branch and the
+# open PR is reused rather than a duplicate being opened.
+#
+# Only runs for rc versions (e.g. 4.0.0-rc.3). Stable-version dependency resolution is handled
+# by release-train.yml in each consumer repo.
+#
+# RESERVED BRANCH NAME: dep/library-dependency-bump is managed by this workflow in every consumer
+# repo. Do not use this branch name for regular development contributions.
+#
+# Please do not attempt to edit this flow without the direct consent from the DevOps team.
+# This file is managed centrally.
+
+name: Library Dependency Rollout
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - 'package.json'
+  workflow_dispatch:
+
+concurrency:
+  group: library-dependency-rollout-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  rollout:
+    runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]'
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout library repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          ref: dev
+
+      - name: Read library package.json
+        id: lib_pkg
+        run: |
+          PKG_NAME=$(jq -r '.name' package.json)
+          PKG_VERSION=$(jq -r '.version' package.json)
+          if [ -z "$PKG_NAME" ] || [ "$PKG_NAME" = "null" ]; then
+            echo "::error::Could not read package name from package.json."
+            exit 1
+          fi
+          if [ -z "$PKG_VERSION" ] || [ "$PKG_VERSION" = "null" ]; then
+            echo "::error::Could not read version from package.json."
+            exit 1
+          fi
+          echo "name=${PKG_NAME}" >> "$GITHUB_OUTPUT"
+          echo "version=${PKG_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Library: ${PKG_NAME}@${PKG_VERSION}"
+
+      - name: Skip if not an rc version
+        id: check_rc
+        run: |
+          VERSION="${{ steps.lib_pkg.outputs.version }}"
+          if [[ "$VERSION" != *"-rc."* ]]; then
+            echo "Version '${VERSION}' is not an rc release. Rollout only runs for rc versions on dev. Exiting."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Git signing
+        if: steps.check_rc.outputs.skip != 'true'
+        run: |
+          git config --global user.name 'Justus-at-Tazama'
+          git config --global user.email '123470803+Justus-at-Tazama@users.noreply.github.com'
+          git config --global credential.helper store
+          if [ -z "${{ secrets.SSH_SIGNING_KEY }}" ]; then
+            echo "::error::SSH_SIGNING_KEY secret is not set. Commits cannot be signed."
+            exit 1
+          fi
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_SIGNING_KEY }}" | base64 -d > ~/.ssh/signing_key
+          chmod 600 ~/.ssh/signing_key
+          ssh-keygen -y -f ~/.ssh/signing_key > /dev/null || {
+            echo "::error::SSH_SIGNING_KEY is not a valid SSH private key or is passphrase-protected."
+            exit 1
+          }
+          git config --global gpg.format ssh
+          git config --global user.signingkey ~/.ssh/signing_key
+          git config --global commit.gpgsign true
+
+      - name: Set up Node.js
+        if: steps.check_rc.outputs.skip != 'true'
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f  # v6.3.0
+        with:
+          node-version: '20'
+
+      - name: Fetch consumer catalog
+        if: steps.check_rc.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          HTTP_STATUS=$(curl -s -o /tmp/catalog-response.json -w "%{http_code}" \
+            -H "Authorization: token ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/tazama-lf/workflows/contents/library-consumers.json?ref=dev")
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "::error::Could not fetch library-consumers.json from tazama-lf/workflows (HTTP ${HTTP_STATUS})."
+            cat /tmp/catalog-response.json
+            exit 1
+          fi
+          jq -r '.content' /tmp/catalog-response.json | base64 -d > /tmp/library-consumers.json
+          echo "Consumer catalog loaded."
+          CONSUMER_COUNT=$(jq --arg pkg "${{ steps.lib_pkg.outputs.name }}" '.[$pkg].consumers | length // 0' /tmp/library-consumers.json)
+          echo "Consumers registered for ${{ steps.lib_pkg.outputs.name }}: ${CONSUMER_COUNT}"
+
+      - name: Roll out to consumers
+        if: steps.check_rc.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN_LIB: ${{ secrets.GH_TOKEN_LIB }}
+          PKG_NAME: ${{ steps.lib_pkg.outputs.name }}
+          PKG_VERSION: ${{ steps.lib_pkg.outputs.version }}
+          PR_REVIEWERS: ${{ secrets.GH_USERNAME }}
+        run: |
+          set -euo pipefail
+
+          BUMP_BRANCH="dep/library-dependency-bump"
+          SIGNED_OFF_BY="Signed-off-by: Justus-at-Tazama <123470803+Justus-at-Tazama@users.noreply.github.com>"
+          WORK_DIR=$(mktemp -d)
+
+          # Read consumers for this library from the catalog
+          CONSUMERS=$(jq -r --arg pkg "$PKG_NAME" '.[$pkg].consumers // [] | .[] | "\(.org)/\(.repo)"' /tmp/library-consumers.json)
+
+          if [ -z "$CONSUMERS" ]; then
+            echo "No consumers registered for ${PKG_NAME} in library-consumers.json. Nothing to do."
+            echo "## Library Dependency Rollout: ${PKG_NAME}@${PKG_VERSION}" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "No consumers registered. Update \`library-consumers.json\` in tazama-lf/workflows if this is unexpected." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          # Job summary header
+          echo "## Library Dependency Rollout: \`${PKG_NAME}@${PKG_VERSION}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Repo | Result | Details |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|------|--------|---------|" >> "$GITHUB_STEP_SUMMARY"
+
+          for CONSUMER in $CONSUMERS; do
+            ORG="${CONSUMER%%/*}"
+            REPO="${CONSUMER##*/}"
+            REPO_DIR="${WORK_DIR}/${ORG}-${REPO}"
+
+            echo ""
+            echo "=== Processing ${ORG}/${REPO} ==="
+
+            # Clone consumer repo
+            if ! git clone \
+                --depth=50 \
+                "https://x-access-token:${GH_TOKEN}@github.com/${ORG}/${REPO}.git" \
+                "${REPO_DIR}" 2>&1; then
+              echo "::warning::Could not clone ${ORG}/${REPO}. Skipping."
+              echo "| \`${CONSUMER}\` | ❌ Clone failed | Could not clone repo |" >> "$GITHUB_STEP_SUMMARY"
+              continue
+            fi
+
+            cd "${REPO_DIR}"
+
+            if ! git checkout dev 2>&1; then
+              echo "::warning::Could not checkout dev in ${ORG}/${REPO}. Skipping."
+              echo "| \`${CONSUMER}\` | ❌ No dev branch | Could not checkout dev |" >> "$GITHUB_STEP_SUMMARY"
+              cd "${WORK_DIR}"
+              continue
+            fi
+
+            # Check if this library is actually in package.json
+            if [ ! -f package.json ]; then
+              echo "${ORG}/${REPO} has no package.json on dev - skipping."
+              echo "| \`${CONSUMER}\` | ⏭️ Skipped | No package.json on dev |" >> "$GITHUB_STEP_SUMMARY"
+              cd "${WORK_DIR}"
+              continue
+            fi
+
+            if ! jq -e --arg pkg "$PKG_NAME" '(.dependencies // {}) + (.devDependencies // {}) | has($pkg)' package.json > /dev/null 2>&1; then
+              echo "${PKG_NAME} not found in ${ORG}/${REPO}/package.json - skipping."
+              echo "| \`${CONSUMER}\` | ⏭️ Skipped | \`${PKG_NAME}\` not in package.json |" >> "$GITHUB_STEP_SUMMARY"
+              cd "${WORK_DIR}"
+              continue
+            fi
+
+            # Determine if dep/library-dependency-bump already exists in the remote
+            BRANCH_EXISTS=false
+            if git ls-remote --heads origin "${BUMP_BRANCH}" | grep -q "${BUMP_BRANCH}"; then
+              BRANCH_EXISTS=true
+              # Fetch the branch so we have full history for the lockfile regeneration
+              git fetch origin "${BUMP_BRANCH}"
+              git checkout -b "${BUMP_BRANCH}" "origin/${BUMP_BRANCH}"
+              echo "Branch ${BUMP_BRANCH} already exists - appending bump commit."
+            else
+              git checkout -b "${BUMP_BRANCH}"
+              echo "Created new branch ${BUMP_BRANCH} from dev."
+            fi
+
+            # Update version pin in package.json using jq
+            UPDATED_PKG=$(jq --arg pkg "$PKG_NAME" --arg ver "$PKG_VERSION" \
+              'if .dependencies | has($pkg) then .dependencies[$pkg] = $ver else . end |
+               if .devDependencies | has($pkg) then .devDependencies[$pkg] = $ver else . end' \
+              package.json)
+            echo "$UPDATED_PKG" > package.json
+            echo "Updated ${PKG_NAME} to ${PKG_VERSION} in package.json"
+
+            # Configure .npmrc for GitHub Packages access (append to avoid overwriting repo's .npmrc)
+            echo "@tazama-lf:registry=https://npm.pkg.github.com/" >> ~/.npmrc
+            echo "@frmscoe:registry=https://npm.pkg.github.com/" >> ~/.npmrc
+            echo "//npm.pkg.github.com/:_authToken=${GH_TOKEN_LIB}" >> ~/.npmrc
+
+            # Regenerate package-lock.json with retries
+            NPM_OK=false
+            for attempt in 1 2 3; do
+              echo "npm install --package-lock-only (attempt ${attempt}/3)..."
+              if npm install --package-lock-only --ignore-scripts 2>&1; then
+                NPM_OK=true
+                break
+              fi
+              if [ "$attempt" -lt 3 ]; then
+                echo "Attempt ${attempt} failed. Waiting 30s before retry..."
+                sleep 30
+              fi
+            done
+
+            if [ "$NPM_OK" = "false" ]; then
+              echo "::warning::npm install --package-lock-only failed for ${ORG}/${REPO} after 3 attempts. Skipping."
+              echo "| \`${CONSUMER}\` | ⚠️ npm failed | package-lock.json could not be regenerated after 3 attempts |" >> "$GITHUB_STEP_SUMMARY"
+              cd "${WORK_DIR}"
+              continue
+            fi
+
+            # Stage changes
+            git add package.json package-lock.json
+
+            if git diff --cached --quiet; then
+              echo "No changes to commit for ${ORG}/${REPO} - already at ${PKG_VERSION}."
+              echo "| \`${CONSUMER}\` | ✅ Already up to date | No changes needed |" >> "$GITHUB_STEP_SUMMARY"
+              cd "${WORK_DIR}"
+              continue
+            fi
+
+            # Commit with SSH signing
+            git commit \
+              -m "chore(deps): bump ${PKG_NAME} to ${PKG_VERSION}" \
+              -m "${SIGNED_OFF_BY}"
+
+            # Push (force-with-lease to avoid overwriting concurrent pushes)
+            if ! git push \
+                "https://x-access-token:${GH_TOKEN}@github.com/${ORG}/${REPO}.git" \
+                "${BUMP_BRANCH}" \
+                --force-with-lease 2>&1; then
+              echo "::warning::Push failed for ${ORG}/${REPO}. Another rollout may have pushed concurrently. Re-run this workflow to retry."
+              echo "| \`${CONSUMER}\` | ❌ Push failed | Concurrent push conflict - re-run to retry |" >> "$GITHUB_STEP_SUMMARY"
+              cd "${WORK_DIR}"
+              continue
+            fi
+
+            # Check for existing open PR from dep/library-dependency-bump → dev
+            EXISTING_PR_URL=$(curl -sf \
+              -H "Authorization: token ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/${ORG}/${REPO}/pulls?state=open&head=${ORG}:${BUMP_BRANCH}&base=dev" \
+              | jq -r '.[0].html_url // ""')
+
+            if [ -n "$EXISTING_PR_URL" ]; then
+              echo "Existing PR updated: ${EXISTING_PR_URL}"
+              echo "| \`${CONSUMER}\` | ✅ PR updated | [View PR](${EXISTING_PR_URL}) |" >> "$GITHUB_STEP_SUMMARY"
+            else
+              # Build PR body listing current bump plus any prior bumps already on the branch
+              # Collect all chore(deps): bump commits on this branch not on dev
+              PRIOR_BUMPS=$(git log "origin/dev..HEAD" --format="%s" 2>/dev/null \
+                | grep -E '^chore\(deps\): bump ' \
+                | grep -v "bump ${PKG_NAME}" \
+                || true)
+
+              PR_BODY_FILE=$(mktemp)
+              {
+                echo "## Library dependency bump"
+                echo ""
+                echo "This PR was automatically generated by \`library-dependency-rollout.yml\`."
+                echo ""
+                echo "### Updated packages"
+                echo ""
+                echo "| Package | Version |"
+                echo "|---------|---------|"
+                echo "| \`${PKG_NAME}\` | \`${PKG_VERSION}\` |"
+                if [ -n "$PRIOR_BUMPS" ]; then
+                  while IFS= read -r line; do
+                    # Extract "bump <pkg> to <ver>" from commit subject
+                    BUMP_PKG=$(echo "$line" | sed 's/chore(deps): bump \(.*\) to .*/\1/')
+                    BUMP_VER=$(echo "$line" | sed 's/chore(deps): bump .* to \(.*\)/\1/')
+                    echo "| \`${BUMP_PKG}\` | \`${BUMP_VER}\` |"
+                  done <<< "$PRIOR_BUMPS"
+                fi
+                echo ""
+                echo "> \`package-lock.json\` has been regenerated. Run \`npm install\` locally to sync your working copy after merging."
+                echo ""
+                echo "Signed-off-by: Justus-at-Tazama <123470803+Justus-at-Tazama@users.noreply.github.com>"
+              } > "$PR_BODY_FILE"
+
+              # Create PR
+              PR_PAYLOAD_FILE=$(mktemp)
+              jq -n \
+                --arg title "chore(deps): bump library dependencies" \
+                --arg body "$(cat "$PR_BODY_FILE")" \
+                --arg head "${BUMP_BRANCH}" \
+                --arg base "dev" \
+                '{title: $title, body: $body, head: $head, base: $base}' \
+                > "$PR_PAYLOAD_FILE"
+
+              CREATE_RESPONSE=$(curl -sf \
+                -X POST \
+                -H "Authorization: token ${GH_TOKEN}" \
+                -H "Accept: application/vnd.github.v3+json" \
+                -H "Content-Type: application/json" \
+                --data "@${PR_PAYLOAD_FILE}" \
+                "https://api.github.com/repos/${ORG}/${REPO}/pulls" || echo '{}')
+
+              PR_URL=$(echo "$CREATE_RESPONSE" | jq -r '.html_url // ""')
+              PR_NUMBER=$(echo "$CREATE_RESPONSE" | jq -r '.number // ""')
+
+              if [ -n "$PR_URL" ]; then
+                echo "PR created: ${PR_URL}"
+                echo "| \`${CONSUMER}\` | ✅ PR created | [#${PR_NUMBER}](${PR_URL}) |" >> "$GITHUB_STEP_SUMMARY"
+
+                # Request reviewers if GH_USERNAME is set
+                if [ -n "${PR_REVIEWERS:-}" ] && [ -n "$PR_NUMBER" ]; then
+                  REVIEWER_PAYLOAD=$(jq -n --arg r "$PR_REVIEWERS" '{reviewers: [$r]}')
+                  curl -sf \
+                    -X POST \
+                    -H "Authorization: token ${GH_TOKEN}" \
+                    -H "Accept: application/vnd.github.v3+json" \
+                    -H "Content-Type: application/json" \
+                    -d "$REVIEWER_PAYLOAD" \
+                    "https://api.github.com/repos/${ORG}/${REPO}/pulls/${PR_NUMBER}/requested_reviewers" \
+                    > /dev/null || echo "::warning::Could not request reviewer for ${ORG}/${REPO} PR #${PR_NUMBER}."
+                fi
+              else
+                PR_ERROR=$(echo "$CREATE_RESPONSE" | jq -r '.message // "unknown error"')
+                echo "::warning::PR creation failed for ${ORG}/${REPO}: ${PR_ERROR}"
+                echo "| \`${CONSUMER}\` | ⚠️ PR creation failed | ${PR_ERROR} |" >> "$GITHUB_STEP_SUMMARY"
+              fi
+
+              rm -f "$PR_BODY_FILE" "$PR_PAYLOAD_FILE"
+            fi
+
+            cd "${WORK_DIR}"
+          done
+
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "_Rollout triggered from \`${{ github.repository }}\` @ \`${{ github.sha }}\`_" >> "$GITHUB_STEP_SUMMARY"
