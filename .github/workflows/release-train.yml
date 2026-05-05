@@ -25,12 +25,12 @@ permissions:
   pull-requests: write
 
 # checkov:skip=CKV_GHA_7:Release train is operator-controlled; version input is validated and
-# only determines the release branch name / package.json version — not the build artifact source.
+# only determines the release branch name / package.json version - not the build artifact source.
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Target stable version (e.g. 4.0.0) — must not contain a prerelease suffix'
+        description: 'Target stable version (e.g. 4.0.0) - must not contain a prerelease suffix'
         required: true
         type: string
 
@@ -163,7 +163,7 @@ jobs:
           DEV_SHA=$(curl -s -H "Authorization: Bearer $GH_API_TOKEN" \
             "${API}/git/ref/heads/dev" | jq -r '.object.sha')
           if [ -z "$DEV_SHA" ] || [ "$DEV_SHA" = "null" ]; then
-            echo "❌ Failed to get dev branch SHA — check API permissions"
+            echo "❌ Failed to get dev branch SHA - check API permissions"
             exit 1
           fi
           echo "Dev SHA: $DEV_SHA"
@@ -177,7 +177,7 @@ jobs:
           if [ "$CREATE_HTTP" = "201" ]; then
             echo "Branch $BRANCH created at $DEV_SHA"
           else
-            echo "Branch $BRANCH already exists — force-resetting to dev HEAD ($DEV_SHA)"
+            echo "Branch $BRANCH already exists - force-resetting to dev HEAD ($DEV_SHA)"
             curl -s -X PATCH -H "Authorization: Bearer $GH_API_TOKEN" \
               -H "Content-Type: application/json" \
               "${API}/git/refs/heads/${BRANCH}" \
@@ -254,7 +254,7 @@ jobs:
             --reviewer "$GH_USERNAME"; then
             EXISTING=$(gh pr list --head "$BRANCH" --base main --json number --jq '.[0].number // empty')
             if [ -n "$EXISTING" ]; then
-              echo "PR #${EXISTING} already exists for $BRANCH — skipping."
+              echo "PR #${EXISTING} already exists for $BRANCH - skipping."
             else
               echo "❌ gh pr create failed and no existing PR was found."
               exit 1
