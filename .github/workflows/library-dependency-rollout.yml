@@ -188,13 +188,6 @@ jobs:
 
             cd "${REPO_DIR}"
 
-            if ! git checkout dev 2>&1; then
-              echo "::warning::Could not checkout dev in ${ORG}/${REPO}. Skipping."
-              echo "| \`${CONSUMER}\` | ❌ No dev branch | Could not checkout dev |" >> "$GITHUB_STEP_SUMMARY"
-              cd "${WORK_DIR}"
-              continue
-            fi
-
             # Check if this library is actually in package.json
             if [ ! -f package.json ]; then
               echo "${ORG}/${REPO} has no package.json on dev - skipping."
@@ -214,9 +207,10 @@ jobs:
             BRANCH_EXISTS=false
             if git ls-remote --heads origin "${BUMP_BRANCH}" | grep -q "${BUMP_BRANCH}"; then
               BRANCH_EXISTS=true
-              # Fetch the branch so we have full history for the lockfile regeneration
+              # Fetch into FETCH_HEAD; a plain `git fetch origin <branch>` does NOT create
+              # origin/<branch> as a tracking ref in a shallow clone - use FETCH_HEAD instead.
               git fetch origin "${BUMP_BRANCH}"
-              git checkout -b "${BUMP_BRANCH}" "origin/${BUMP_BRANCH}"
+              git checkout -b "${BUMP_BRANCH}" FETCH_HEAD
               echo "Branch ${BUMP_BRANCH} already exists - appending bump commit."
             else
               git checkout -b "${BUMP_BRANCH}"
@@ -272,11 +266,11 @@ jobs:
               -m "build(deps): bump ${PKG_NAME} to ${PKG_VERSION}" \
               -m "${SIGNED_OFF_BY}"
 
-            # Push (force-with-lease to avoid overwriting concurrent pushes)
-            if ! git push \
+            # Push. Force-push is safe here: this branch is exclusively managed by this workflow.
+            # --force-with-lease cannot be used without an upstream tracking ref (new branches have none).
+            if ! git push --force \
                 "https://x-access-token:${ORG_TOKEN}@github.com/${ORG}/${REPO}.git" \
-                "${BUMP_BRANCH}" \
-                --force-with-lease 2>&1; then
+                "${BUMP_BRANCH}" 2>&1; then
               echo "::warning::Push failed for ${ORG}/${REPO}. Another rollout may have pushed concurrently. Re-run this workflow to retry."
               echo "| \`${CONSUMER}\` | ❌ Push failed | Concurrent push conflict - re-run to retry |" >> "$GITHUB_STEP_SUMMARY"
               cd "${WORK_DIR}"
