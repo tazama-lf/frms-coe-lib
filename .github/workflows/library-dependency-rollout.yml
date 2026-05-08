@@ -43,6 +43,22 @@ jobs:
       contents: read
 
     steps:
+      - name: Generate GitHub App token (tazama-lf)
+        id: app_token
+        uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e  # v2.0.6
+        with:
+          app-id: ${{ secrets.TAZAMA_BOT_APP_ID }}
+          private-key: ${{ secrets.TAZAMA_BOT_PRIVATE_KEY }}
+          owner: tazama-lf
+
+      - name: Generate GitHub App token (frmscoe)
+        id: app_token_frmscoe
+        uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e  # v2.0.6
+        with:
+          app-id: ${{ secrets.TAZAMA_BOT_APP_ID }}
+          private-key: ${{ secrets.TAZAMA_BOT_PRIVATE_KEY }}
+          owner: frmscoe
+
       - name: Checkout library repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
@@ -76,26 +92,11 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Set up Git signing
+      - name: Set up Git identity
         if: steps.check_rc.outputs.skip != 'true'
         run: |
-          git config --global user.name 'Justus-at-Tazama'
-          git config --global user.email '123470803+Justus-at-Tazama@users.noreply.github.com'
-          git config --global credential.helper store
-          if [ -z "${{ secrets.SSH_SIGNING_KEY }}" ]; then
-            echo "::error::SSH_SIGNING_KEY secret is not set. Commits cannot be signed."
-            exit 1
-          fi
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_SIGNING_KEY }}" | base64 -d > ~/.ssh/signing_key
-          chmod 600 ~/.ssh/signing_key
-          ssh-keygen -y -f ~/.ssh/signing_key > /dev/null || {
-            echo "::error::SSH_SIGNING_KEY is not a valid SSH private key or is passphrase-protected."
-            exit 1
-          }
-          git config --global gpg.format ssh
-          git config --global user.signingkey ~/.ssh/signing_key
-          git config --global commit.gpgsign true
+          git config --global user.name 'tazama-lf-ci-bot[bot]'
+          git config --global user.email '282868230+tazama-lf-ci-bot[bot]@users.noreply.github.com'
 
       - name: Set up Node.js
         if: steps.check_rc.outputs.skip != 'true'
@@ -106,7 +107,7 @@ jobs:
       - name: Fetch consumer catalog
         if: steps.check_rc.outputs.skip != 'true'
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
         run: |
           HTTP_STATUS=$(curl -s -o /tmp/catalog-response.json -w "%{http_code}" \
             -H "Authorization: token ${GH_TOKEN}" \
@@ -125,7 +126,8 @@ jobs:
       - name: Roll out to consumers
         if: steps.check_rc.outputs.skip != 'true'
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+          GH_TOKEN_FRMSCOE: ${{ steps.app_token_frmscoe.outputs.token }}
           GH_TOKEN_LIB: ${{ secrets.GH_TOKEN_LIB }}
           PKG_NAME: ${{ steps.lib_pkg.outputs.name }}
           PKG_VERSION: ${{ steps.lib_pkg.outputs.version }}
@@ -134,7 +136,7 @@ jobs:
           set -euo pipefail
 
           BUMP_BRANCH="dep/library-dependency-bump"
-          SIGNED_OFF_BY="Signed-off-by: Justus-at-Tazama <123470803+Justus-at-Tazama@users.noreply.github.com>"
+          SIGNED_OFF_BY="Signed-off-by: tazama-lf-ci-bot[bot] <282868230+tazama-lf-ci-bot[bot]@users.noreply.github.com>"
           WORK_DIR=$(mktemp -d)
 
           # Read consumers for this library from the catalog
@@ -159,13 +161,20 @@ jobs:
             REPO="${CONSUMER##*/}"
             REPO_DIR="${WORK_DIR}/${ORG}-${REPO}"
 
+            # Select the token for this consumer's org
+            if [ "$ORG" = "frmscoe" ]; then
+              ORG_TOKEN="${GH_TOKEN_FRMSCOE}"
+            else
+              ORG_TOKEN="${GH_TOKEN}"
+            fi
+
             echo ""
             echo "=== Processing ${ORG}/${REPO} ==="
 
             # Clone consumer repo
             if ! git clone \
                 --depth=50 \
-                "https://x-access-token:${GH_TOKEN}@github.com/${ORG}/${REPO}.git" \
+                "https://x-access-token:${ORG_TOKEN}@github.com/${ORG}/${REPO}.git" \
                 "${REPO_DIR}" 2>&1; then
               echo "::warning::Could not clone ${ORG}/${REPO}. Skipping."
               echo "| \`${CONSUMER}\` | ❌ Clone failed | Could not clone repo |" >> "$GITHUB_STEP_SUMMARY"
@@ -253,14 +262,14 @@ jobs:
               continue
             fi
 
-            # Commit with SSH signing
+            # Commit
             git commit \
-              -m "chore(deps): bump ${PKG_NAME} to ${PKG_VERSION}" \
+              -m "build(deps): bump ${PKG_NAME} to ${PKG_VERSION}" \
               -m "${SIGNED_OFF_BY}"
 
             # Push (force-with-lease to avoid overwriting concurrent pushes)
             if ! git push \
-                "https://x-access-token:${GH_TOKEN}@github.com/${ORG}/${REPO}.git" \
+                "https://x-access-token:${ORG_TOKEN}@github.com/${ORG}/${REPO}.git" \
                 "${BUMP_BRANCH}" \
                 --force-with-lease 2>&1; then
               echo "::warning::Push failed for ${ORG}/${REPO}. Another rollout may have pushed concurrently. Re-run this workflow to retry."
@@ -271,7 +280,7 @@ jobs:
 
             # Check for existing open PR from dep/library-dependency-bump → dev
             EXISTING_PR_URL=$(curl -sf \
-              -H "Authorization: token ${GH_TOKEN}" \
+              -H "Authorization: token ${ORG_TOKEN}" \
               -H "Accept: application/vnd.github.v3+json" \
               "https://api.github.com/repos/${ORG}/${REPO}/pulls?state=open&head=${ORG}:${BUMP_BRANCH}&base=dev" \
               | jq -r '.[0].html_url // ""')
@@ -283,7 +292,7 @@ jobs:
               # Build PR body listing current bump plus any prior bumps already on the branch
               # Collect all chore(deps): bump commits on this branch not on dev
               PRIOR_BUMPS=$(git log "origin/dev..HEAD" --format="%s" 2>/dev/null \
-                | grep -E '^chore\(deps\): bump ' \
+                | grep -E '^build\(deps\): bump ' \
                 | grep -v "bump ${PKG_NAME}" \
                 || true)
 
@@ -301,21 +310,21 @@ jobs:
                 if [ -n "$PRIOR_BUMPS" ]; then
                   while IFS= read -r line; do
                     # Extract "bump <pkg> to <ver>" from commit subject
-                    BUMP_PKG=$(echo "$line" | sed 's/chore(deps): bump \(.*\) to .*/\1/')
-                    BUMP_VER=$(echo "$line" | sed 's/chore(deps): bump .* to \(.*\)/\1/')
+                    BUMP_PKG=$(echo "$line" | sed 's/build(deps): bump \(.*\) to .*/\1/')
+                    BUMP_VER=$(echo "$line" | sed 's/build(deps): bump .* to \(.*\)/\1/')
                     echo "| \`${BUMP_PKG}\` | \`${BUMP_VER}\` |"
                   done <<< "$PRIOR_BUMPS"
                 fi
                 echo ""
                 echo "> \`package-lock.json\` has been regenerated. Run \`npm install\` locally to sync your working copy after merging."
                 echo ""
-                echo "Signed-off-by: Justus-at-Tazama <123470803+Justus-at-Tazama@users.noreply.github.com>"
+                echo "Signed-off-by: tazama-lf-ci-bot[bot] <282868230+tazama-lf-ci-bot[bot]@users.noreply.github.com>"
               } > "$PR_BODY_FILE"
 
               # Create PR
               PR_PAYLOAD_FILE=$(mktemp)
               jq -n \
-                --arg title "chore(deps): bump library dependencies" \
+                --arg title "build(deps): bump library dependencies" \
                 --arg body "$(cat "$PR_BODY_FILE")" \
                 --arg head "${BUMP_BRANCH}" \
                 --arg base "dev" \
@@ -324,7 +333,7 @@ jobs:
 
               CREATE_RESPONSE=$(curl -sf \
                 -X POST \
-                -H "Authorization: token ${GH_TOKEN}" \
+                -H "Authorization: token ${ORG_TOKEN}" \
                 -H "Accept: application/vnd.github.v3+json" \
                 -H "Content-Type: application/json" \
                 --data "@${PR_PAYLOAD_FILE}" \
@@ -342,7 +351,7 @@ jobs:
                   REVIEWER_PAYLOAD=$(jq -n --arg r "$PR_REVIEWERS" '{reviewers: [$r]}')
                   curl -sf \
                     -X POST \
-                    -H "Authorization: token ${GH_TOKEN}" \
+                    -H "Authorization: token ${ORG_TOKEN}" \
                     -H "Accept: application/vnd.github.v3+json" \
                     -H "Content-Type: application/json" \
                     -d "$REVIEWER_PAYLOAD" \
