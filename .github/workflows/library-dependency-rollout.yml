@@ -174,9 +174,11 @@ jobs:
             echo ""
             echo "=== Processing ${ORG}/${REPO} ==="
 
-            # Clone consumer repo
+            # Clone consumer repo (--branch dev so shallow clone fetches dev directly;
+            # without this, --depth=50 only fetches the default branch and git checkout dev fails)
             if ! git clone \
                 --depth=50 \
+                --branch dev \
                 "https://x-access-token:${ORG_TOKEN}@github.com/${ORG}/${REPO}.git" \
                 "${REPO_DIR}" 2>&1; then
               echo "::warning::Could not clone ${ORG}/${REPO}. Skipping."
