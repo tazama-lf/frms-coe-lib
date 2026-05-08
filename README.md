@@ -8,6 +8,7 @@
   - [2. **Logger Service**](#2-logger-service)
   - [3. **Apm Integration**](#3-apm-integration)
   - [4. **Redis Service**](#4-redis-service)
+  - [5. **Schema-Safe Dot Notation Access**](#5-schema-safe-dot-notation-access)
 - [Modules and Classes](#modules-and-classes)
 - [Configuration](#configuration)
   - [Environment Variables](#environment-variables)
@@ -164,6 +165,66 @@ let databaseManager: DatabaseManagerInstance<typeof dbConfig>;
 databaseManager = await CreateDatabaseManager(dbConfig);
 
 ```
+
+### 5. **Schema-Safe Dot Notation Access**
+
+`createSafeObjectFromEndpoint` is the canonical way to read transaction payload values with schema enforcement. It resolves the endpoint schema from distributed Redis and returns a schema-constrained proxy that supports dot notation access.
+
+This access model is used to keep payload reads deterministic at runtime:
+
+- only schema-defined paths are readable,
+- reads are validated against declared types,
+- invalid access fails immediately.
+
+**Usage Example:**
+
+```typescript
+import { createSafeObjectFromEndpoint } from '@tazama-lf/frms-coe-lib';
+
+const endpointPath = '/cbe/v1/fable003';
+const safeObject = await createSafeObjectFromEndpoint(endpointPath, payload);
+
+const amount = safeObject.storyamount.amount;
+const currency = safeObject.storyamount.currency;
+```
+
+**EndpointPath Contract:**
+
+- `endpointPath` must match the schema cache key exactly.
+- Format is slash-separated with a leading slash (for example `/tenant/version/domain/messageType`).
+- Matching is case-sensitive and punctuation-sensitive.
+
+**Runtime Guarantees (Fail-Fast):**
+
+- Missing schema cache entry throws.
+- Inactive schema (`publishing_status !== 'active'`) throws.
+- Access to undefined schema paths throws.
+- Type mismatches throw at read time (with supported primitive coercion where applicable).
+
+**Temporary POC Compatibility Note:**
+
+- `createSafeObjectFromEndpoint` first uses the standard `frms-coe-lib` Redis env contract.
+- If that bootstrap fails due missing coe-lib Redis env variables, it can temporarily fall back to EMS-style Redis vars (`REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, optional `REDIS_DB`, optional `REDIS_IS_CLUSTER`) for schema lookup bootstrap only.
+- This fallback is intentionally scoped to schema-safe proxy bootstrap and does not change other `frms-coe-lib` Redis/database manager behavior.
+
+**Canonical BaseMessage transaction shape (non-Pacs002):**
+
+```json
+{
+  "transaction": {
+    "TxTp": "fable003",
+    "TenantId": "cbe",
+    "MsgId": "msg009",
+    "endpointPath": "/cbe/1.0.0/frms-stories/fable003",
+    "Payload": {
+      "amount": 1000,
+      "currency": "PKR"
+    }
+  }
+}
+```
+
+For non-Pacs002 flows, `TxTp`, `TenantId`, `MsgId`, and `Payload` are required. `endpointPath` is optional and reserved for schema-driven processing.
 
 ## Modules and Classes
 

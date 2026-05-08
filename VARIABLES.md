@@ -83,10 +83,10 @@ Logging Class: This class needs configuration variables to check the environment
 | -------- | ------- | ------- | 
 | ENRICHMENT_DATABASE | String | No |  
 | ENRICHMENT_DATABASE_HOST |  String | No |  
-| ENRICHMENT_DATABASE_PORT |  String | YES |  
+| ENRICHMENT_DATABASE_PORT |  Number | YES |  
 | ENRICHMENT_DATABASE_USER |  String | Controllable |  
 | ENRICHMENT_DATABASE_PASSWORD |  String | Controllable | 
-| ENRICHMENT_DATABASE_CERT_PATH |  String | No |  
+| ENRICHMENT_DATABASE_CERT_PATH |  String | YES |  
 
 ### Elastic Variables
 

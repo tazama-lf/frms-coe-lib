@@ -5,6 +5,7 @@ import path from 'node:path';
 import type { LogMessage as LogMessageType } from './proto/lumberjack/LogMessage';
 import type { AccountConditionResponse, EntityConditionResponse } from '../interfaces/event-flow/ConditionDetails';
 import type { AccountCondition, EntityCondition } from '../interfaces';
+import { isBaseMessageTransaction, isPacs002Transaction } from './transactionTypeGuards';
 
 const root = protobuf.loadSync(path.join(__dirname, '/proto/Full.proto'));
 const FRMSMessage = root.lookupType('FRMSMessage');
@@ -17,6 +18,81 @@ const ConditionsMessage = conditions.lookupType('Conditions');
 const CacheConditionsMessage = conditions.lookupType('CacheConditions');
 const CacheSimpleConditionsMessage = conditions.lookupType('SimpleConditions');
 
+const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
+
+const normaliseBaseMessagePayload = (data: Record<string, unknown>): Record<string, unknown> => {
+  const { transaction } = data;
+  if (!isRecord(transaction)) {
+    return data;
+  }
+
+  if (isPacs002Transaction(transaction)) {
+    return data;
+  }
+
+  if (!isBaseMessageTransaction(transaction)) {
+    throw new Error('Non-Pacs002 transactions must include TxTp, TenantId, MsgId and Payload.');
+  }
+
+  const payload = transaction.Payload as Record<string, unknown> | string | undefined;
+  if (payload === undefined || payload === null) {
+    return data;
+  }
+
+  if (typeof payload === 'object' && 'Json' in payload) {
+    return data;
+  }
+
+  const payloadJson = typeof payload === 'string' ? payload : JSON.stringify(payload);
+
+  return {
+    ...data,
+    transaction: {
+      ...transaction,
+      Payload: {
+        Json: payloadJson,
+      },
+    },
+  };
+};
+
+const denormaliseBaseMessagePayload = (data: Record<string, unknown>): Record<string, unknown> => {
+  const { transaction } = data;
+  if (!isRecord(transaction)) {
+    return data;
+  }
+
+  if (isPacs002Transaction(transaction)) {
+    return data;
+  }
+
+  const payload = transaction.Payload as Record<string, unknown> | undefined;
+  if (!payload) {
+    return data;
+  }
+
+  const payloadJson = payload.Json;
+  if (typeof payloadJson !== 'string') {
+    return data;
+  }
+
+  try {
+    const parsedPayload = JSON.parse(payloadJson) as unknown;
+    return {
+      ...data,
+      transaction: {
+        ...transaction,
+        Payload: parsedPayload,
+      },
+    };
+  } catch {
+    return {
+      ...data,
+      transaction,
+    };
+  }
+};
+
 /**
  * Create a Message `Buffer` derived from a byte array resulting from the input type
  *
@@ -25,10 +101,27 @@ const CacheSimpleConditionsMessage = conditions.lookupType('SimpleConditions');
  */
 export const createMessageBuffer = (data: Record<string, unknown>): Buffer | undefined => {
   try {
-    const msg = FRMSMessage.create(data);
+    const normalisedData = normaliseBaseMessagePayload(data);
+    const msg = FRMSMessage.create(normalisedData);
     const enc = FRMSMessage.encode(msg).finish() as Buffer;
     return enc;
   } catch (error) {
+    return undefined;
+  }
+};
+
+/**
+ * Decodes a Message `Buffer` and denormalises BaseMessage payload JSON back to plain object when possible.
+ *
+ * @param {Buffer} buffer The byte array to decode
+ * @returns {Record<string, unknown> | undefined} The decoded message object, or `undefined` if an error occurred
+ */
+export const decodeMessageBuffer = (buffer: Buffer): Record<string, unknown> | undefined => {
+  try {
+    const decodedMessage = FRMSMessage.decode(buffer);
+    const objectMessage = FRMSMessage.toObject(decodedMessage);
+    return denormaliseBaseMessagePayload(objectMessage);
+  } catch {
     return undefined;
   }
 };
