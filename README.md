@@ -171,11 +171,13 @@ databaseManager = await CreateDatabaseManager(dbConfig);
 `createSafeObjectFromEndpoint` is the canonical way to read transaction payload values with schema enforcement. It resolves the endpoint schema from distributed Redis and returns a schema-constrained proxy that supports dot notation access.
 
 This access model is used to keep payload reads deterministic at runtime:
+
 - only schema-defined paths are readable,
 - reads are validated against declared types,
 - invalid access fails immediately.
 
 **Usage Example:**
+
 ```typescript
 import { createSafeObjectFromEndpoint } from '@tazama-lf/frms-coe-lib';
 
@@ -187,22 +189,26 @@ const currency = safeObject.storyamount.currency;
 ```
 
 **EndpointPath Contract:**
+
 - `endpointPath` must match the schema cache key exactly.
 - Format is slash-separated with a leading slash (for example `/tenant/version/domain/messageType`).
 - Matching is case-sensitive and punctuation-sensitive.
 
 **Runtime Guarantees (Fail-Fast):**
+
 - Missing schema cache entry throws.
 - Inactive schema (`publishing_status !== 'active'`) throws.
 - Access to undefined schema paths throws.
 - Type mismatches throw at read time (with supported primitive coercion where applicable).
 
 **Temporary POC Compatibility Note:**
+
 - `createSafeObjectFromEndpoint` first uses the standard `frms-coe-lib` Redis env contract.
 - If that bootstrap fails due missing coe-lib Redis env variables, it can temporarily fall back to EMS-style Redis vars (`REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, optional `REDIS_DB`, optional `REDIS_IS_CLUSTER`) for schema lookup bootstrap only.
 - This fallback is intentionally scoped to schema-safe proxy bootstrap and does not change other `frms-coe-lib` Redis/database manager behavior.
 
 **Canonical BaseMessage transaction shape (non-Pacs002):**
+
 ```json
 {
   "transaction": {
