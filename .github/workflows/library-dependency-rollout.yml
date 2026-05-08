@@ -110,7 +110,7 @@ jobs:
       - name: Fetch consumer catalog
         if: steps.check_rc.outputs.skip != 'true'
         env:
-          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           HTTP_STATUS=$(curl -s -o /tmp/catalog-response.json -w "%{http_code}" \
             -H "Authorization: token ${GH_TOKEN}" \
