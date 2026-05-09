@@ -5,7 +5,7 @@ import path from 'node:path';
 import type { LogMessage as LogMessageType } from './proto/lumberjack/LogMessage';
 import type { AccountConditionResponse, EntityConditionResponse } from '../interfaces/event-flow/ConditionDetails';
 import type { AccountCondition, EntityCondition } from '../interfaces';
-import { isBaseMessageTransaction, isPacs002Transaction } from './transactionTypeGuards';
+import { isBaseMessageTransaction, isStructuredTransaction } from './transactionTypeGuards';
 
 const root = protobuf.loadSync(path.join(__dirname, '/proto/Full.proto'));
 const FRMSMessage = root.lookupType('FRMSMessage');
@@ -26,34 +26,37 @@ const normaliseBaseMessagePayload = (data: Record<string, unknown>): Record<stri
     return data;
   }
 
-  if (isPacs002Transaction(transaction)) {
+  if (isStructuredTransaction(transaction)) {
     return data;
   }
 
-  if (!isBaseMessageTransaction(transaction)) {
-    throw new Error('Non-Pacs002 transactions must include TxTp, TenantId, MsgId and Payload.');
-  }
+  if (isBaseMessageTransaction(transaction)) {
+    const payload = transaction.Payload as Record<string, unknown> | string | undefined;
+    if (payload === undefined || payload === null) {
+      return data;
+    }
 
-  const payload = transaction.Payload as Record<string, unknown> | string | undefined;
-  if (payload === undefined || payload === null) {
-    return data;
-  }
+    if (typeof payload === 'object' && 'Json' in payload) {
+      if (typeof payload.Json === 'string') {
+        return data;
+      }
+      throw new Error('Invalid BaseMessage payload: Payload.Json must be a string.');
+    }
 
-  if (typeof payload === 'object' && 'Json' in payload) {
-    return data;
-  }
+    const payloadJson = typeof payload === 'string' ? payload : JSON.stringify(payload);
 
-  const payloadJson = typeof payload === 'string' ? payload : JSON.stringify(payload);
-
-  return {
-    ...data,
-    transaction: {
-      ...transaction,
-      Payload: {
-        Json: payloadJson,
+    return {
+      ...data,
+      transaction: {
+        ...transaction,
+        Payload: {
+          Json: payloadJson,
+        },
       },
-    },
-  };
+    };
+  }
+
+  throw new Error('Unrecognised transaction: must be a supported structured type or a valid BaseMessage.');
 };
 
 const denormaliseBaseMessagePayload = (data: Record<string, unknown>): Record<string, unknown> => {
@@ -62,35 +65,32 @@ const denormaliseBaseMessagePayload = (data: Record<string, unknown>): Record<st
     return data;
   }
 
-  if (isPacs002Transaction(transaction)) {
-    return data;
+  if (isBaseMessageTransaction(transaction)) {
+    const payload = transaction.Payload as Record<string, unknown> | undefined;
+    if (!payload) {
+      return data;
+    }
+
+    const payloadJson = payload.Json;
+    if (typeof payloadJson !== 'string') {
+      return data;
+    }
+
+    try {
+      const parsedPayload = JSON.parse(payloadJson) as unknown;
+      return {
+        ...data,
+        transaction: {
+          ...transaction,
+          Payload: parsedPayload,
+        },
+      };
+    } catch {
+      return data;
+    }
   }
 
-  const payload = transaction.Payload as Record<string, unknown> | undefined;
-  if (!payload) {
-    return data;
-  }
-
-  const payloadJson = payload.Json;
-  if (typeof payloadJson !== 'string') {
-    return data;
-  }
-
-  try {
-    const parsedPayload = JSON.parse(payloadJson) as unknown;
-    return {
-      ...data,
-      transaction: {
-        ...transaction,
-        Payload: parsedPayload,
-      },
-    };
-  } catch {
-    return {
-      ...data,
-      transaction,
-    };
-  }
+  return data;
 };
 
 /**
