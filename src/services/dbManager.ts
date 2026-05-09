@@ -133,7 +133,7 @@ export async function CreateStorageManager<T extends ManagerConfig>(
     } else if (currentStorage === Cache.LOCAL) {
       config = { ...config, ...validateLocalCacheConfig() };
     } else {
-      config = { ...config, ...validateDatabaseConfig(requireAuth, currentStorage as Database) };
+      config = { ...config, ...validateDatabaseConfig(requireAuth, currentStorage) };
     }
   }
 

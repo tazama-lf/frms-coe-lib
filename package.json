@@ -1,6 +1,6 @@
 {
   "name": "@tazama-lf/frms-coe-lib",
-  "version": "8.0.0-rc.1",
+  "version": "8.0.0-rc.2",
   "description": "Tazama package library",
   "main": "lib/index.js",
   "repository": {
@@ -16,7 +16,7 @@
   },
   "scripts": {
     "build": "npx rimraf lib && tsc --project tsconfig.json && copyfiles src/helpers/proto/*.proto lib/helpers/proto -f",
-    "publish:dev": "npm publish --tag psl",
+    "publish:dev": "npm publish --tag rc",
     "test": "jest --config=jest.config.ts --passWithNoTests",
     "clean": "npx rimraf lib node_modules coverage package-lock.json",
     "fix": "npm run fix:prettier && npm run fix:eslint",
@@ -44,8 +44,8 @@
     "pg-format": "^1.0.4",
     "pino": "^9.9.0",
     "pino-elasticsearch": "^8.1.0",
-    "protobufjs": "^7.5.4",
-    "uuid": "^11.1.0"
+    "protobufjs": "^7.5.5",
+    "uuid": "^11.1.1"
   },
   "keywords": [],
   "author": "Tazama.org",

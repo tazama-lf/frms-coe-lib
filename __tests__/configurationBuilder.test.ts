@@ -71,8 +71,8 @@ describe('ConfigurationBuilder', () => {
 
       expect(result).toEqual(mockRows);
       expect(mockQuery).toHaveBeenCalledWith({
-        text: expect.stringContaining('STATUS_08_DEPLOYED'),
-        values: [],
+        text: expect.stringContaining('$1'),
+        values: ['STATUS_08_DEPLOYED', 'STATUS_06_EXPORTED', 'STATUS_04_APPROVED', 'active'],
       });
     });
 

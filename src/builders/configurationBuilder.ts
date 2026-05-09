@@ -125,8 +125,8 @@ export async function configurationBuilder(
 
   manager.getDefaultPushJob = async (): Promise<Array<Record<string, unknown>>> => {
     const query: PgQueryConfig = {
-      text: "SELECT * FROM tcs_push_jobs WHERE status IN('STATUS_08_DEPLOYED', 'STATUS_06_EXPORTED','STATUS_04_APPROVED') AND publishing_status = 'active'",
-      values: [],
+      text: 'SELECT * FROM tcs_push_jobs WHERE status IN($1, $2, $3) AND publishing_status = $4',
+      values: ['STATUS_08_DEPLOYED', 'STATUS_06_EXPORTED', 'STATUS_04_APPROVED', 'active'],
     };
 
     const queryRes = await manager._configuration.query<Record<string, unknown>>(query);
