@@ -11,7 +11,14 @@ import { LoggerService } from './services/logger';
 import { RedisService } from './services/redis';
 import type { EnrichmentDB } from './interfaces/database/EnrichmentDB';
 import { createSafeObjectFromEndpoint } from './helpers/safeObjectFromSchema';
-import { isBaseMessageTransaction, isPacs002Transaction } from './helpers/transactionTypeGuards';
+import {
+  isBaseMessageTransaction,
+  isPacs002Transaction,
+  isStructuredTransaction,
+  isPacs008Transaction,
+  isPain001Transaction,
+  isPain013Transaction,
+} from './helpers/transactionTypeGuards';
 
 export {
   CreateDatabaseManager,
@@ -20,6 +27,10 @@ export {
   createSafeObjectFromEndpoint,
   isPacs002Transaction,
   isBaseMessageTransaction,
+  isStructuredTransaction,
+  isPacs008Transaction,
+  isPain001Transaction,
+  isPain013Transaction,
   validateTableName,
   type ConfigurationDB,
   type DatabaseManagerInstance,
