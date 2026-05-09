@@ -16,7 +16,7 @@
   },
   "scripts": {
     "build": "npx rimraf lib && tsc --project tsconfig.json && copyfiles src/helpers/proto/*.proto lib/helpers/proto -f",
-    "publish:dev": "npm publish --tag psl",
+    "publish:dev": "npm publish --tag rc",
     "test": "jest --config=jest.config.ts --passWithNoTests",
     "clean": "npx rimraf lib node_modules coverage package-lock.json",
     "fix": "npm run fix:prettier && npm run fix:eslint",
