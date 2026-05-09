@@ -15,7 +15,7 @@ export const isPacs002Transaction = (transaction: unknown): transaction is Pacs0
     return false;
   }
 
-  if (!isString(transaction.TxTp) || !isString(transaction.TenantId)) {
+  if (transaction.TxTp !== 'pacs.002.001.12' || !isString(transaction.TenantId)) {
     return false;
   }
 
@@ -36,7 +36,7 @@ export const isPacs008Transaction = (transaction: unknown): transaction is Pacs0
     return false;
   }
 
-  if (!isString(transaction.TxTp) || !isString(transaction.TenantId)) {
+  if (transaction.TxTp !== 'pacs.008.001.10' || !isString(transaction.TenantId)) {
     return false;
   }
 
@@ -57,7 +57,7 @@ export const isPain001Transaction = (transaction: unknown): transaction is Pain0
     return false;
   }
 
-  if (!isString(transaction.TxTp) || !isString(transaction.TenantId)) {
+  if (transaction.TxTp !== 'pain.001.001.11' || !isString(transaction.TenantId)) {
     return false;
   }
 
@@ -78,7 +78,7 @@ export const isPain013Transaction = (transaction: unknown): transaction is Pain0
     return false;
   }
 
-  if (!isString(transaction.TxTp) || !isString(transaction.TenantId)) {
+  if (transaction.TxTp !== 'pain.013.001.09' || !isString(transaction.TenantId)) {
     return false;
   }
 

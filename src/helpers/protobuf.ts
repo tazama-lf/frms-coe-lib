@@ -37,7 +37,10 @@ const normaliseBaseMessagePayload = (data: Record<string, unknown>): Record<stri
     }
 
     if (typeof payload === 'object' && 'Json' in payload) {
-      return data;
+      if (typeof payload.Json === 'string') {
+        return data;
+      }
+      throw new Error('Invalid BaseMessage payload: Payload.Json must be a string.');
     }
 
     const payloadJson = typeof payload === 'string' ? payload : JSON.stringify(payload);

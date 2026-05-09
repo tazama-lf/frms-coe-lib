@@ -57,6 +57,10 @@ describe('isPacs002Transaction', () => {
     expect(isPacs002Transaction(pacs002)).toBe(true);
   });
 
+  test('returns false when TxTp does not match literal', () => {
+    expect(isPacs002Transaction({ ...pacs002, TxTp: 'fable.003' })).toBe(false);
+  });
+
   test('returns false for other ISO types', () => {
     expect(isPacs002Transaction(pacs008)).toBe(false);
     expect(isPacs002Transaction(pain001)).toBe(false);
@@ -71,6 +75,10 @@ describe('isPacs002Transaction', () => {
 describe('isPacs008Transaction', () => {
   test('returns true for Pacs008 shape', () => {
     expect(isPacs008Transaction(pacs008)).toBe(true);
+  });
+
+  test('returns false when TxTp does not match literal', () => {
+    expect(isPacs008Transaction({ ...pacs008, TxTp: 'fable.003' })).toBe(false);
   });
 
   test('returns false for other ISO types', () => {
@@ -89,6 +97,10 @@ describe('isPain001Transaction', () => {
     expect(isPain001Transaction(pain001)).toBe(true);
   });
 
+  test('returns false when TxTp does not match literal', () => {
+    expect(isPain001Transaction({ ...pain001, TxTp: 'fable.003' })).toBe(false);
+  });
+
   test('returns false for other ISO types', () => {
     expect(isPain001Transaction(pacs002)).toBe(false);
     expect(isPain001Transaction(pacs008)).toBe(false);
@@ -103,6 +115,10 @@ describe('isPain001Transaction', () => {
 describe('isPain013Transaction', () => {
   test('returns true for Pain013 shape', () => {
     expect(isPain013Transaction(pain013)).toBe(true);
+  });
+
+  test('returns false when TxTp does not match literal', () => {
+    expect(isPain013Transaction({ ...pain013, TxTp: 'fable.003' })).toBe(false);
   });
 
   test('returns false for other ISO types', () => {
