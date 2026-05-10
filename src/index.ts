@@ -51,3 +51,12 @@ export {
 };
 
 export type * from './interfaces';
+export {
+  OutcomeResultSchema,
+  BandSchema,
+  ExpressionSchema,
+  CaseSchema,
+  TimeframeSchema,
+  baseConfigSchema,
+  baseRuleConfigSchema,
+} from './schemas/ruleConfig';
