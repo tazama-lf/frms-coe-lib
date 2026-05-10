@@ -338,6 +338,23 @@ The ManagerConfig interface allows you to define which databases and services yo
 - **Configuration Database**: Store and retrieve application configurations. `Optional`
 - **Redis Cache**: Use Redis for caching to improve performance. `Optional`
 - **Local Cache**: Option for using local cache (Node cache) to improve performance. `Optional` Note: This object is heavily used by configuration builder
+- **Hooks**: Optional lifecycle callbacks for the configuration database. Currently supports `onConfigLoaded`, which fires once per unique rule config key after a successful DB fetch and before the result is stored in local cache. Use this to validate or reject a config at load time rather than on every transaction. If the callback throws, the config is not cached and the error propagates to the caller.
+
+**Hooks usage example:**
+
+```typescript
+import { CreateStorageManager, type DatabaseManagerHooks } from '@tazama-lf/frms-coe-lib';
+
+const hooks: DatabaseManagerHooks = {
+  onConfigLoaded: (config) => {
+    if (!config.config?.bands?.length) {
+      throw new Error('Invalid config - bands not provided');
+    }
+  },
+};
+
+const { db } = await CreateStorageManager([Database.CONFIGURATION], false, hooks);
+```
 
 ### Usage Example
 The JSON object example for dbManage configuration
