@@ -5,7 +5,6 @@ import {
   OutcomeResultSchema,
   ExpressionSchema,
   CaseSchema,
-  TimeframeSchema,
   baseConfigSchema,
 } from '../src/schemas/ruleConfig';
 
@@ -34,7 +33,6 @@ describe('baseRuleConfigSchema', () => {
           { subRuleRef: '.01', reason: 'Low', upperLimit: 10 },
           { subRuleRef: '.02', reason: 'High', lowerLimit: 10 },
         ],
-        timeframes: [{ threshold: 3600 }],
       },
     };
     expect(() => baseRuleConfigSchema.parse(full)).not.toThrow();
@@ -123,20 +121,6 @@ describe('CaseSchema', () => {
   });
 });
 
-describe('TimeframeSchema', () => {
-  it('should accept valid timeframe', () => {
-    expect(() => TimeframeSchema.parse({ threshold: 3600 })).not.toThrow();
-  });
-
-  it('should reject non-numeric threshold', () => {
-    expect(() => TimeframeSchema.parse({ threshold: 'one hour' })).toThrow();
-  });
-
-  it('should reject missing threshold', () => {
-    expect(() => TimeframeSchema.parse({})).toThrow();
-  });
-});
-
 describe('baseConfigSchema', () => {
   it('should accept empty config', () => {
     expect(() => baseConfigSchema.parse({})).not.toThrow();
@@ -149,7 +133,6 @@ describe('baseConfigSchema', () => {
         exitConditions: [{ subRuleRef: '.x00', reason: 'Exit' }],
         bands: [{ subRuleRef: '.01', reason: 'Low', upperLimit: 10 }],
         cases: { expressions: [], alternative: { subRuleRef: '.00', reason: 'Default' } },
-        timeframes: [{ threshold: 3600 }],
       }),
     ).not.toThrow();
   });

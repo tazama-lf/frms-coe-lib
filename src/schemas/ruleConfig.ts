@@ -21,16 +21,11 @@ export const CaseSchema = z.object({
   alternative: OutcomeResultSchema,
 });
 
-export const TimeframeSchema = z.object({
-  threshold: z.number(),
-});
-
 export const baseConfigSchema = z.object({
   parameters: z.record(z.union([z.string(), z.number()]), z.unknown()).optional(),
   exitConditions: z.array(OutcomeResultSchema).optional(),
   bands: z.array(BandSchema).optional(),
   cases: CaseSchema.optional(),
-  timeframes: z.array(TimeframeSchema).optional(),
 });
 
 export const baseRuleConfigSchema = z.object({

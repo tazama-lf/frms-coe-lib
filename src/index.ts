@@ -56,7 +56,6 @@ export {
   BandSchema,
   ExpressionSchema,
   CaseSchema,
-  TimeframeSchema,
   baseConfigSchema,
   baseRuleConfigSchema,
 } from './schemas/ruleConfig';
