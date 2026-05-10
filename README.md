@@ -344,6 +344,7 @@ The ManagerConfig interface allows you to define which databases and services yo
 
 ```typescript
 import { CreateStorageManager, type DatabaseManagerHooks } from '@tazama-lf/frms-coe-lib';
+import { Database } from '@tazama-lf/frms-coe-lib/lib/config/database.config';
 
 const hooks: DatabaseManagerHooks = {
   onConfigLoaded: (config) => {
