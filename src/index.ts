@@ -6,7 +6,13 @@ import type { PgQueryConfig } from './builders/utils';
 import { validateTableName } from './builders/utils';
 import type { EvaluationDB } from './interfaces/database/EvaluationDB';
 import type { RawHistoryDB } from './interfaces/database/RawHistoryDB';
-import { CreateDatabaseManager, type DatabaseManagerInstance, type ManagerConfig } from './services/dbManager';
+import {
+  CreateDatabaseManager,
+  CreateStorageManager,
+  type DatabaseManagerHooks,
+  type DatabaseManagerInstance,
+  type ManagerConfig,
+} from './services/dbManager';
 import { LoggerService } from './services/logger';
 import { RedisService } from './services/redis';
 import type { EnrichmentDB } from './interfaces/database/EnrichmentDB';
@@ -22,6 +28,7 @@ import {
 
 export {
   CreateDatabaseManager,
+  CreateStorageManager,
   LoggerService,
   RedisService,
   createSafeObjectFromEndpoint,
@@ -33,6 +40,7 @@ export {
   isPain013Transaction,
   validateTableName,
   type ConfigurationDB,
+  type DatabaseManagerHooks,
   type DatabaseManagerInstance,
   type ManagerConfig,
   type PgQueryConfig,
@@ -43,3 +51,11 @@ export {
 };
 
 export type * from './interfaces';
+export {
+  OutcomeResultSchema,
+  BandSchema,
+  ExpressionSchema,
+  CaseSchema,
+  baseConfigSchema,
+  baseRuleConfigSchema,
+} from './schemas/ruleConfig';

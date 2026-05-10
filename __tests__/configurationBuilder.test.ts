@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { configurationBuilder } from '../src/builders/configurationBuilder';
+import type { RuleConfig } from '../src/interfaces';
 import type { ConfigurationDB, DBConfig } from '../src/services/dbManager';
 
 // redis and postgres are mocked in setup.jest.js
@@ -164,6 +165,75 @@ describe('ConfigurationBuilder', () => {
       jest.spyOn(manager._configuration, 'query').mockRejectedValue(mockError as never);
 
       await expect(manager.insertJobHistory('tenant1', 'job1', 10, 5, null, 'push')).rejects.toThrow('Query execution failed');
+    });
+  });
+
+  describe('getRuleConfig - onConfigLoaded callback', () => {
+    const mockRuleConfig: RuleConfig = {
+      id: '001@1.0.0',
+      cfg: '1.0.0',
+      tenantId: 'DEFAULT',
+      desc: 'Test rule config',
+      config: {
+        parameters: {},
+        exitConditions: [],
+        bands: [],
+      },
+    };
+
+    it('should invoke onConfigLoaded with the fetched config on a cache miss', async () => {
+      const onConfigLoaded = jest.fn();
+      await configurationBuilder(manager, configurationConfig, { localCacheEnabled: true }, onConfigLoaded);
+      jest.spyOn(manager._configuration, 'query').mockResolvedValue({ rows: [{ configuration: mockRuleConfig }] } as never);
+
+      const result = await manager.getRuleConfig('001', '1.0.0', 'DEFAULT');
+
+      expect(onConfigLoaded).toHaveBeenCalledTimes(1);
+      expect(onConfigLoaded).toHaveBeenCalledWith(mockRuleConfig);
+      expect(result).toEqual(mockRuleConfig);
+    });
+
+    it('should not invoke onConfigLoaded on a cache hit', async () => {
+      const onConfigLoaded = jest.fn();
+      await configurationBuilder(manager, configurationConfig, { localCacheEnabled: true }, onConfigLoaded);
+      jest.spyOn(manager._configuration, 'query').mockResolvedValue({ rows: [{ configuration: mockRuleConfig }] } as never);
+
+      // First call - cache miss, populates cache
+      await manager.getRuleConfig('001', '1.0.0', 'DEFAULT');
+      onConfigLoaded.mockClear();
+
+      // Second call - cache hit
+      const result = await manager.getRuleConfig('001', '1.0.0', 'DEFAULT');
+
+      expect(onConfigLoaded).not.toHaveBeenCalled();
+      expect(result).toEqual(mockRuleConfig);
+    });
+
+    it('should not cache the config and should propagate the error when onConfigLoaded throws', async () => {
+      const validationError = new Error('Invalid config - bands not provided');
+      const onConfigLoaded = jest.fn().mockImplementation(() => {
+        throw validationError;
+      });
+      await configurationBuilder(manager, configurationConfig, { localCacheEnabled: true }, onConfigLoaded);
+      jest.spyOn(manager._configuration, 'query').mockResolvedValue({ rows: [{ configuration: mockRuleConfig }] } as never);
+
+      // First call - throws from onConfigLoaded
+      await expect(manager.getRuleConfig('001', '1.0.0', 'DEFAULT')).rejects.toThrow('Invalid config - bands not provided');
+
+      // Second call - cache miss again (bad config was never stored)
+      onConfigLoaded.mockReset();
+      jest.spyOn(manager._configuration, 'query').mockResolvedValue({ rows: [{ configuration: mockRuleConfig }] } as never);
+      await manager.getRuleConfig('001', '1.0.0', 'DEFAULT');
+      expect(onConfigLoaded).toHaveBeenCalledTimes(1);
+    });
+
+    it('should work as before when no onConfigLoaded callback is provided', async () => {
+      await configurationBuilder(manager, configurationConfig, { localCacheEnabled: true });
+      jest.spyOn(manager._configuration, 'query').mockResolvedValue({ rows: [{ configuration: mockRuleConfig }] } as never);
+
+      const result = await manager.getRuleConfig('001', '1.0.0', 'DEFAULT');
+
+      expect(result).toEqual(mockRuleConfig);
     });
   });
 });

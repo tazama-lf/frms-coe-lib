@@ -1,6 +1,6 @@
 {
   "name": "@tazama-lf/frms-coe-lib",
-  "version": "8.0.0-rc.3",
+  "version": "8.0.0-rc.5",
   "description": "Tazama package library",
   "main": "lib/index.js",
   "repository": {
@@ -45,7 +45,8 @@
     "pino": "^9.9.0",
     "pino-elasticsearch": "^8.1.0",
     "protobufjs": "^7.5.5",
-    "uuid": "^11.1.1"
+    "uuid": "^11.1.1",
+    "zod": "^4.4.3"
   },
   "keywords": [],
   "author": "Tazama.org",

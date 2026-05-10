@@ -10,13 +10,18 @@ import { redisBuilder } from '../builders/redisBuilder';
 import { type Database, validateDatabaseConfig } from '../config/database.config';
 import { validateLocalCacheConfig } from '../config/index';
 import { Cache, validateRedisConfig } from '../config/redis.config';
-import type { RedisConfig } from '../interfaces';
+import type { RedisConfig, RuleConfig } from '../interfaces';
+
 import type { ConfigurationDB } from '../interfaces/database/ConfigurationDB';
 import type { EvaluationDB } from '../interfaces/database/EvaluationDB';
 import type { EventHistoryDB } from '../interfaces/database/EventHistoryDB';
 import type { RawHistoryDB } from '../interfaces/database/RawHistoryDB';
 import { enrichmentBuilder } from '../builders/enrichmentBuilder';
 import type { EnrichmentDB } from '../interfaces/database/EnrichmentDB';
+
+export interface DatabaseManagerHooks {
+  onConfigLoaded?: (config: RuleConfig) => void;
+}
 
 export let readyChecks: Record<string, unknown> = {};
 
@@ -74,7 +79,10 @@ type DatabaseManagerInstance<T extends ManagerConfig> = ManagerStatus &
  * @param {T} config ManagerStatus | RedisService | EventHistoryDB | RawHistoryDB | ConfigurationDB
  * @return {*}  {Promise<DatabaseManagerInstance<T>>}
  */
-export async function CreateDatabaseManager<T extends ManagerConfig>(config: T): Promise<DatabaseManagerInstance<T>> {
+export async function CreateDatabaseManager<T extends ManagerConfig>(
+  config: T,
+  hooks?: DatabaseManagerHooks,
+): Promise<DatabaseManagerInstance<T>> {
   const manager: DatabaseManagerType = {};
   readyChecks = {};
   const redis = config.redisConfig ? await redisBuilder(manager, config.redisConfig) : null;
@@ -92,7 +100,7 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
   }
 
   if (config.configuration) {
-    await configurationBuilder(manager as ConfigurationDB, config.configuration, config.localCacheConfig);
+    await configurationBuilder(manager as ConfigurationDB, config.configuration, config.localCacheConfig, hooks?.onConfigLoaded);
   }
 
   if (config.enrichment) {
@@ -121,6 +129,7 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(config: T):
 export async function CreateStorageManager<T extends ManagerConfig>(
   requiredStorages: Array<Database | Cache>,
   requireAuth = false,
+  hooks?: DatabaseManagerHooks,
 ): Promise<{ db: DatabaseManagerInstance<T>; config: ManagerConfig }> {
   let config: ManagerConfig = {};
 
@@ -138,7 +147,7 @@ export async function CreateStorageManager<T extends ManagerConfig>(
   }
 
   if (!Object.values(config).every((value) => value === undefined)) {
-    return { db: (await CreateDatabaseManager(config)) as DatabaseManagerInstance<T>, config };
+    return { db: (await CreateDatabaseManager(config, hooks)) as DatabaseManagerInstance<T>, config };
   } else {
     throw Error('Configuration supplied to Database manager was not valid.');
   }

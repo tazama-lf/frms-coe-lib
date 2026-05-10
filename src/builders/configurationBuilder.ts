@@ -15,6 +15,7 @@ export async function configurationBuilder(
   manager: ConfigurationDB,
   configurationConfig: DBConfig,
   cacheConfig?: LocalCacheConfig,
+  onConfigLoaded?: (config: RuleConfig) => void,
 ): Promise<void> {
   const conf: PoolConfig = {
     host: configurationConfig.host,
@@ -63,8 +64,11 @@ export async function configurationBuilder(
     const queryRes = await manager._configuration.query<{ configuration: RuleConfig }>(query);
 
     const toReturn = queryRes.rows.length > 0 ? queryRes.rows[0].configuration : undefined;
-    if (toReturn && manager.nodeCache) {
-      manager.nodeCache.set(cacheKey, toReturn, cacheConfig?.localCacheTTL ?? 3000);
+    if (toReturn) {
+      onConfigLoaded?.(toReturn);
+      if (manager.nodeCache) {
+        manager.nodeCache.set(cacheKey, toReturn, cacheConfig?.localCacheTTL ?? 3000);
+      }
     }
     return toReturn;
   };
