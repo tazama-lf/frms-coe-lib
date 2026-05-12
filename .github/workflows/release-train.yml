@@ -1,0 +1,262 @@
+# SPDX-License-Identifier: Apache-2.0
+
+# Prepares and opens a release PR from dev → main for a library package.
+#
+# Usage: trigger manually from the dev branch with the target stable version.
+#   - The version input MUST be a clean semver (e.g. "4.0.0") with no prerelease suffix.
+#   - The workflow resolves all internal rc dependencies to their stable equivalents,
+#     regenerates package-lock.json, commits via the GitHub API (producing a Verified
+#     commit that satisfies branch protection), and opens a PR → main for review.
+#   - After the PR is reviewed and merged, publish.yml fires automatically on push: main
+#     and publishes the package under the 'latest' dist-tag.
+#
+# Dependency resolution rules:
+#   Pinned rc    (e.g. "7.0.2-rc.2")       → replace with npm dist-tags.latest; fail if not stable
+#   Range with rc (e.g. "^4.0.0-rc.4")     → strip prerelease from base → "^4.0.0"; fail if latest < base
+#   Pinned stable / range stable            → leave unchanged
+#
+# Please do not attempt to edit this flow without the direct consent from the DevOps team.
+# This file is managed centrally.
+
+name: Release train
+
+permissions:
+  contents: write
+  pull-requests: write
+
+# checkov:skip=CKV_GHA_7:Release train is operator-controlled; version input is validated and
+# only determines the release branch name / package.json version - not the build artifact source.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Target stable version (e.g. 4.0.0) - must not contain a prerelease suffix'
+        required: true
+        type: string
+
+jobs:
+  prepare-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      VERSION_INPUT: ${{ inputs.version }}
+
+    steps:
+      - name: Validate version input
+        run: |
+          VERSION="$VERSION_INPUT"
+          if [[ "$VERSION" == *-* ]]; then
+            echo "❌ Version input '$VERSION' contains a prerelease suffix."
+            echo "   Provide a clean semver (e.g. 4.0.0), not a prerelease."
+            exit 1
+          fi
+          # Basic semver format check: X.Y.Z
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Version input '$VERSION' is not a valid semver (expected X.Y.Z)."
+            exit 1
+          fi
+          echo "✅ Version input '$VERSION' is valid."
+
+      - name: Checkout dev branch
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          ref: dev
+          token: ${{ secrets.GH_TOKEN_LIB }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f  # v6.3.0
+        with:
+          node-version: '22'
+          registry-url: 'https://npm.pkg.github.com/'
+          scope: '@tazama-lf'
+
+      - name: Add @frmscoe registry scope
+        run: echo "@frmscoe:registry=https://npm.pkg.github.com/" >> ~/.npmrc
+
+      - name: Resolve internal rc dependencies to stable
+        id: resolve_deps
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN_LIB }}
+        run: |
+          CHANGED=0
+          PKG=$(cat package.json)
+
+          # Process both dependencies and devDependencies
+          for DEP_FIELD in dependencies devDependencies peerDependencies; do
+            # Get all @tazama-lf and @frmscoe keys in this field
+            KEYS=$(echo "$PKG" | jq -r ".${DEP_FIELD} // {} | keys[]" | grep -E '^@(tazama-lf|frmscoe)/' || true)
+            for KEY in $KEYS; do
+              CURRENT=$(echo "$PKG" | jq -r ".${DEP_FIELD}[\"${KEY}\"]")
+              echo "Checking $KEY = $CURRENT"
+
+              # Detect pinned rc: X.Y.Z-rc.N (no leading ^ or ~)
+              if [[ "$CURRENT" =~ ^[0-9]+\.[0-9]+\.[0-9]+-[a-zA-Z] ]]; then
+                LATEST=$(npm view "${KEY}" dist-tags.latest 2>/dev/null || true)
+                if [ -z "$LATEST" ]; then
+                  echo "❌ Cannot resolve stable version for ${KEY} (pinned rc: ${CURRENT})"
+                  exit 1
+                fi
+                if [[ "$LATEST" == *-* ]]; then
+                  echo "❌ ${KEY}@latest is '${LATEST}' (still a prerelease). Publish stable first."
+                  exit 1
+                fi
+                echo "  → $KEY: $CURRENT → $LATEST"
+                PKG=$(echo "$PKG" | jq ".${DEP_FIELD}[\"${KEY}\"] = \"${LATEST}\"")
+                CHANGED=1
+
+              # Detect range with rc prefix: ^X.Y.Z-rc.N or ~X.Y.Z-rc.N
+              elif [[ "$CURRENT" =~ ^[\^~][0-9]+\.[0-9]+\.[0-9]+-[a-zA-Z] ]]; then
+                RANGE_CHAR="${CURRENT:0:1}"
+                BASE="${CURRENT:1}"
+                STABLE_BASE="${BASE%%-*}"  # strip -rc.N from base
+                LATEST=$(npm view "${KEY}" dist-tags.latest 2>/dev/null || true)
+                if [ -z "$LATEST" ]; then
+                  echo "❌ Cannot resolve stable version for ${KEY} (range with rc: ${CURRENT})"
+                  exit 1
+                fi
+                if [[ "$LATEST" == *-* ]]; then
+                  echo "❌ ${KEY}@latest is '${LATEST}' (still a prerelease). Publish stable first."
+                  exit 1
+                fi
+                NEW_RANGE="${RANGE_CHAR}${STABLE_BASE}"
+                echo "  → $KEY: $CURRENT → $NEW_RANGE"
+                PKG=$(echo "$PKG" | jq ".${DEP_FIELD}[\"${KEY}\"] = \"${NEW_RANGE}\"")
+                CHANGED=1
+
+              else
+                echo "  ✅ $KEY: $CURRENT (no change needed)"
+              fi
+            done
+          done
+
+          # Write resolved package.json
+          echo "$PKG" | jq '.' > package.json
+
+          echo "changed=$CHANGED" >> "$GITHUB_OUTPUT"
+          echo "Dependency resolution complete (changed=$CHANGED)"
+
+      - name: Update version in package.json
+        run: |
+          VERSION="$VERSION_INPUT"
+          jq --arg v "$VERSION" '.version = $v' package.json > package.json.tmp
+          mv package.json.tmp package.json
+          echo "Version set to $VERSION"
+
+      - name: Regenerate package-lock.json
+        run: npm install --package-lock-only
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN_LIB }}
+
+      - name: Commit and push to release branch via GitHub API
+        id: push_branch
+        env:
+          GH_API_TOKEN: ${{ secrets.GH_TOKEN_LIB }}
+        run: |
+          VERSION="$VERSION_INPUT"
+          BRANCH="release/v${VERSION}"
+          REPO="${{ github.repository }}"
+          API="https://api.github.com/repos/${REPO}"
+
+          # Get current dev branch SHA to base the new branch on
+          DEV_SHA=$(curl -s -H "Authorization: Bearer $GH_API_TOKEN" \
+            "${API}/git/ref/heads/dev" | jq -r '.object.sha')
+          if [ -z "$DEV_SHA" ] || [ "$DEV_SHA" = "null" ]; then
+            echo "❌ Failed to get dev branch SHA - check API permissions"
+            exit 1
+          fi
+          echo "Dev SHA: $DEV_SHA"
+
+          # Create the release branch; if it already exists force-reset to current dev HEAD
+          # so that reruns always build from the latest dev state (not a stale branch tip)
+          CREATE_HTTP=$(curl -s -o /dev/null -w "%{http_code}" -X POST -H "Authorization: Bearer $GH_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            "${API}/git/refs" \
+            -d "{\"ref\":\"refs/heads/${BRANCH}\",\"sha\":\"${DEV_SHA}\"}")
+          if [ "$CREATE_HTTP" = "201" ]; then
+            echo "Branch $BRANCH created at $DEV_SHA"
+          else
+            echo "Branch $BRANCH already exists - force-resetting to dev HEAD ($DEV_SHA)"
+            curl -s -X PATCH -H "Authorization: Bearer $GH_API_TOKEN" \
+              -H "Content-Type: application/json" \
+              "${API}/git/refs/heads/${BRANCH}" \
+              -d "{\"sha\":\"${DEV_SHA}\",\"force\":true}" | jq -r '.ref // .message'
+          fi
+
+          # Branch is now pinned to DEV_SHA in both cases
+          BRANCH_SHA="$DEV_SHA"
+          TREE_SHA=$(curl -s -H "Authorization: Bearer $GH_API_TOKEN" \
+            "${API}/git/commits/${BRANCH_SHA}" | jq -r '.tree.sha')
+          if [ -z "$TREE_SHA" ] || [ "$TREE_SHA" = "null" ]; then
+            echo "❌ Failed to get tree SHA for commit $BRANCH_SHA"
+            exit 1
+          fi
+
+          # Build new tree with updated files
+          NEW_TREE=$(curl -s -X POST -H "Authorization: Bearer $GH_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            "${API}/git/trees" \
+            -d "{
+              \"base_tree\": \"${TREE_SHA}\",
+              \"tree\": [
+                {\"path\":\"package.json\",\"mode\":\"100644\",\"type\":\"blob\",\"content\":$(jq -Rs '.' package.json)},
+                {\"path\":\"package-lock.json\",\"mode\":\"100644\",\"type\":\"blob\",\"content\":$(jq -Rs '.' package-lock.json)}
+              ]
+            }" | jq -r '.sha')
+          if [ -z "$NEW_TREE" ] || [ "$NEW_TREE" = "null" ]; then
+            echo "❌ Failed to create new tree via GitHub API"
+            exit 1
+          fi
+          echo "New tree SHA: $NEW_TREE"
+
+          # Create commit (GitHub API produces Verified commits)
+          NEW_COMMIT=$(curl -s -X POST -H "Authorization: Bearer $GH_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            "${API}/git/commits" \
+            -d "{
+              \"message\": \"chore: prepare release v${VERSION}\n\n- Set version to ${VERSION}\n- Resolve internal rc dependencies to stable\n- Regenerate package-lock.json\",
+              \"tree\": \"${NEW_TREE}\",
+              \"parents\": [\"${BRANCH_SHA}\"]
+            }" | jq -r '.sha')
+          if [ -z "$NEW_COMMIT" ] || [ "$NEW_COMMIT" = "null" ]; then
+            echo "❌ Failed to create commit via GitHub API"
+            exit 1
+          fi
+          echo "New commit SHA: $NEW_COMMIT"
+
+          # Update the branch ref to the new commit
+          curl -s -X PATCH -H "Authorization: Bearer $GH_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            "${API}/git/refs/heads/${BRANCH}" \
+            -d "{\"sha\":\"${NEW_COMMIT}\"}" | jq -r '.ref // .message'
+
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          echo "Branch $BRANCH updated to commit $NEW_COMMIT"
+
+      - name: Open PR to main
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN_LIB }}
+          GH_USERNAME: ${{ secrets.GH_USERNAME }}
+        run: |
+          VERSION="$VERSION_INPUT"
+          BRANCH="${{ steps.push_branch.outputs.branch }}"
+
+          # Write PR body to temp file using printf to avoid heredoc/YAML conflicts
+          printf "## Release v%s\n\nThis PR was prepared automatically by release-train.yml.\n\n**Changes:**\n- Version bumped to %s\n- Internal rc dependencies resolved to stable\n- package-lock.json regenerated\n\n**After merging:**\n- publish.yml will fire on push to main and publish %s under the latest dist-tag.\n\nPlease review the dependency changes and version bump before approving.\n" \
+            "$VERSION" "$VERSION" "$VERSION" > /tmp/pr-body.md
+
+          if ! gh pr create \
+            --title "release: v${VERSION}" \
+            --body-file /tmp/pr-body.md \
+            --base main \
+            --head "$BRANCH" \
+            --reviewer "$GH_USERNAME"; then
+            EXISTING=$(gh pr list --head "$BRANCH" --base main --json number --jq '.[0].number // empty')
+            if [ -n "$EXISTING" ]; then
+              echo "PR #${EXISTING} already exists for $BRANCH - skipping."
+            else
+              echo "❌ gh pr create failed and no existing PR was found."
+              exit 1
+            fi
+          fi
