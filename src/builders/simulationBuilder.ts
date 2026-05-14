@@ -28,10 +28,10 @@ export async function simulationBuilder(manager: SimulationDB, simulationConfig:
     readyChecks.SimulationDB = `err, ${util.inspect(err)}`;
   }
 
-  manager.getSimulationMessages = async (tenantId: string): Promise<SimulationMessage[]> => {
+  manager.getSimulationMessages = async (tenantId: string, limit = 1000, offset = 0): Promise<SimulationMessage[]> => {
     const query: PgQueryConfig = {
-      text: 'SELECT message_id AS "messageId", timestamp, endpoint, data FROM simulation_message WHERE tenant_id = $1 ORDER BY timestamp ASC',
-      values: [tenantId],
+      text: 'SELECT message_id AS "messageId", timestamp, endpoint, data FROM simulation_message WHERE tenant_id = $1 ORDER BY timestamp ASC LIMIT $2 OFFSET $3',
+      values: [tenantId, limit, offset],
     };
 
     const queryRes = await manager._simulation.query<SimulationMessage>(query);
