@@ -50,6 +50,7 @@ export const getRoutesFromNetworkMap = async (
         consumers: rulesIds.map((eachRuleId) => 'pub-rule-' + eachRuleId),
       };
     case 'transaction-aggregation-decisioning-processor':
+    case 'event-adjudicator':
       return {
         consumers: typologyCfg.map((eachTypologyCfg) => 'typology-' + eachTypologyCfg),
       };
