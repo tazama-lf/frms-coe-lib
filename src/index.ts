@@ -16,6 +16,7 @@ import {
 import { LoggerService } from './services/logger';
 import { RedisService } from './services/redis';
 import type { EnrichmentDB } from './interfaces/database/EnrichmentDB';
+import type { SimulationDB } from './interfaces/database/SimulationDB';
 import { createSafeObjectFromEndpoint } from './helpers/safeObjectFromSchema';
 import {
   isBaseMessageTransaction,
@@ -48,6 +49,7 @@ export {
   type EvaluationDB,
   type RawHistoryDB,
   type EnrichmentDB,
+  type SimulationDB,
 };
 
 export type * from './interfaces';
