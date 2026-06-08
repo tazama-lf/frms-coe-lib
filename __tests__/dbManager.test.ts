@@ -567,7 +567,7 @@ describe('CreateDatabaseManager', () => {
     expect(dbManager.getTypologyConfig).toBeDefined();
     expect(dbManager.getPathPushJob).toBeDefined();
     expect(dbManager.getDefaultPushJob).toBeDefined();
-    expect(dbManager.getIdPushJob).toBeDefined();
+    expect(dbManager.getJobId).toBeDefined();
     expect(dbManager.insertJobHistory).toBeDefined();
 
     // eventHistory
