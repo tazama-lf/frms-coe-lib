@@ -9,6 +9,7 @@
   - [3. **Apm Integration**](#3-apm-integration)
   - [4. **Redis Service**](#4-redis-service)
   - [5. **Schema-Safe Dot Notation Access**](#5-schema-safe-dot-notation-access)
+  - [6. **Service-Channel Contract (CloudEvents)**](#6-service-channel-contract-cloudevents)
 - [Modules and Classes](#modules-and-classes)
 - [Configuration](#configuration)
   - [Environment Variables](#environment-variables)
@@ -226,6 +227,63 @@ const currency = safeObject.storyamount.currency;
 
 For non-Pacs002 flows, `TxTp`, `TenantId`, `MsgId`, and `Payload` are required. `endpointPath` is optional and reserved for schema-driven processing.
 
+### 6. **Service-Channel Contract (CloudEvents)**
+
+The service-channel contract is the single source of truth for inter-service notifications (e.g. network-map activation). It is the [CloudEvents 1.0](https://cloudevents.io/) structured-mode JSON profile, implemented over the official `cloudevents` SDK, so the producer (admin-service) and every consumer (event-director, typology-processor, event-adjudicator) share one definition and cannot drift.
+
+The contract owns three things:
+
+- the shared `type` verb enum (reverse-DNS, past-tense, constant across deployments),
+- the `kind` map keyed by `type` (`'event' | 'command'` - `'ack'` is never a map value; it is derived from the reply subject), and
+- a thin generic `construct<T>()` wrapper plus an envelope-only `validateEnvelope()` re-check.
+
+The generic `T` parameterises the `data` payload and is compile-time only; envelope validation never inspects `data`.
+
+**Constructing and validating an event:**
+
+```typescript
+import { construct, validateEnvelope, ServiceChannelType, type NetworkMapActivatedData } from '@tazama-lf/frms-coe-lib';
+
+const event = construct<NetworkMapActivatedData>({
+  type: ServiceChannelType.NETWORK_MAP_ACTIVATED, // 'org.tazama.network-map.activated'
+  source: 'event-director',                       // the participant's '/'-free FUNCTION_NAME
+  subject: 'tenant-a/001@1.0.0',                   // the entity the event is about
+  data: { cfg: '001@1.0.0', tenantId: 'tenant-a' }, // identifier-only; consumers re-fetch the map
+});
+
+validateEnvelope(event); // true, or throws on a malformed envelope
+```
+
+`construct()` defaults `datacontenttype` to `application/json` and lets the SDK generate a fresh `id` per message. The SDK validates the envelope on build (strict mode) and throws on a malformed envelope.
+
+**Acknowledgements** are not a bespoke schema - an ack is itself a service-channel CloudEvent. It reuses the triggering message's `type`, is minted its own fresh `id`, and back-references the trigger via `data.correlationId` (the trigger's `id`) alongside the execution result:
+
+```typescript
+import { construct, type ServiceChannelAck } from '@tazama-lf/frms-coe-lib';
+
+const ack = construct<ServiceChannelAck>({
+  type: ServiceChannelType.NETWORK_MAP_ACTIVATED,
+  source: 'typology-001@1.0.0',
+  data: { correlationId: event.id, outcome: 'success' }, // error? optional on failure
+});
+```
+
+**Audience addressing** is owned by the contract: a fixed class/broadcast vocabulary plus a single, drift-proof gate. Each participant supplies only its own identity; the gate encodes the one rule - act iff `audience` is absent, `all`, the participant's class token, or its own processor name. (`audience` is reserved and not emitted on the wire in the MVP.)
+
+```typescript
+import { inAudience, SERVICE_CHANNEL_AUDIENCE } from '@tazama-lf/frms-coe-lib';
+
+const identity = { class: SERVICE_CHANNEL_AUDIENCE.TYPOLOGY_PROCESSOR, functionName: 'typology-001@1.0.0' };
+
+inAudience(undefined, identity);            // true  (broadcast)
+inAudience('all', identity);                // true
+inAudience('typology-processor', identity); // true  (class token)
+inAudience('typology-001@1.0.0', identity); // true  (own processor name)
+inAudience('event-director', identity);     // false
+```
+
+**`FUNCTION_NAME` guard:** because a participant's `FUNCTION_NAME` composes the CloudEvents `source`, it must be `/`-free. `validateFunctionName()` (also enforced by `validateProcessorConfig`) fails fast at startup when `FUNCTION_NAME` contains a `/`. Dots stay legal, so versioned names such as `typology-001@1.0.0` are accepted.
+
 ## Modules and Classes
 
 1. **ProtoBuf Module**
@@ -290,6 +348,16 @@ For non-Pacs002 flows, `TxTp`, `TenantId`, `MsgId`, and `Payload` are required. 
     - `createMessageBuffer(data: Record<string, unknown>): Buffer | undefined`: Creates a message buffer from a data object.
     - `createLogBuffer(data: Record<string, unknown>): Buffer | undefined`: Creates a log buffer from a data object.
     - `decodeLogBuffer(buffer: Buffer): LogMessageType | undefined`: Decodes a log buffer into a `LogMessageType`.
+
+7. **Service-Channel Contract**
+
+  - **Functions / Values**:
+    - `construct<T>(props): CloudEvent<T>`: Builds a service-channel CloudEvent (defaults `datacontenttype`, generates `id`, validates the envelope on build).
+    - `validateEnvelope<T>(event: CloudEvent<T>): boolean`: Envelope-only re-check via the SDK's non-generic `validate()`.
+    - `inAudience(audience: string | undefined, identity): boolean`: The drift-proof audience gate.
+    - `ServiceChannelType`: The reverse-DNS `type` verb enum.
+    - `serviceChannelKind`: The `type` -> `'event' | 'command'` map.
+    - `SERVICE_CHANNEL_AUDIENCE`: The fixed class/broadcast addressing tokens.
 
 ## Configuration
 

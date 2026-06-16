@@ -1,4 +1,4 @@
-import { validateEnvVar } from '.';
+import { validateEnvVar, validateFunctionName } from '.';
 
 /**
  * Interface representing the configuration for a processor.
@@ -57,7 +57,7 @@ export const validateProcessorConfig = (additionalEnvironmentVariables?: Additio
 
   const _processorConfig: ProcessorConfig = {
     maxCPU: parseInt(maxCPU, 10),
-    functionName: validateEnvVar('FUNCTION_NAME', 'string').toString(),
+    functionName: validateFunctionName(),
     nodeEnv,
   };
   return { ..._processorConfig, ..._additionalConfiguration };
