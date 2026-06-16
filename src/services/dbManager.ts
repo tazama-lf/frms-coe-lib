@@ -7,7 +7,7 @@ import { evaluationBuilder } from '../builders/evaluationBuilder';
 import { eventHistoryBuilder } from '../builders/eventHistoryBuilder';
 import { rawHistoryBuilder } from '../builders/rawHistoryBuilder';
 import { redisBuilder } from '../builders/redisBuilder';
-import { type Database, validateDatabaseConfig } from '../config/database.config';
+import { Database, validateDatabaseConfig } from '../config/database.config';
 import { validateLocalCacheConfig } from '../config/index';
 import { Cache, validateRedisConfig } from '../config/redis.config';
 import type { RedisConfig, RuleConfig } from '../interfaces';
@@ -18,6 +18,8 @@ import type { EventHistoryDB } from '../interfaces/database/EventHistoryDB';
 import type { RawHistoryDB } from '../interfaces/database/RawHistoryDB';
 import { enrichmentBuilder } from '../builders/enrichmentBuilder';
 import type { EnrichmentDB } from '../interfaces/database/EnrichmentDB';
+import { simulationBuilder } from '../builders/simulationBuilder';
+import type { SimulationDB } from '../interfaces/database/SimulationDB';
 
 export interface DatabaseManagerHooks {
   onConfigLoaded?: (config: RuleConfig) => void;
@@ -47,6 +49,7 @@ interface ManagerConfig {
   redisConfig?: RedisConfig;
   localCacheConfig?: LocalCacheConfig;
   enrichment?: DBConfig;
+  simulation?: DBConfig;
 }
 
 interface ManagerStatus {
@@ -60,7 +63,7 @@ interface ManagerStatus {
 }
 
 export type DatabaseManagerType = Partial<
-  ManagerStatus & EventHistoryDB & RawHistoryDB & EvaluationDB & ConfigurationDB & EnrichmentDB & RedisService
+  ManagerStatus & EventHistoryDB & RawHistoryDB & EvaluationDB & ConfigurationDB & EnrichmentDB & SimulationDB & RedisService
 >;
 
 type DatabaseManagerInstance<T extends ManagerConfig> = ManagerStatus &
@@ -69,6 +72,7 @@ type DatabaseManagerInstance<T extends ManagerConfig> = ManagerStatus &
   (T extends { evaluation: DBConfig } ? EvaluationDB : Record<string, unknown>) &
   (T extends { configuration: DBConfig } ? ConfigurationDB : Record<string, unknown>) &
   (T extends { enrichment: DBConfig } ? EnrichmentDB : Record<string, unknown>) &
+  (T extends { simulation: DBConfig } ? SimulationDB : Record<string, unknown>) &
   (T extends { redisConfig: RedisConfig } ? RedisService : Record<string, unknown>);
 
 /**
@@ -107,6 +111,10 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(
     await enrichmentBuilder(manager as EnrichmentDB, config.enrichment);
   }
 
+  if (config.simulation) {
+    await simulationBuilder(manager as SimulationDB, config.simulation);
+  }
+
   manager.isReadyCheck = () => readyChecks;
 
   manager.quit = () => {
@@ -116,6 +124,7 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(
     manager._rawHistory?.end();
     manager._evaluation?.end();
     manager._enrichment?.end();
+    manager._simulation?.end();
   };
 
   if (Object.values(readyChecks).some((status) => status !== 'Ok')) {
@@ -141,6 +150,8 @@ export async function CreateStorageManager<T extends ManagerConfig>(
       config = { ...config, ...validateRedisConfig(requireAuth) };
     } else if (currentStorage === Cache.LOCAL) {
       config = { ...config, ...validateLocalCacheConfig() };
+    } else if (currentStorage === Database.SIMULATION && !process.env.SIMULATION_DATABASE) {
+      // SIMULATION_DATABASE is optional - skip silently if not configured
     } else {
       config = { ...config, ...validateDatabaseConfig(requireAuth, currentStorage) };
     }
@@ -153,4 +164,13 @@ export async function CreateStorageManager<T extends ManagerConfig>(
   }
 }
 
-export type { ConfigurationDB, DatabaseManagerInstance, EvaluationDB, EventHistoryDB, EnrichmentDB, ManagerConfig, RawHistoryDB };
+export type {
+  ConfigurationDB,
+  DatabaseManagerInstance,
+  EvaluationDB,
+  EventHistoryDB,
+  EnrichmentDB,
+  SimulationDB,
+  ManagerConfig,
+  RawHistoryDB,
+};
