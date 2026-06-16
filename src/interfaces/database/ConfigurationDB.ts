@@ -59,7 +59,7 @@ export interface ConfigurationDB {
    *
    * @memberof ConfigurationDB
    */
-  getIdPushJob: (type: 'push' | 'pull', id: string) => Promise<Record<string, unknown> | undefined>;
+  getJobId: (type: 'push' | 'pull', id: string, tenantId: string) => Promise<Record<string, unknown> | undefined>;
 
   /**
    * @param {string} tenantId tenant identifier

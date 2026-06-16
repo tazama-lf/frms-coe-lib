@@ -86,40 +86,40 @@ describe('ConfigurationBuilder', () => {
     });
   });
 
-  describe('getIdPushJob', () => {
+  describe('getJobId', () => {
     beforeEach(async () => {
       await configurationBuilder(manager, configurationConfig);
     });
 
     it('should query tcs_push_jobs when type is "push" and return first row', async () => {
-      const mockRow = { id: 'push-1', name: 'test-push-job' };
+      const mockRow = { id: 'push-1', name: 'test-push-job', tenantId: 'default' };
       const mockQuery = jest.spyOn(manager._configuration, 'query').mockResolvedValue({ rows: [mockRow] } as never);
 
-      const result = await manager.getIdPushJob('push', 'push-1');
+      const result = await manager.getJobId('push', 'push-1', 'default');
 
       expect(result).toEqual(mockRow);
       const calledQuery = mockQuery.mock.calls[0][0] as unknown as { text: string; values: string[] };
       expect(calledQuery.text).toContain('tcs_push_jobs');
-      expect(calledQuery.values).toEqual(['push-1']);
+      expect(calledQuery.values).toEqual(['push-1', 'default']);
     });
 
     it('should query tcs_pull_jobs when type is "pull" and return first row', async () => {
-      const mockRow = { id: 'pull-1', name: 'test-pull-job', cron: '* * * * *' };
+      const mockRow = { id: 'pull-1', name: 'test-pull-job', cron: '* * * * *', tenantId: 'default' };
       const mockQuery = jest.spyOn(manager._configuration, 'query').mockResolvedValue({ rows: [mockRow] } as never);
 
-      const result = await manager.getIdPushJob('pull', 'pull-1');
+      const result = await manager.getJobId('pull', 'pull-1', 'default');
 
       expect(result).toEqual(mockRow);
       const calledQuery = mockQuery.mock.calls[0][0] as unknown as { text: string; values: string[] };
       expect(calledQuery.text).toContain('tcs_pull_jobs');
       expect(calledQuery.text).toContain('tcs_cron_jobs');
-      expect(calledQuery.values).toEqual(['pull-1']);
+      expect(calledQuery.values).toEqual(['pull-1', 'default']);
     });
 
     it('should return undefined when no rows exist for push type', async () => {
       jest.spyOn(manager._configuration, 'query').mockResolvedValue({ rows: [] } as never);
 
-      const result = await manager.getIdPushJob('push', 'nonexistent');
+      const result = await manager.getJobId('push', 'nonexistent', 'default');
 
       expect(result).toBeUndefined();
     });
@@ -127,7 +127,7 @@ describe('ConfigurationBuilder', () => {
     it('should return undefined when no rows exist for pull type', async () => {
       jest.spyOn(manager._configuration, 'query').mockResolvedValue({ rows: [] } as never);
 
-      const result = await manager.getIdPushJob('pull', 'nonexistent');
+      const result = await manager.getJobId('pull', 'nonexistent', 'default');
 
       expect(result).toBeUndefined();
     });

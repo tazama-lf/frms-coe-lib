@@ -137,13 +137,13 @@ export async function configurationBuilder(
     return queryRes.rows;
   };
 
-  manager.getIdPushJob = async (type: 'push' | 'pull', id: string): Promise<Record<string, unknown> | undefined> => {
+  manager.getJobId = async (type: 'push' | 'pull', id: string, tenantId: string): Promise<Record<string, unknown> | undefined> => {
     const text =
       type === 'push'
         ? `
           SELECT *
           FROM tcs_push_jobs
-          WHERE id = $1
+          WHERE id = $1 and tenant_id = $2
           LIMIT 1;
         `
         : `
@@ -152,13 +152,13 @@ export async function configurationBuilder(
            s.cron
             FROM tcs_pull_jobs j
              LEFT JOIN tcs_cron_jobs s ON j.schedule_id = s.id
-              WHERE j.id = $1
+              WHERE j.id = $1 and j.tenant_id = $2
                LIMIT 1;
         `;
 
     const query: PgQueryConfig = {
       text,
-      values: [id],
+      values: [id, tenantId],
     };
 
     const queryRes = await manager._configuration.query<Record<string, unknown>>(query);
