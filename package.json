@@ -59,7 +59,7 @@
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
     "ioredis-mock": "8.9.0",
-    "jest": "^30.2.0",
+    "jest": "^30.4.2",
     "lint-staged": "^16.2.3",
     "native-copyfiles": "^1.3.5",
     "prettier": "^3.6.2",
