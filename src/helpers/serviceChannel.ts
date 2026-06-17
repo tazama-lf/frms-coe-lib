@@ -56,6 +56,15 @@ export const construct = <T>(props: ServiceChannelEventProps<T>): CloudEvent<T> 
 export const validateEnvelope = <T>(event: CloudEvent<T>): boolean => event.validate();
 
 /**
+ * The symmetric decode counterpart to `construct<T>()`: reconstructs a `CloudEvent<T>` from the
+ * structured-mode JSON bytes a producer puts on the wire (`TextEncoder().encode(JSON.stringify(event))`).
+ * The SDK validates the envelope on construction (strict mode) and throws on malformed bytes or a
+ * malformed envelope. The generic `T` is compile-time only; `data` shape is never runtime-checked.
+ */
+export const deserialize = <T>(bytes: Uint8Array): CloudEvent<T> =>
+  new CloudEvent<T>(JSON.parse(new TextDecoder().decode(bytes)) as Record<string, unknown>);
+
+/**
  * The fixed class/broadcast addressing tokens owned by the contract (`all` = broadcast). The open
  * processor-name space is deployment-defined and intentionally not enumerated.
  */

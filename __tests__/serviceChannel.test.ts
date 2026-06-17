@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
+import { CloudEvent } from 'cloudevents';
+import { deserialize as deserializeFromBarrel } from '../src';
 import {
   ServiceChannelType,
   serviceChannelKind,
   construct,
   validateEnvelope,
+  deserialize,
   SERVICE_CHANNEL_AUDIENCE,
   inAudience,
 } from '../src/helpers/serviceChannel';
@@ -162,6 +165,73 @@ describe('service-channel contract', () => {
       const klass: ServiceChannelAudienceClass = 'event-director';
       expect(kind).toBe('ack');
       expect(klass).toBe('event-director');
+    });
+  });
+
+  describe('consumer deserialize<T>() boundary (#422)', () => {
+    const data: NetworkMapActivatedData = { cfg: '001@1.0.0', tenantId: 'tenant-a' };
+    const encode = (event: CloudEvent<NetworkMapActivatedData>): Uint8Array => new TextEncoder().encode(JSON.stringify(event));
+
+    test('round-trips a produced event back to an equivalent CloudEvent (the wire format admin-service publishes)', () => {
+      const original = construct<NetworkMapActivatedData>({
+        type: ServiceChannelType.NETWORK_MAP_ACTIVATED,
+        source: 'admin-service',
+        subject: 'tenant-a/001@1.0.0',
+        data,
+      });
+      const decoded = deserialize<NetworkMapActivatedData>(encode(original));
+      expect(decoded.id).toBe(original.id);
+      expect(decoded.type).toBe(original.type);
+      expect(decoded.source).toBe(original.source);
+      expect(decoded.subject).toBe(original.subject);
+      expect(decoded.datacontenttype).toBe('application/json');
+      expect(decoded.data).toEqual(data);
+    });
+
+    test('the decoded envelope passes validateEnvelope (the consumer re-check at the deserialize boundary)', () => {
+      const bytes = encode(
+        construct<NetworkMapActivatedData>({ type: ServiceChannelType.NETWORK_MAP_ACTIVATED, source: 'admin-service', data }),
+      );
+      expect(validateEnvelope(deserialize<NetworkMapActivatedData>(bytes))).toBe(true);
+    });
+
+    test('carries the data type parameter through to the decoded event', () => {
+      const bytes = encode(
+        construct<NetworkMapActivatedData>({ type: ServiceChannelType.NETWORK_MAP_ACTIVATED, source: 'admin-service', data }),
+      );
+      const decoded = deserialize<NetworkMapActivatedData>(bytes);
+      expect(decoded.data?.tenantId).toBe('tenant-a');
+      expect(decoded.data?.cfg).toBe('001@1.0.0');
+    });
+
+    test('round-trips a data-less event (data is optional in the envelope)', () => {
+      const bytes = encode(construct<NetworkMapActivatedData>({ type: ServiceChannelType.NETWORK_MAP_ACTIVATED, source: 'admin-service' }));
+      const decoded = deserialize<NetworkMapActivatedData>(bytes);
+      expect(decoded.data).toBeUndefined();
+      expect(validateEnvelope(decoded)).toBe(true);
+    });
+
+    test('throws on non-JSON wire bytes', () => {
+      const garbage = new TextEncoder().encode('not-json{');
+      expect(() => deserialize<NetworkMapActivatedData>(garbage)).toThrow();
+    });
+
+    test('throws on empty wire bytes', () => {
+      expect(() => deserialize<NetworkMapActivatedData>(new Uint8Array())).toThrow();
+    });
+
+    test('throws on valid JSON that is not an envelope object', () => {
+      const notAnObject = new TextEncoder().encode('42');
+      expect(() => deserialize<NetworkMapActivatedData>(notAnObject)).toThrow();
+    });
+
+    test('throws on a structurally malformed envelope (missing the required type)', () => {
+      const bytes = new TextEncoder().encode(JSON.stringify({ specversion: '1.0', id: 'evt-1', source: 'admin-service', data }));
+      expect(() => deserialize<NetworkMapActivatedData>(bytes)).toThrow();
+    });
+
+    test('is re-exported from the package barrel (public surface)', () => {
+      expect(deserializeFromBarrel).toBe(deserialize);
     });
   });
 });

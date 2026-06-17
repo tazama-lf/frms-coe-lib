@@ -23,6 +23,7 @@
 `frms-coe-lib` is a foundational library designed to provide common functionalities and interfaces for the FRMS (Fraud Risk Management System) ecosystem. It includes utilities, data structures, and interfaces that support various components of the system. The library offers a range of features, including database management, logging, configuration management, rule evaluation, and message handling. It serves as a core dependency for other FRMS components, providing essential building blocks and standardized approaches for handling data and interactions.
 
 Key features:
+
 - **Database Management**: Interfaces and utilities for interacting with different database systems, including Postgres and Redis.
 - **Logging**: A standardized logging interface supporting various log levels and integration with external systems.
 - **Configuration**: Tools for managing application configuration, including environment variable parsing and structured configuration objects.
@@ -32,10 +33,12 @@ Key features:
 ## Installation
 
 The npm package is hosted on GitHub. Make sure you're authenticated with GitHub and have the necessary permissions to access the package (`read:packages`). Create a [`.npmrc`](https://docs.npmjs.com/cli/v9/configuring-npm/npmrc?v=true) file if you currently do not have. Add the following content:
+
 ```.rc
 @tazama-lf:registry=https://npm.pkg.github.com
 //npm.pkg.github.com/:_authToken=some-secret
 ```
+
 Replace "some-secret" with your GitHub Token.
 
 To install the `frms-coe-lib` package, you can use npm.
@@ -52,17 +55,17 @@ The npm package is hosted on GitHub. Make sure you're authenticated with GitHub 
 
 Once installed, you can import the library in your project:
 
-  ```typescript
-  import { LoggerService, CreateDatabaseManager } from '@tazama-lf/frms-coe-lib';
-  ```
+```typescript
+import { LoggerService, CreateDatabaseManager } from '@tazama-lf/frms-coe-lib';
+```
 
 3. **Dependencies:**
 
-    Ensure that you have all required dependencies installed, including any specific versions of third-party packages mentioned in the package's peer dependencies.
+   Ensure that you have all required dependencies installed, including any specific versions of third-party packages mentioned in the package's peer dependencies.
 
 4. **Environment Configuration:**
 
-    Set up your environment configuration using a `.env` file or environment variables. Refer to the library's configuration requirements for details on necessary environment variables.
+   Set up your environment configuration using a `.env` file or environment variables. Refer to the library's configuration requirements for details on necessary environment variables.
 
 ## Usage
 
@@ -73,6 +76,7 @@ The `frms-coe-lib` library provides various functionalities for transaction moni
 The `CreateDatabaseManager` function initializes and manages connections to multiple databases, including Postgres and Redis. This function returns an instance of `DatabaseManagerInstance` which includes methods to interact with the databases.
 
 **Usage Example:**
+
 ```typescript
 import { CreateDatabaseManager, DatabaseManagerInstance } from '@tazama-lf/frms-coe-lib';
 
@@ -83,12 +87,11 @@ const dbConfig = {
     user: 'username',
     password: 'password',
     certPath: 'path-to-cert',
-  }
+  },
 };
 
 let databaseManager: DatabaseManagerInstance<typeof dbConfig>;
 databaseManager = await CreateDatabaseManager(dbConfig);
-
 ```
 
 ### 2. **Logger Service**
@@ -96,6 +99,7 @@ databaseManager = await CreateDatabaseManager(dbConfig);
 The `LoggerService` class provides logging functionality, supporting different log levels like `info`, `debug`, `warn`, and `error`. It can also log messages to a GRPC service.
 
 **Usage Example:**
+
 ```typescript
 import { LoggerService } from '@tazama-lf/frms-coe-lib';
 
@@ -111,6 +115,7 @@ logger.error(new Error('This is an error message'));
 The `Apm` class integrates with Elastic APM to track performance and errors. It provides methods to start transactions and spans.
 
 **Usage Example:**
+
 ```typescript
 import { Apm } from '@tazama-lf/frms-coe-lib';
 
@@ -135,6 +140,7 @@ transaction.end();
 The `RedisService` class provides methods to interact with Redis, including setting and getting JSON data, managing sets, and handling binary data.
 
 **Example:**
+
 ```typescript
 import { RedisService } from '@tazama-lf/frms-coe-lib';
 
@@ -235,7 +241,7 @@ The contract owns three things:
 
 - the shared `type` verb enum (reverse-DNS, past-tense, constant across deployments),
 - the `kind` map keyed by `type` (`'event' | 'command'` - `'ack'` is never a map value; it is derived from the reply subject), and
-- a thin generic `construct<T>()` wrapper plus an envelope-only `validateEnvelope()` re-check.
+- a thin generic `construct<T>()` wrapper plus an envelope-only `validateEnvelope()` re-check, and a symmetric `deserialize<T>()` that decodes wire bytes back into a `CloudEvent`.
 
 The generic `T` parameterises the `data` payload and is compile-time only; envelope validation never inspects `data`.
 
@@ -246,8 +252,8 @@ import { construct, validateEnvelope, ServiceChannelType, type NetworkMapActivat
 
 const event = construct<NetworkMapActivatedData>({
   type: ServiceChannelType.NETWORK_MAP_ACTIVATED, // 'org.tazama.network-map.activated'
-  source: 'event-director',                       // the participant's '/'-free FUNCTION_NAME
-  subject: 'tenant-a/001@1.0.0',                   // the entity the event is about
+  source: 'event-director', // the participant's '/'-free FUNCTION_NAME
+  subject: 'tenant-a/001@1.0.0', // the entity the event is about
   data: { cfg: '001@1.0.0', tenantId: 'tenant-a' }, // identifier-only; consumers re-fetch the map
 });
 
@@ -255,6 +261,19 @@ validateEnvelope(event); // true, or throws on a malformed envelope
 ```
 
 `construct()` defaults `datacontenttype` to `application/json` and lets the SDK generate a fresh `id` per message. The SDK validates the envelope on build (strict mode) and throws on a malformed envelope.
+
+**Deserializing on the consumer:** a producer puts the event on the wire as structured-mode JSON bytes (`new TextEncoder().encode(JSON.stringify(event))`). `deserialize<T>()` is the symmetric decode boundary - it reconstructs the `CloudEvent<T>` and, like `construct()`, validates the envelope on build (it throws on non-JSON bytes or a malformed envelope). Consumers use it instead of importing the `cloudevents` SDK directly, so the wrapper module stays the only place that depends on the SDK.
+
+```typescript
+import { deserialize, validateEnvelope, type NetworkMapActivatedData } from '@tazama-lf/frms-coe-lib';
+
+// `bytes` is the Uint8Array delivered on the service-channel subscription
+const event = deserialize<NetworkMapActivatedData>(bytes);
+validateEnvelope(event); // re-check at the consumer boundary; true, or throws
+
+event.type; // 'org.tazama.network-map.activated'
+event.data; // { cfg, tenantId } - identifier-only; the consumer re-fetches the map
+```
 
 **Acknowledgements** are not a bespoke schema - an ack is itself a service-channel CloudEvent. It reuses the triggering message's `type`, is minted its own fresh `id`, and back-references the trigger via `data.correlationId` (the trigger's `id`) alongside the execution result:
 
@@ -275,11 +294,11 @@ import { inAudience, SERVICE_CHANNEL_AUDIENCE } from '@tazama-lf/frms-coe-lib';
 
 const identity = { class: SERVICE_CHANNEL_AUDIENCE.TYPOLOGY_PROCESSOR, functionName: 'typology-001@1.0.0' };
 
-inAudience(undefined, identity);            // true  (broadcast)
-inAudience('all', identity);                // true
+inAudience(undefined, identity); // true  (broadcast)
+inAudience('all', identity); // true
 inAudience('typology-processor', identity); // true  (class token)
 inAudience('typology-001@1.0.0', identity); // true  (own processor name)
-inAudience('event-director', identity);     // false
+inAudience('event-director', identity); // false
 ```
 
 **`FUNCTION_NAME` guard:** because a participant's `FUNCTION_NAME` composes the CloudEvents `source`, it must be `/`-free. `validateFunctionName()` (also enforced by `validateProcessorConfig`) fails fast at startup when `FUNCTION_NAME` contains a `/`. Dots stay legal, so versioned names such as `typology-001@1.0.0` are accepted.
@@ -288,82 +307,82 @@ inAudience('event-director', identity);     // false
 
 1. **ProtoBuf Module**
 
-  - **Class**: `ProtoGrpcType`
-    - **Description**: Contains definitions related to Google Protocol Buffers for message types.
-    - **Methods**:
-      - `google.protobuf.Empty`: Represents an empty message.
-      - `lumberjack.LogLevel`: Enum representing log levels.
-      - `lumberjack.LogMessage`: Represents a log message.
-      - `lumberjack.Lumberjack`: Represents the Lumberjack service with methods like `SendLog`.
+- **Class**: `ProtoGrpcType`
+  - **Description**: Contains definitions related to Google Protocol Buffers for message types.
+  - **Methods**:
+    - `google.protobuf.Empty`: Represents an empty message.
+    - `lumberjack.LogLevel`: Enum representing log levels.
+    - `lumberjack.LogMessage`: Represents a log message.
+    - `lumberjack.Lumberjack`: Represents the Lumberjack service with methods like `SendLog`.
 
 2. **Logger Service**
 
-  - **Class**: `LoggerService`
-    - **Description**: Provides logging capabilities, including sending logs to Lumberjack via gRPC or using Pino for ElasticSearch.
-    - **Methods**:
-      - `log(message: string, serviceOperation?: string, id?: string, callback?: LogCallback): void`: Logs a message.
-      - `debug(message: string, serviceOperation?: string, id?: string, callback?: LogCallback): void`: Logs a debug message.
-      - `trace(message: string, serviceOperation?: string, id?: string, callback?: LogCallback): void`: Logs a trace message.
-      - `warn(message: string, serviceOperation?: string, id?: string, callback?: LogCallback): void`: Logs a warning message.
-      - `error(message: string | Error, innerError?: unknown, serviceOperation?: string, id?: string, callback?: LogCallback): void`: Logs an error message.
-      - `fatal(message: string | Error, innerError?: unknown, serviceOperation?: string, id?: string, callback?: LogCallback): void`: Logs a fatal error message.
+- **Class**: `LoggerService`
+  - **Description**: Provides logging capabilities, including sending logs to Lumberjack via gRPC or using Pino for ElasticSearch.
+  - **Methods**:
+    - `log(message: string, serviceOperation?: string, id?: string, callback?: LogCallback): void`: Logs a message.
+    - `debug(message: string, serviceOperation?: string, id?: string, callback?: LogCallback): void`: Logs a debug message.
+    - `trace(message: string, serviceOperation?: string, id?: string, callback?: LogCallback): void`: Logs a trace message.
+    - `warn(message: string, serviceOperation?: string, id?: string, callback?: LogCallback): void`: Logs a warning message.
+    - `error(message: string | Error, innerError?: unknown, serviceOperation?: string, id?: string, callback?: LogCallback): void`: Logs an error message.
+    - `fatal(message: string | Error, innerError?: unknown, serviceOperation?: string, id?: string, callback?: LogCallback): void`: Logs a fatal error message.
 
 3. **Database Manager**
 
-  - **Class**: `DatabaseManager`
-    - **Description**: Manages database connections and interactions, including configuration, event history, raw transactions and evaluation databases.
-    - **Methods**:
-      - `CreateDatabaseManager<T>(config: T): Promise<DatabaseManagerInstance<T>>`: Creates a database manager instance.
-      - `isReadyCheck(): any`: Checks if the database services are ready.
-      - `quit(): void`: Closes all database connections.
+- **Class**: `DatabaseManager`
+  - **Description**: Manages database connections and interactions, including configuration, event history, raw transactions and evaluation databases.
+  - **Methods**:
+    - `CreateDatabaseManager<T>(config: T): Promise<DatabaseManagerInstance<T>>`: Creates a database manager instance.
+    - `isReadyCheck(): any`: Checks if the database services are ready.
+    - `quit(): void`: Closes all database connections.
 
 4. **Apm Service**
 
-  - **Class**: Apm
-    - **Description**: Provides APM (Application Performance Management) integration using Elastic APM.
-    - **Methods**:
-      - `startTransaction(name: string, options?: TransactionOptions): apm.Transaction | null`: Starts a new transaction.
-      - `startSpan(name: string): apm.Span | null`: Starts a new span.
-      - `getCurrentTraceparent(): string | null`: Retrieves the current traceparent.
+- **Class**: Apm
+  - **Description**: Provides APM (Application Performance Management) integration using Elastic APM.
+  - **Methods**:
+    - `startTransaction(name: string, options?: TransactionOptions): apm.Transaction | null`: Starts a new transaction.
+    - `startSpan(name: string): apm.Span | null`: Starts a new span.
+    - `getCurrentTraceparent(): string | null`: Retrieves the current traceparent.
 
 5. **Redis Service**
 
-  - **Class**: RedisService
-    - **Description**: Provides methods for interacting with Redis, including setting and getting data.
-    - **Methods**:
-      - `getJson(key: string): Promise<string>`: Retrieves a JSON value from Redis.
-      - `getBuffer(key: string): Promise<Record<string, unknown>>`: Retrieves a buffer value from Redis.
-      - `getMemberValues(key: string): Promise<Array<Record<string, unknown>>>`: Retrieves members of a Redis set.
-      - `deleteKey(key: string): Promise<void>`: Deletes a key from Redis.
-      - `setJson(key: string, value: string, expire: number): Promise<void>`: Sets a JSON value in Redis with an expiration time.
-      - `set(key: string, value: RedisData, expire: number): Promise<void>`: Sets a value in Redis with an expiration time.
-      - `setAdd(key: string, value: Record<string, unknown>): Promise<void>`: Adds a value to a Redis set.
-      - `addOneGetAll(key: string, value: Record<string, unknown>): Promise<Array<Record<string, unknown>>>`: Adds a value to a Redis set and retrieves all members.
-      - `addOneGetCount(key: string, value: Record<string, unknown>): Promise<number>`: Adds a value to a Redis set and retrieves the count of members.
-      - `quit(): void`: Closes the Redis connection.
+- **Class**: RedisService
+  - **Description**: Provides methods for interacting with Redis, including setting and getting data.
+  - **Methods**:
+    - `getJson(key: string): Promise<string>`: Retrieves a JSON value from Redis.
+    - `getBuffer(key: string): Promise<Record<string, unknown>>`: Retrieves a buffer value from Redis.
+    - `getMemberValues(key: string): Promise<Array<Record<string, unknown>>>`: Retrieves members of a Redis set.
+    - `deleteKey(key: string): Promise<void>`: Deletes a key from Redis.
+    - `setJson(key: string, value: string, expire: number): Promise<void>`: Sets a JSON value in Redis with an expiration time.
+    - `set(key: string, value: RedisData, expire: number): Promise<void>`: Sets a value in Redis with an expiration time.
+    - `setAdd(key: string, value: Record<string, unknown>): Promise<void>`: Adds a value to a Redis set.
+    - `addOneGetAll(key: string, value: Record<string, unknown>): Promise<Array<Record<string, unknown>>>`: Adds a value to a Redis set and retrieves all members.
+    - `addOneGetCount(key: string, value: Record<string, unknown>): Promise<number>`: Adds a value to a Redis set and retrieves the count of members.
+    - `quit(): void`: Closes the Redis connection.
 
 6. **Protobuf Utilities**
 
-  - **Functions**:
-    - `createMessageBuffer(data: Record<string, unknown>): Buffer | undefined`: Creates a message buffer from a data object.
-    - `createLogBuffer(data: Record<string, unknown>): Buffer | undefined`: Creates a log buffer from a data object.
-    - `decodeLogBuffer(buffer: Buffer): LogMessageType | undefined`: Decodes a log buffer into a `LogMessageType`.
+- **Functions**:
+  - `createMessageBuffer(data: Record<string, unknown>): Buffer | undefined`: Creates a message buffer from a data object.
+  - `createLogBuffer(data: Record<string, unknown>): Buffer | undefined`: Creates a log buffer from a data object.
+  - `decodeLogBuffer(buffer: Buffer): LogMessageType | undefined`: Decodes a log buffer into a `LogMessageType`.
 
 7. **Service-Channel Contract**
 
-  - **Functions / Values**:
-    - `construct<T>(props): CloudEvent<T>`: Builds a service-channel CloudEvent (defaults `datacontenttype`, generates `id`, validates the envelope on build).
-    - `validateEnvelope<T>(event: CloudEvent<T>): boolean`: Envelope-only re-check via the SDK's non-generic `validate()`.
-    - `inAudience(audience: string | undefined, identity): boolean`: The drift-proof audience gate.
-    - `ServiceChannelType`: The reverse-DNS `type` verb enum.
-    - `serviceChannelKind`: The `type` -> `'event' | 'command'` map.
-    - `SERVICE_CHANNEL_AUDIENCE`: The fixed class/broadcast addressing tokens.
+- **Functions / Values**:
+  - `construct<T>(props): CloudEvent<T>`: Builds a service-channel CloudEvent (defaults `datacontenttype`, generates `id`, validates the envelope on build).
+  - `validateEnvelope<T>(event: CloudEvent<T>): boolean`: Envelope-only re-check via the SDK's non-generic `validate()`.
+  - `inAudience(audience: string | undefined, identity): boolean`: The drift-proof audience gate.
+  - `ServiceChannelType`: The reverse-DNS `type` verb enum.
+  - `serviceChannelKind`: The `type` -> `'event' | 'command'` map.
+  - `SERVICE_CHANNEL_AUDIENCE`: The fixed class/broadcast addressing tokens.
 
 ## Configuration
 
 ### Environment Variables
 
-In our system, all environment variables are processed using a validation algorithm that converts them into configurations for each third-party service. Validation is triggered during the instantiation of each class object, such as when creating an instance of `databaseManager` via the `CreateStorageManager` function. 
+In our system, all environment variables are processed using a validation algorithm that converts them into configurations for each third-party service. Validation is triggered during the instantiation of each class object, such as when creating an instance of `databaseManager` via the `CreateStorageManager` function.
 
 ### Third-Party Services
 
@@ -398,6 +417,7 @@ The third-party services we support include:
 To see what are the variables required for each service please refer to VARIABLES.md document
 
 ### Configuration Options
+
 The ManagerConfig interface allows you to define which databases and services you wish to use. Each service can be optionally included in the configuration:
 
 - **Event History Database**: Access and manage event history data. `Optional`
@@ -426,7 +446,9 @@ const { db } = await CreateStorageManager([Database.CONFIGURATION], false, hooks
 ```
 
 ### Usage Example
+
 The JSON object example for dbManage configuration
+
 ```typescript
 {
     eventHistory: {

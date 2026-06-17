@@ -31,6 +31,7 @@ import {
   serviceChannelKind,
   construct,
   validateEnvelope,
+  deserialize,
   SERVICE_CHANNEL_AUDIENCE,
   inAudience,
 } from './helpers/serviceChannel';
@@ -52,6 +53,7 @@ export {
   serviceChannelKind,
   construct,
   validateEnvelope,
+  deserialize,
   SERVICE_CHANNEL_AUDIENCE,
   inAudience,
   type ConfigurationDB,
