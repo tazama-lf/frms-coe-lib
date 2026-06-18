@@ -234,4 +234,79 @@ describe('service-channel contract', () => {
       expect(deserializeFromBarrel).toBe(deserialize);
     });
   });
+
+  describe('audience setter on construct props (#426 - Part A write-side)', () => {
+    const data: NetworkMapActivatedData = { cfg: '001@1.0.0', tenantId: 'tenant-a' };
+    const encode = (event: CloudEvent<NetworkMapActivatedData>): Uint8Array => new TextEncoder().encode(JSON.stringify(event));
+
+    test('AC2: stamps the supplied audience as a readable extension attribute', () => {
+      const event = construct<NetworkMapActivatedData>({
+        type: ServiceChannelType.NETWORK_MAP_ACTIVATED,
+        source: 'admin-service',
+        subject: 'tenant-a/001@1.0.0',
+        data,
+        audience: SERVICE_CHANNEL_AUDIENCE.EVENT_ADJUDICATOR,
+      });
+      expect(event.audience).toBe('event-adjudicator');
+    });
+
+    test('AC2: the audience survives the producer serialize -> deserialize wire round-trip', () => {
+      const bytes = encode(
+        construct<NetworkMapActivatedData>({
+          type: ServiceChannelType.NETWORK_MAP_ACTIVATED,
+          source: 'admin-service',
+          data,
+          audience: SERVICE_CHANNEL_AUDIENCE.EVENT_ADJUDICATOR,
+        }),
+      );
+      const decoded = deserialize<NetworkMapActivatedData>(bytes);
+      expect(decoded.audience).toBe('event-adjudicator');
+    });
+
+    test('AC1: accepts a free-form processor name as well as a class token', () => {
+      const event = construct<NetworkMapActivatedData>({
+        type: ServiceChannelType.NETWORK_MAP_ACTIVATED,
+        source: 'admin-service',
+        data,
+        audience: 'typology-001@1.0.0',
+      });
+      expect(event.audience).toBe('typology-001@1.0.0');
+    });
+
+    test('AC3: omitting audience leaves it undefined (broadcast default - no regression)', () => {
+      const event = construct<NetworkMapActivatedData>({
+        type: ServiceChannelType.NETWORK_MAP_ACTIVATED,
+        source: 'admin-service',
+        data,
+      });
+      expect(event.audience).toBeUndefined();
+    });
+
+    test('AC4: a produced audience is inAudience for a matching identity and not for a non-matching one (write -> read symmetry)', () => {
+      const addressedToEa = construct<NetworkMapActivatedData>({
+        type: ServiceChannelType.NETWORK_MAP_ACTIVATED,
+        source: 'admin-service',
+        data,
+        audience: SERVICE_CHANNEL_AUDIENCE.EVENT_ADJUDICATOR,
+      });
+      const wire = deserialize<NetworkMapActivatedData>(encode(addressedToEa)).audience;
+      expect(wire).toBe('event-adjudicator');
+      const audience = wire as string;
+      // functionName is deliberately distinct from the audience value so a positive match can only come via the class-token branch.
+      expect(inAudience(audience, { class: SERVICE_CHANNEL_AUDIENCE.EVENT_ADJUDICATOR, functionName: 'event-adjudicator-001@1.0.0' })).toBe(
+        true,
+      );
+      expect(inAudience(audience, { class: SERVICE_CHANNEL_AUDIENCE.TYPOLOGY_PROCESSOR, functionName: 'typology-001@1.0.0' })).toBe(false);
+    });
+
+    test('AC5: validateEnvelope remains true with the audience extension present', () => {
+      const event = construct<NetworkMapActivatedData>({
+        type: ServiceChannelType.NETWORK_MAP_ACTIVATED,
+        source: 'admin-service',
+        data,
+        audience: SERVICE_CHANNEL_AUDIENCE.EVENT_ADJUDICATOR,
+      });
+      expect(validateEnvelope(event)).toBe(true);
+    });
+  });
 });

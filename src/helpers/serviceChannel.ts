@@ -38,6 +38,13 @@ export interface ServiceChannelEventProps<T> {
   id?: string;
   time?: string;
   datacontenttype?: string;
+  /**
+   * Optional audience the event is addressed to, set by a producer as a CloudEvents extension attribute
+   * and read back on the consumer via `inAudience`. Accepts a closed class token (`ServiceChannelAudienceClass`)
+   * or a free-form processor name; omitting it leaves the event a broadcast (`audience === undefined`).
+   * The `string & {}` constituent keeps autocomplete for the class tokens while still admitting any processor name.
+   */
+  audience?: ServiceChannelAudienceClass | (string & {});
 }
 
 /**
