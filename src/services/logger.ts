@@ -28,6 +28,17 @@ const LOGLEVEL = config.logLevel.toLowerCase();
 type LogFunc = (message: string, serviceOperation?: string, id?: string, callback?: LogCallback) => void;
 type ErrorFunc = (message: string | Error, innerError?: unknown, serviceOperation?: string, id?: string, callback?: LogCallback) => void;
 
+const buildLogRecord = (message: string, serviceOperation?: string, id?: string): Record<string, string> => {
+  const record: Record<string, string> = { message };
+  if (serviceOperation !== undefined) {
+    record.serviceOperation = serviceOperation;
+  }
+  if (id !== undefined) {
+    record.id = id;
+  }
+  return record;
+};
+
 const createErrorFn =
   (logger: Console | Logger, grpcClient?: LumberjackGRPCService): ErrorFunc =>
   (message: string | Error, innerError?: unknown, serviceOperation?: string, id?: string, callback?: LogCallback): void => {
@@ -44,7 +55,7 @@ const createErrorFn =
     if (grpcClient) {
       grpcClient.log(errMessage, 'error', serviceOperation, id, callback);
     } else {
-      logger.error({ message: errMessage, serviceOperation, id });
+      logger.error(buildLogRecord(errMessage, serviceOperation, id));
     }
   };
 
@@ -55,7 +66,7 @@ const createLogCallback = (level: LogLevel, logger: Console | Logger, grpcClient
         if (grpcClient) {
           grpcClient.log(message, level, serviceOperation, id, callback);
         } else {
-          logger.trace({ message, serviceOperation, id });
+          logger.trace(buildLogRecord(message, serviceOperation, id));
         }
       };
     case 'debug':
@@ -63,7 +74,7 @@ const createLogCallback = (level: LogLevel, logger: Console | Logger, grpcClient
         if (grpcClient) {
           grpcClient.log(message, level, serviceOperation, id, callback);
         } else {
-          logger.debug({ message, serviceOperation, id });
+          logger.debug(buildLogRecord(message, serviceOperation, id));
         }
       };
     case 'warn':
@@ -71,7 +82,7 @@ const createLogCallback = (level: LogLevel, logger: Console | Logger, grpcClient
         if (grpcClient) {
           grpcClient.log(message, level, serviceOperation, id, callback);
         } else {
-          logger.warn({ message, serviceOperation, id });
+          logger.warn(buildLogRecord(message, serviceOperation, id));
         }
       };
     case 'fatal':
@@ -80,7 +91,7 @@ const createLogCallback = (level: LogLevel, logger: Console | Logger, grpcClient
           grpcClient.log(message, level, serviceOperation, id, callback);
         } else {
           // NOTE: 'fatal(...)' method is not available on a `console` logger
-          logger.error({ message, serviceOperation, id });
+          logger.error(buildLogRecord(message, serviceOperation, id));
         }
       };
     default:
@@ -88,7 +99,7 @@ const createLogCallback = (level: LogLevel, logger: Console | Logger, grpcClient
         if (grpcClient) {
           grpcClient.log(message, 'info', serviceOperation, id, callback);
         } else {
-          logger.info({ message, serviceOperation, id });
+          logger.info(buildLogRecord(message, serviceOperation, id));
         }
       };
   }

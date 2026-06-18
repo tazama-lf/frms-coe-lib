@@ -26,6 +26,15 @@ import {
   isPain001Transaction,
   isPain013Transaction,
 } from './helpers/transactionTypeGuards';
+import {
+  ServiceChannelType,
+  serviceChannelKind,
+  construct,
+  validateEnvelope,
+  deserialize,
+  SERVICE_CHANNEL_AUDIENCE,
+  inAudience,
+} from './helpers/serviceChannel';
 
 export {
   CreateDatabaseManager,
@@ -40,6 +49,13 @@ export {
   isPain001Transaction,
   isPain013Transaction,
   validateTableName,
+  ServiceChannelType,
+  serviceChannelKind,
+  construct,
+  validateEnvelope,
+  deserialize,
+  SERVICE_CHANNEL_AUDIENCE,
+  inAudience,
   type ConfigurationDB,
   type DatabaseManagerHooks,
   type DatabaseManagerInstance,

@@ -18,3 +18,4 @@ export type * from './event-flow/EntityConditionEdge';
 export type * from './database';
 export type * from './DEMS/QuarantineRecord';
 export type * from './DEMS/TrackedFields';
+export type * from './service-channel';
