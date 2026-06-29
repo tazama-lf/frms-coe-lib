@@ -34,6 +34,10 @@ export interface DBConfig {
   password: string;
   databaseName: string;
   certPath: string;
+  /** Optional read-only role credentials. When both are present, builders open an
+   *  additional read-only pool (e.g. `_configurationReadonly`) for user-supplied SELECTs. */
+  readonlyUser?: string;
+  readonlyPassword?: string;
 }
 
 export interface LocalCacheConfig {
@@ -120,11 +124,16 @@ export async function CreateDatabaseManager<T extends ManagerConfig>(
   manager.quit = () => {
     redis?.quit();
     manager._configuration?.end();
+    manager._configurationReadonly?.end();
     manager._eventHistory?.end();
+    manager._eventHistoryReadonly?.end();
     manager._rawHistory?.end();
+    manager._rawHistoryReadonly?.end();
     manager._evaluation?.end();
+    manager._evaluationReadonly?.end();
     manager._enrichment?.end();
     manager._simulation?.end();
+    manager._simulationReadonly?.end();
   };
 
   if (Object.values(readyChecks).some((status) => status !== 'Ok')) {

@@ -6,6 +6,8 @@ import type { Account, Edge, Entity, RawConditionResponse, Condition } from '../
 
 export interface EventHistoryDB {
   _eventHistory: Pool;
+  /** Read-only pool — present only when readonly credentials are configured. */
+  _eventHistoryReadonly?: Pool;
 
   /**
    * @param {TransactionDetails} td TransactionDetails Object

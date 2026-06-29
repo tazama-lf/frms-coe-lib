@@ -7,6 +7,8 @@ import type { Alert } from '../processor-files/Alert';
 
 export interface EvaluationDB {
   _evaluation: Pool;
+  /** Read-only pool — present only when readonly credentials are configured. */
+  _evaluationReadonly?: Pool;
 
   /**
    * @param messageid: A String value that will be used to compare with Msgid from reports stored

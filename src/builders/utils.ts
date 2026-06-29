@@ -1,6 +1,7 @@
-import type { Pool, QueryConfig } from 'pg';
+import { Pool, type PoolConfig, type QueryConfig } from 'pg';
 import * as fs from 'node:fs';
 import type { ConnectionOptions } from 'node:tls';
+import type { DBConfig } from '../services/dbManager';
 
 /**
  *  Based on Postgres QueryConfig to assist with postgres's query(queryConfig: PgQueryConfig)
@@ -32,6 +33,28 @@ export const isDatabaseReady = async (db: Pool): Promise<boolean> => {
   await client.query('SELECT 1');
   client.release();
   return true;
+};
+
+/**
+ * Builds a read-only pool from a DBConfig when readonly credentials are present.
+ * Reuses the same host/port/database/SSL as the read-write pool; only the role differs.
+ * Returns undefined when no readonly credentials are configured.
+ *
+ * @param {DBConfig} config - The database configuration.
+ * @returns {(Pool | undefined)}
+ */
+export const buildReadonlyPool = (config: DBConfig): Pool | undefined => {
+  if (!config.readonlyUser || !config.readonlyPassword) return undefined;
+
+  const conf: PoolConfig = {
+    host: config.host,
+    port: config.port,
+    database: config.databaseName,
+    user: config.readonlyUser,
+    password: config.readonlyPassword,
+    ssl: getSSLConfig(config.certPath),
+  };
+  return new Pool(conf);
 };
 
 /**

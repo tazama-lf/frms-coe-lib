@@ -66,6 +66,12 @@ export const validateDatabaseConfig = (authEnabled: boolean, database: Database)
   const password = validateEnvVar(`${prefix}_PASSWORD`, 'string', !authEnabled).toString();
   const user = validateEnvVar(`${prefix}_USER`, 'string', !authEnabled).toString();
 
+  // read-only role. When both are set, the builder also opens a second pool that
+  // connects as this role (defence-in-depth for arbitrary/user-supplied SELECTs). Same
+  // host/port/database/cert as the read-write pool — only the credentials differ.
+  const readonlyUser = validateEnvVar(`${prefix}_READONLY_USER`, 'string', true).toString();
+  const readonlyPassword = validateEnvVar(`${prefix}_READONLY_PASSWORD`, 'string', true).toString();
+
   const result: ManagerConfig = {
     [database]: {
       databaseName: validateEnvVar(prefix, 'string').toString(),
@@ -74,6 +80,7 @@ export const validateDatabaseConfig = (authEnabled: boolean, database: Database)
       port: Number(validateEnvVar(`${prefix}_PORT`, 'number', true)) || DEFAULT_DATABASE_PORT,
       user,
       certPath: validateEnvVar(`${prefix}_CERT_PATH`, 'string', true).toString(),
+      ...(readonlyUser && readonlyPassword ? { readonlyUser, readonlyPassword } : {}),
     },
   };
   return result;

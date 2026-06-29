@@ -11,6 +11,8 @@ export interface SimulationMessage {
 
 export interface SimulationDB {
   _simulation: Pool;
+  /** Read-only pool — present only when readonly credentials are configured. */
+  _simulationReadonly?: Pool;
 
   /**
    * Retrieve all simulation messages for a given tenant

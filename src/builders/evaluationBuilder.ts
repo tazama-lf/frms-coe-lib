@@ -2,7 +2,7 @@
 
 import * as util from 'node:util';
 import { Pool, type PoolConfig } from 'pg';
-import { isDatabaseReady } from '../builders/utils';
+import { buildReadonlyPool, isDatabaseReady } from '../builders/utils';
 import type { DataCache, NetworkMap, SupportedTransactionMessage } from '../interfaces';
 import type { PgQueryConfig } from '../interfaces/database';
 import type { Alert } from '../interfaces/processor-files/Alert';
@@ -21,6 +21,7 @@ export async function evaluationBuilder(manager: EvaluationDB, evaluationConfig:
   } as const;
 
   manager._evaluation = new Pool(conf);
+  manager._evaluationReadonly = buildReadonlyPool(evaluationConfig);
 
   try {
     const dbReady = await isDatabaseReady(manager._evaluation);

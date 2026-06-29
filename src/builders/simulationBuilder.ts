@@ -2,7 +2,7 @@
 
 import * as util from 'node:util';
 import { Pool, type PoolConfig } from 'pg';
-import { isDatabaseReady } from '../builders/utils';
+import { buildReadonlyPool, isDatabaseReady } from '../builders/utils';
 import type { PgQueryConfig } from '../interfaces/database';
 import type { SimulationDB, SimulationMessage } from '../interfaces/database/SimulationDB';
 import { type DBConfig, readyChecks } from '../services/dbManager';
@@ -19,6 +19,7 @@ export async function simulationBuilder(manager: SimulationDB, simulationConfig:
   } as const;
 
   manager._simulation = new Pool(conf);
+  manager._simulationReadonly = buildReadonlyPool(simulationConfig);
 
   try {
     const dbReady = await isDatabaseReady(manager._simulation);

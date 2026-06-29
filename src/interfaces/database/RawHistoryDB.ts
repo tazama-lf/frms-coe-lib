@@ -7,6 +7,8 @@ import type { TrackedFields } from '../DEMS/TrackedFields';
 
 export interface RawHistoryDB {
   _rawHistory: Pool;
+  /** Read-only pool — present only when readonly credentials are configured. */
+  _rawHistoryReadonly?: Pool;
 
   /**
    * @param endToEndId An endToEndId String used to filter on the EndToEndId field

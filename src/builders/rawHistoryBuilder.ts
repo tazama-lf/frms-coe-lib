@@ -3,7 +3,7 @@
 import * as util from 'node:util';
 import { Pool, type PoolConfig } from 'pg';
 import pgFormat from 'pg-format';
-import { isDatabaseReady } from '../builders/utils';
+import { buildReadonlyPool, isDatabaseReady } from '../builders/utils';
 import type { Pacs002, Pacs008, Pain001, Pain013 } from '../interfaces';
 import type { PgQueryConfig } from '../interfaces/database';
 import { readyChecks, type DBConfig, type RawHistoryDB } from '../services/dbManager';
@@ -24,6 +24,7 @@ export async function rawHistoryBuilder(manager: RawHistoryDB, rawHistoryConfig:
   } as const;
 
   manager._rawHistory = new Pool(conf);
+  manager._rawHistoryReadonly = buildReadonlyPool(rawHistoryConfig);
 
   try {
     const dbReady = await isDatabaseReady(manager._rawHistory);

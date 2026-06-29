@@ -7,6 +7,8 @@ import type { TypologyConfig } from '../processor-files/TypologyConfig';
 
 export interface ConfigurationDB {
   _configuration: Pool;
+  /** Read-only pool — present only when readonly credentials are configured. */
+  _configurationReadonly?: Pool;
   nodeCache?: NodeCache;
 
   /**

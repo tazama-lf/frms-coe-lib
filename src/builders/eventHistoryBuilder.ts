@@ -3,7 +3,7 @@
 import * as util from 'node:util';
 import { Pool, type PoolConfig } from 'pg';
 import pgFormat from 'pg-format';
-import { isDatabaseReady } from '../builders/utils';
+import { buildReadonlyPool, isDatabaseReady } from '../builders/utils';
 import type { AccountCondition, ConditionEdge, EntityCondition, TransactionDetails } from '../interfaces';
 import type { PgQueryConfig } from '../interfaces/database';
 import type { Account, Edge, Entity, Condition, RawConditionResponse } from '../interfaces/event-flow/EntityConditionEdge';
@@ -22,6 +22,7 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
   } as const;
 
   manager._eventHistory = new Pool(conf);
+  manager._eventHistoryReadonly = buildReadonlyPool(eventHistoryConfig);
 
   try {
     const dbReady = await isDatabaseReady(manager._eventHistory);

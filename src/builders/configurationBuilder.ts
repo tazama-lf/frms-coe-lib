@@ -3,7 +3,7 @@
 import NodeCache from 'node-cache';
 import * as util from 'node:util';
 import { Pool, type PoolConfig } from 'pg';
-import { isDatabaseReady } from '../builders/utils';
+import { buildReadonlyPool, isDatabaseReady } from '../builders/utils';
 import type { NetworkMap, RuleConfig } from '../interfaces';
 import type { PgQueryConfig } from '../interfaces/database';
 import type { TypologyConfig } from '../interfaces/processor-files/TypologyConfig';
@@ -27,6 +27,7 @@ export async function configurationBuilder(
   } as const;
 
   manager._configuration = new Pool(conf);
+  manager._configurationReadonly = buildReadonlyPool(configurationConfig);
 
   try {
     const dbReady = await isDatabaseReady(manager._configuration);
