@@ -44,6 +44,9 @@ export const isDatabaseReady = async (db: Pool): Promise<boolean> => {
  * @returns {(Pool | undefined)}
  */
 export const buildReadonlyPool = (config: DBConfig): Pool | undefined => {
+  if (!!config.readonlyUser !== !!config.readonlyPassword) {
+    throw new Error('readonlyUser and readonlyPassword must be configured together.');
+  }
   if (!config.readonlyUser || !config.readonlyPassword) return undefined;
 
   const conf: PoolConfig = {

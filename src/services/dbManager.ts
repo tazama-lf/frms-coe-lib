@@ -34,8 +34,6 @@ export interface DBConfig {
   password: string;
   databaseName: string;
   certPath: string;
-  /** Optional read-only role credentials. When both are present, builders open an
-   *  additional read-only pool (e.g. `_configurationReadonly`) for user-supplied SELECTs. */
   readonlyUser?: string;
   readonlyPassword?: string;
 }
