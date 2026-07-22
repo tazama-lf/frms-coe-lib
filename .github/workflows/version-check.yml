@@ -4,9 +4,9 @@
 # version suffix (e.g. -rc.1). The developer must strip the suffix manually
 # in the release PR before this check will pass.
 #
-# This is the companion guard for the push: main trigger in publish.yml -
-# it ensures that only clean semver versions (X.Y.Z) ever reach main and
-# are published as the 'latest' dist-tag.
+# Companion guard for stable release workflows (publish.yml for libraries,
+# package-rule.yml for rule repos) — only clean semver versions (X.Y.Z)
+# should reach main.
 #
 # Please do not attempt to edit this flow without the direct consent from the DevOps team.
 # This file is managed centrally.
