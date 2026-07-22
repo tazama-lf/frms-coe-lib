@@ -44,3 +44,24 @@ export function validateEnvVar(name: string, type: 'string' | 'number' | 'boolea
       throw new Error(`Environment variable ${name} is not a valid boolean.`);
   }
 }
+
+/**
+ * Validates and retrieves the `FUNCTION_NAME` environment variable, failing fast when it contains a `/`.
+ *
+ * The `/`-free invariant keeps the composed service-channel `source`
+ * (`${SERVICE_CHANNEL_SOURCE_URI_PREFIX}${FUNCTION_NAME}`) safely recoverable as the trailing path
+ * segment. Dots stay legal (versioned names such as `typology-001@1.0.0`); this is not a broader
+ * NATS-charset check.
+ *
+ * @returns {string} - The validated `/`-free function name.
+ * @throws {Error} - If `FUNCTION_NAME` is not defined, or contains a `/`.
+ */
+export function validateFunctionName(): string {
+  const functionName = validateEnvVar('FUNCTION_NAME', 'string').toString();
+
+  if (functionName.includes('/')) {
+    throw new Error('Environment variable FUNCTION_NAME must not contain a path separator (/).');
+  }
+
+  return functionName;
+}

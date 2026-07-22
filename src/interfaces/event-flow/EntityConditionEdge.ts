@@ -44,6 +44,7 @@ export interface Condition {
   forceCret: boolean;
   usr: string;
   creDtTm: string;
+  updDtTm?: string;
 }
 export interface EntityCondition extends Condition {
   ntty: Ntty;

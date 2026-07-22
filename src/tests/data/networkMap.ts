@@ -7,6 +7,8 @@ export const NetworkMapSample: NetworkMap[] = [
     active: true,
     cfg: '',
     tenantId: 'testTenant',
+    creDtTm: '2024-01-01T00:00:00.000Z',
+    updDtTm: '2024-01-01T00:00:00.000Z',
     messages: [
       {
         id: '001@1.0',

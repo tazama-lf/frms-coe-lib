@@ -2,6 +2,8 @@
 
 import type { Pool } from 'pg';
 import type { Pacs002, Pacs008, Pain001, Pain013 } from '..';
+import type { QuarantineRecord } from '../DEMS/QuarantineRecord';
+import type { TrackedFields } from '../DEMS/TrackedFields';
 
 export interface RawHistoryDB {
   _rawHistory: Pool;
@@ -40,4 +42,29 @@ export interface RawHistoryDB {
    * @memberof RawHistoryDB
    */
   saveTransactionHistoryPacs002: (transaction: Pacs002) => Promise<void>;
+
+  /**
+   * @param endToEndId An endToEndId String used to filter on the EndToEndId field
+   * @param tenantId The tenantId String to filter on the TenantId field
+   * @param tableName The name of the table to query
+   * @memberof RawHistoryDB
+   */
+  getTransactionAny: (endToEndId: string, tenantId: string, tableName: string) => Promise<Record<string, unknown> | undefined>;
+
+  /**
+   *
+   * @param record Record to be saved into the quarantine table
+   *
+   * @memberof RawHistoryDB
+   */
+
+  saveToQuarantine: (record: QuarantineRecord) => Promise<void>;
+
+  /**
+   * @param tableName Name of the table to save transaction history into (dynamic)
+   * @param tran Transaction record to be saved
+   *
+   * @memberof RawHistoryDB
+   */
+  saveDynamicTransactionHistory: (tableName: string, tran: Record<string, unknown>, trackedFields?: TrackedFields) => Promise<void>;
 }

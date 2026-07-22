@@ -2,6 +2,7 @@
 
 import * as util from 'node:util';
 import { Pool, type PoolConfig } from 'pg';
+import pgFormat from 'pg-format';
 import { isDatabaseReady } from '../builders/utils';
 import type { AccountCondition, ConditionEdge, EntityCondition, TransactionDetails } from '../interfaces';
 import type { PgQueryConfig } from '../interfaces/database';
@@ -39,10 +40,32 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
     await manager._eventHistory.query(query);
   };
 
-  manager.saveAccount = async (key: string, tenantId: string): Promise<void> => {
+  manager.saveInDataModelTable = async (
+    tableName: string,
+    key: string,
+    data: Record<string, unknown>,
+    tenantId: string,
+    creDtTm: string,
+  ): Promise<void> => {
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]{0,62}$/.test(tableName)) {
+      throw new Error(
+        `Invalid table name format: ${tableName}. Table names must start with a letter or underscore and contain only letters, digits, and underscores (max 63 characters).`,
+      );
+    }
     const query: PgQueryConfig = {
-      text: 'INSERT INTO account (id, tenantId) VALUES ($1, $2) ON CONFLICT (id, tenantId) DO NOTHING',
-      values: [key, tenantId],
+      text: pgFormat('INSERT INTO %I (_key, data, tenantId, creDtTm) VALUES ($1, $2, $3, $4) ON CONFLICT (_key) DO NOTHING', tableName),
+      values: [key, data, tenantId, creDtTm],
+    };
+
+    await manager._eventHistory.query(query);
+  };
+
+  // ----
+
+  manager.saveAccount = async (key: string, tenantId: string, creDtTm: string): Promise<void> => {
+    const query: PgQueryConfig = {
+      text: 'INSERT INTO account (id, tenantId, creDtTm) VALUES ($1, $2, $3) ON CONFLICT (id, tenantId) DO NOTHING',
+      values: [key, tenantId, creDtTm],
     };
 
     await manager._eventHistory.query(query);
@@ -346,17 +369,21 @@ export async function eventHistoryBuilder(manager: EventHistoryDB, eventHistoryC
   };
 
   manager.updateCondition = async (conditionId: string, expireDateTime: string, tenantId: string): Promise<void> => {
+    const nowDateTime = new Date().toISOString();
     const query: PgQueryConfig = {
       text: `
         UPDATE 
           condition
         SET 
-          condition = jsonb_set(condition, '{xprtnDtTm}', to_jsonb($1::text), true)
+           condition = jsonb_set(
+              jsonb_set(condition, '{xprtnDtTm}', to_jsonb($1::text), true),
+              '{updDtTm}', to_jsonb($4::text), true
+          )
         WHERE 
           id = $2
         AND
           tenantId = $3`,
-      values: [expireDateTime, conditionId, tenantId],
+      values: [expireDateTime, conditionId, tenantId, nowDateTime],
     };
 
     await manager._eventHistory.query(query);

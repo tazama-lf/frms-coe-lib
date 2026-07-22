@@ -1,0 +1,239 @@
+// SPDX-License-Identifier: Apache-2.0
+
+import { configurationBuilder } from '../src/builders/configurationBuilder';
+import type { RuleConfig } from '../src/interfaces';
+import type { ConfigurationDB, DBConfig } from '../src/services/dbManager';
+
+// redis and postgres are mocked in setup.jest.js
+
+const configurationConfig: DBConfig = {
+  certPath: 'TestConfiguration',
+  databaseName: 'TestConfiguration',
+  user: 'TestConfiguration',
+  password: 'TestConfiguration',
+  host: 'TestConfiguration',
+  port: 5432,
+};
+
+describe('ConfigurationBuilder', () => {
+  let manager: ConfigurationDB;
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    manager = {} as ConfigurationDB;
+  });
+
+  afterEach(() => {
+    if (manager._configuration) {
+      manager._configuration.end();
+    }
+  });
+
+  describe('getPathPushJob', () => {
+    beforeEach(async () => {
+      await configurationBuilder(manager, configurationConfig);
+    });
+
+    it('should return the first row when rows exist', async () => {
+      const mockRow = { id: '1', path: '/test', tenant_id: 'tenant1' };
+      const mockQuery = jest.spyOn(manager._configuration, 'query').mockResolvedValue({ rows: [mockRow] } as never);
+
+      const result = await manager.getPathPushJob('/test', 'tenant1');
+
+      expect(result).toEqual(mockRow);
+      expect(mockQuery).toHaveBeenCalledWith({
+        text: 'SELECT * FROM tcs_push_jobs WHERE path = $1 AND tenant_id = $2 LIMIT 1;',
+        values: ['/test', 'tenant1'],
+      });
+    });
+
+    it('should return undefined when no rows exist', async () => {
+      jest.spyOn(manager._configuration, 'query').mockResolvedValue({ rows: [] } as never);
+
+      const result = await manager.getPathPushJob('/nonexistent', 'tenant1');
+
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('getDefaultPushJob', () => {
+    beforeEach(async () => {
+      await configurationBuilder(manager, configurationConfig);
+    });
+
+    it('should return all rows', async () => {
+      const mockRows = [
+        { id: '1', status: 'STATUS_08_DEPLOYED' },
+        { id: '2', status: 'STATUS_06_EXPORTED' },
+      ];
+      const mockQuery = jest.spyOn(manager._configuration, 'query').mockResolvedValue({ rows: mockRows } as never);
+
+      const result = await manager.getDefaultPushJob();
+
+      expect(result).toEqual(mockRows);
+      expect(mockQuery).toHaveBeenCalledWith({
+        text: expect.stringContaining('$1'),
+        values: ['STATUS_08_DEPLOYED', 'STATUS_06_EXPORTED', 'STATUS_04_APPROVED', 'active'],
+      });
+    });
+
+    it('should return empty array when no rows exist', async () => {
+      jest.spyOn(manager._configuration, 'query').mockResolvedValue({ rows: [] } as never);
+
+      const result = await manager.getDefaultPushJob();
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('getJobId', () => {
+    beforeEach(async () => {
+      await configurationBuilder(manager, configurationConfig);
+    });
+
+    it('should query tcs_push_jobs when type is "push" and return first row', async () => {
+      const mockRow = { id: 'push-1', name: 'test-push-job', tenantId: 'default' };
+      const mockQuery = jest.spyOn(manager._configuration, 'query').mockResolvedValue({ rows: [mockRow] } as never);
+
+      const result = await manager.getJobId('push', 'push-1', 'default');
+
+      expect(result).toEqual(mockRow);
+      const calledQuery = mockQuery.mock.calls[0][0] as unknown as { text: string; values: string[] };
+      expect(calledQuery.text).toContain('tcs_push_jobs');
+      expect(calledQuery.values).toEqual(['push-1', 'default']);
+    });
+
+    it('should query tcs_pull_jobs when type is "pull" and return first row', async () => {
+      const mockRow = { id: 'pull-1', name: 'test-pull-job', cron: '* * * * *', tenantId: 'default' };
+      const mockQuery = jest.spyOn(manager._configuration, 'query').mockResolvedValue({ rows: [mockRow] } as never);
+
+      const result = await manager.getJobId('pull', 'pull-1', 'default');
+
+      expect(result).toEqual(mockRow);
+      const calledQuery = mockQuery.mock.calls[0][0] as unknown as { text: string; values: string[] };
+      expect(calledQuery.text).toContain('tcs_pull_jobs');
+      expect(calledQuery.text).toContain('tcs_cron_jobs');
+      expect(calledQuery.values).toEqual(['pull-1', 'default']);
+    });
+
+    it('should return undefined when no rows exist for push type', async () => {
+      jest.spyOn(manager._configuration, 'query').mockResolvedValue({ rows: [] } as never);
+
+      const result = await manager.getJobId('push', 'nonexistent', 'default');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should return undefined when no rows exist for pull type', async () => {
+      jest.spyOn(manager._configuration, 'query').mockResolvedValue({ rows: [] } as never);
+
+      const result = await manager.getJobId('pull', 'nonexistent', 'default');
+
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('insertJobHistory', () => {
+    beforeEach(async () => {
+      await configurationBuilder(manager, configurationConfig);
+    });
+
+    it('should insert a job history record', async () => {
+      const mockQuery = jest.spyOn(manager._configuration, 'query').mockResolvedValue({} as never);
+
+      await manager.insertJobHistory('tenant1', 'job1', 10, 5, null, 'push');
+
+      expect(mockQuery).toHaveBeenCalledWith({
+        text: 'INSERT INTO job_history (tenant_id, job_id, counts, processed_counts, exception, job_type) VALUES ($1, $2, $3, $4, $5, $6);',
+        values: ['tenant1', 'job1', 10, 5, null, 'push'],
+      });
+    });
+
+    it('should insert a job history record with exception', async () => {
+      const mockQuery = jest.spyOn(manager._configuration, 'query').mockResolvedValue({} as never);
+
+      await manager.insertJobHistory('tenant1', 'job2', 20, 15, 'Something failed', 'pull');
+
+      expect(mockQuery).toHaveBeenCalledWith({
+        text: expect.stringContaining('INSERT INTO job_history'),
+        values: ['tenant1', 'job2', 20, 15, 'Something failed', 'pull'],
+      });
+    });
+
+    it('should propagate query errors', async () => {
+      const mockError = new Error('Query execution failed');
+      jest.spyOn(manager._configuration, 'query').mockRejectedValue(mockError as never);
+
+      await expect(manager.insertJobHistory('tenant1', 'job1', 10, 5, null, 'push')).rejects.toThrow('Query execution failed');
+    });
+  });
+
+  describe('getRuleConfig - onConfigLoaded callback', () => {
+    const mockRuleConfig: RuleConfig = {
+      id: '001@1.0.0',
+      cfg: '1.0.0',
+      tenantId: 'DEFAULT',
+      desc: 'Test rule config',
+      config: {
+        parameters: {},
+        exitConditions: [],
+        bands: [],
+      },
+    };
+
+    it('should invoke onConfigLoaded with the fetched config on a cache miss', async () => {
+      const onConfigLoaded = jest.fn();
+      await configurationBuilder(manager, configurationConfig, { localCacheEnabled: true }, onConfigLoaded);
+      jest.spyOn(manager._configuration, 'query').mockResolvedValue({ rows: [{ configuration: mockRuleConfig }] } as never);
+
+      const result = await manager.getRuleConfig('001', '1.0.0', 'DEFAULT');
+
+      expect(onConfigLoaded).toHaveBeenCalledTimes(1);
+      expect(onConfigLoaded).toHaveBeenCalledWith(mockRuleConfig);
+      expect(result).toEqual(mockRuleConfig);
+    });
+
+    it('should not invoke onConfigLoaded on a cache hit', async () => {
+      const onConfigLoaded = jest.fn();
+      await configurationBuilder(manager, configurationConfig, { localCacheEnabled: true }, onConfigLoaded);
+      jest.spyOn(manager._configuration, 'query').mockResolvedValue({ rows: [{ configuration: mockRuleConfig }] } as never);
+
+      // First call - cache miss, populates cache
+      await manager.getRuleConfig('001', '1.0.0', 'DEFAULT');
+      onConfigLoaded.mockClear();
+
+      // Second call - cache hit
+      const result = await manager.getRuleConfig('001', '1.0.0', 'DEFAULT');
+
+      expect(onConfigLoaded).not.toHaveBeenCalled();
+      expect(result).toEqual(mockRuleConfig);
+    });
+
+    it('should not cache the config and should propagate the error when onConfigLoaded throws', async () => {
+      const validationError = new Error('Invalid config - bands not provided');
+      const onConfigLoaded = jest.fn().mockImplementation(() => {
+        throw validationError;
+      });
+      await configurationBuilder(manager, configurationConfig, { localCacheEnabled: true }, onConfigLoaded);
+      jest.spyOn(manager._configuration, 'query').mockResolvedValue({ rows: [{ configuration: mockRuleConfig }] } as never);
+
+      // First call - throws from onConfigLoaded
+      await expect(manager.getRuleConfig('001', '1.0.0', 'DEFAULT')).rejects.toThrow('Invalid config - bands not provided');
+
+      // Second call - cache miss again (bad config was never stored)
+      onConfigLoaded.mockReset();
+      jest.spyOn(manager._configuration, 'query').mockResolvedValue({ rows: [{ configuration: mockRuleConfig }] } as never);
+      await manager.getRuleConfig('001', '1.0.0', 'DEFAULT');
+      expect(onConfigLoaded).toHaveBeenCalledTimes(1);
+    });
+
+    it('should work as before when no onConfigLoaded callback is provided', async () => {
+      await configurationBuilder(manager, configurationConfig, { localCacheEnabled: true });
+      jest.spyOn(manager._configuration, 'query').mockResolvedValue({ rows: [{ configuration: mockRuleConfig }] } as never);
+
+      const result = await manager.getRuleConfig('001', '1.0.0', 'DEFAULT');
+
+      expect(result).toEqual(mockRuleConfig);
+    });
+  });
+});

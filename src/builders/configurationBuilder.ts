@@ -15,6 +15,7 @@ export async function configurationBuilder(
   manager: ConfigurationDB,
   configurationConfig: DBConfig,
   cacheConfig?: LocalCacheConfig,
+  onConfigLoaded?: (config: RuleConfig) => void,
 ): Promise<void> {
   const conf: PoolConfig = {
     host: configurationConfig.host,
@@ -63,8 +64,11 @@ export async function configurationBuilder(
     const queryRes = await manager._configuration.query<{ configuration: RuleConfig }>(query);
 
     const toReturn = queryRes.rows.length > 0 ? queryRes.rows[0].configuration : undefined;
-    if (toReturn && manager.nodeCache) {
-      manager.nodeCache.set(cacheKey, toReturn, cacheConfig?.localCacheTTL ?? 3000);
+    if (toReturn) {
+      onConfigLoaded?.(toReturn);
+      if (manager.nodeCache) {
+        manager.nodeCache.set(cacheKey, toReturn, cacheConfig?.localCacheTTL ?? 3000);
+      }
     }
     return toReturn;
   };
@@ -105,11 +109,75 @@ export async function configurationBuilder(
             FROM
               network_map
             WHERE
-              configuration->'active' = $1`,
+              active = $1`,
       values: [true],
     };
 
     const queryRes = await manager._configuration.query<{ configuration: NetworkMap }>(query);
     return queryRes.rows.length > 0 ? queryRes.rows.map((value) => value.configuration) : [];
+  };
+
+  manager.getPathPushJob = async (path: string, tenantId: string): Promise<Record<string, unknown> | undefined> => {
+    const query: PgQueryConfig = {
+      text: 'SELECT * FROM tcs_push_jobs WHERE path = $1 AND tenant_id = $2 LIMIT 1;',
+      values: [path, tenantId],
+    };
+
+    const queryRes = await manager._configuration.query<Record<string, unknown>>(query);
+    return queryRes.rows.length > 0 ? queryRes.rows[0] : undefined;
+  };
+
+  manager.getDefaultPushJob = async (): Promise<Array<Record<string, unknown>>> => {
+    const query: PgQueryConfig = {
+      text: 'SELECT * FROM tcs_push_jobs WHERE status IN($1, $2, $3) AND publishing_status = $4',
+      values: ['STATUS_08_DEPLOYED', 'STATUS_06_EXPORTED', 'STATUS_04_APPROVED', 'active'],
+    };
+
+    const queryRes = await manager._configuration.query<Record<string, unknown>>(query);
+    return queryRes.rows;
+  };
+
+  manager.getJobId = async (type: 'push' | 'pull', id: string, tenantId: string): Promise<Record<string, unknown> | undefined> => {
+    const text =
+      type === 'push'
+        ? `
+          SELECT *
+          FROM tcs_push_jobs
+          WHERE id = $1 and tenant_id = $2
+          LIMIT 1;
+        `
+        : `
+        SELECT 
+          j.*, 
+           s.cron
+            FROM tcs_pull_jobs j
+             LEFT JOIN tcs_cron_jobs s ON j.schedule_id = s.id
+              WHERE j.id = $1 and j.tenant_id = $2
+               LIMIT 1;
+        `;
+
+    const query: PgQueryConfig = {
+      text,
+      values: [id, tenantId],
+    };
+
+    const queryRes = await manager._configuration.query<Record<string, unknown>>(query);
+    return queryRes.rows.length > 0 ? queryRes.rows[0] : undefined;
+  };
+
+  manager.insertJobHistory = async (
+    tenantId: string,
+    jobId: string,
+    counts: number,
+    processedCounts: number,
+    exception: string | null,
+    jobType: string,
+  ): Promise<void> => {
+    const query: PgQueryConfig = {
+      text: 'INSERT INTO job_history (tenant_id, job_id, counts, processed_counts, exception, job_type) VALUES ($1, $2, $3, $4, $5, $6);',
+      values: [tenantId, jobId, counts, processedCounts, exception, jobType],
+    };
+
+    await manager._configuration.query(query);
   };
 }

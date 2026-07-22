@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import {
+  createMessageBuffer,
   createCacheConditionsBuffer,
   createConditionsBuffer,
   createSimpleConditionsBuffer,
+  decodeMessageBuffer,
   decodeCacheConditionsBuffer,
   decodeConditionsBuffer,
   decodeSimpleConditionsBuffer,
@@ -141,5 +143,115 @@ describe('Should serialise/deserialise EFRuP conditions', () => {
     const deserialisedConditions = decodeSimpleConditionsBuffer(bufConds!);
     expect(deserialisedConditions).toBeDefined();
     expect(deserialisedConditions).toEqual(items);
+  });
+});
+
+describe('Should serialise/deserialise BaseMessage payload', () => {
+  test('se/deserialise transaction BaseMessage with dynamic payload object', () => {
+    const message = {
+      transaction: {
+        TxTp: 'custom.type.001',
+        TenantId: 'tenantId',
+        MsgId: 'msg-001',
+        endpointPath: '/cbe/1.0.0/frms-stories/fable003',
+        Payload: {
+          anyKey: 'anyValue',
+          nested: {
+            flag: true,
+            count: 2,
+          },
+          items: ['a', 'b'],
+        },
+      },
+    };
+
+    const buffer = createMessageBuffer(message);
+    expect(buffer).toBeDefined();
+
+    const decoded = decodeMessageBuffer(buffer!);
+    expect(decoded).toBeDefined();
+
+    expect(decoded?.transaction).toEqual({
+      TxTp: message.transaction.TxTp,
+      TenantId: message.transaction.TenantId,
+      MsgId: message.transaction.MsgId,
+      endpointPath: message.transaction.endpointPath,
+      Payload: message.transaction.Payload,
+    });
+  });
+
+  test('keeps raw payload when transaction BaseMessage Payload.Json is malformed', () => {
+    const message = {
+      transaction: {
+        TxTp: 'custom.type.002',
+        TenantId: 'tenantId',
+        MsgId: 'msg-002',
+        Payload: {
+          Json: '{"invalid":',
+        },
+      },
+    };
+
+    const buffer = createMessageBuffer(message);
+    expect(buffer).toBeDefined();
+
+    const decoded = decodeMessageBuffer(buffer!);
+    expect(decoded).toBeDefined();
+
+    expect(decoded?.transaction).toEqual({
+      TxTp: message.transaction.TxTp,
+      TenantId: message.transaction.TenantId,
+      MsgId: message.transaction.MsgId,
+      Payload: message.transaction.Payload,
+    });
+  });
+
+  test('rejects non-pacs002 transaction when MsgId is missing', () => {
+    const invalidMessage = {
+      transaction: {
+        TxTp: 'custom.type.004',
+        TenantId: 'tenantId',
+        Payload: {
+          amount: 500,
+        },
+      },
+    };
+
+    const buffer = createMessageBuffer(invalidMessage);
+    expect(buffer).toBeUndefined();
+  });
+
+  test('rejects non-pacs002 transaction when Payload is missing', () => {
+    const invalidMessage = {
+      transaction: {
+        TxTp: 'custom.type.005',
+        TenantId: 'tenantId',
+        MsgId: 'msg-005',
+      },
+    };
+
+    const buffer = createMessageBuffer(invalidMessage);
+    expect(buffer).toBeUndefined();
+  });
+
+  test('rejects deprecated top-level BaseMessage shape', () => {
+    const deprecatedMessage = {
+      BaseMessage: {
+        TxTp: 'custom.type.003',
+        TenantId: 'tenantId',
+        MsgId: 'msg-003',
+        Payload: {
+          anyKey: 'anyValue',
+        },
+      },
+    };
+
+    const buffer = createMessageBuffer(deprecatedMessage);
+    expect(buffer).toBeDefined();
+
+    const decoded = decodeMessageBuffer(buffer!);
+    // Deprecated shape has no `transaction` key — decodes as empty object
+    expect(decoded).toBeDefined();
+    expect(decoded?.transaction).toBeUndefined();
   });
 });

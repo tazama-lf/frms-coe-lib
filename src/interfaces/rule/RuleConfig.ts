@@ -6,6 +6,8 @@ export interface RuleConfig {
   config: Config;
   tenantId: string;
   desc?: string;
+  creDtTm?: string;
+  updDtTm?: string;
 }
 
 export interface Config {

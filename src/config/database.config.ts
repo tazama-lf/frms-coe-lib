@@ -18,6 +18,12 @@ export enum Database {
 
   /** Database for evaluations. */
   EVALUATION = 'evaluation',
+
+  /** Database for enrichment data. */
+  ENRICHMENT = 'enrichment',
+
+  /** Database for simulation messages. */
+  SIMULATION = 'simulation',
 }
 
 const DEFAULT_DATABASE_PORT = 5432;
@@ -48,6 +54,12 @@ export const validateDatabaseConfig = (authEnabled: boolean, database: Database)
       break;
     case Database.EVALUATION:
       prefix = 'EVALUATION_DATABASE';
+      break;
+    case Database.ENRICHMENT:
+      prefix = 'ENRICHMENT_DATABASE';
+      break;
+    case Database.SIMULATION:
+      prefix = 'SIMULATION_DATABASE';
       break;
   }
 

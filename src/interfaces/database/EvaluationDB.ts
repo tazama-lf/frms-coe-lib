@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { Pool } from 'pg';
-import type { DataCache, NetworkMap, Pacs002 } from '..';
+import type { DataCache, NetworkMap, SupportedTransactionMessage } from '..';
 import type { Evaluation } from '../processor-files/TADPReport';
 import type { Alert } from '../processor-files/Alert';
 
@@ -19,7 +19,7 @@ export interface EvaluationDB {
   /**
    * Save the Evaluation Result to DB
    * @param transactionID transaction identifier
-   * @param tranaction pacs002 transaction object
+   * @param tranaction SupportedTransactionMessage  transaction object
    * @param networkMap networkmap used in current evaluation
    * @param alert report object
    * @param dataCache dataCache object (optional)
@@ -27,7 +27,7 @@ export interface EvaluationDB {
    */
   saveEvaluationResult: (
     transactionID: string,
-    transaction: Pacs002,
+    transaction: SupportedTransactionMessage,
     networkMap: NetworkMap,
     alert: Alert,
     dataCache?: DataCache,
