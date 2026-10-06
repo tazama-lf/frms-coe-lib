@@ -594,6 +594,58 @@ describe('CreateDatabaseManager', () => {
     expect(await globalManager.getNetworkMap()).toEqual(['MOCK-QUERY']);
   });
 
+  describe('getNetworkMap tenant scoping', () => {
+    const ALL_TENANTS_SQL = 'SELECT configuration FROM network_map WHERE active = $1';
+    const ONE_TENANT_SQL = 'SELECT configuration FROM network_map WHERE active = $1 AND tenantId = $2';
+
+    const mockConfigurationRows = (rows: Array<{ configuration: unknown }>): jest.SpyInstance =>
+      jest.spyOn(globalManager._configuration, 'query').mockImplementation((): Promise<any> => Promise.resolve({ rows }));
+
+    const lastQuery = (spy: jest.SpyInstance): { text: string; values: unknown[] } => {
+      const query = spy.mock.calls[spy.mock.calls.length - 1][0] as { text: string; values: unknown[] };
+      return { text: query.text.replace(/\s+/g, ' ').trim(), values: query.values };
+    };
+
+    const mapFor = (tenantId: string): NetworkMap => ({ ...getMockNetworkMap(), tenantId });
+
+    it('should read every tenant when called without a tenantId', async () => {
+      const spy = mockConfigurationRows([{ configuration: mapFor('TENANT-A') }, { configuration: mapFor('TENANT-B') }]);
+
+      expect(await globalManager.getNetworkMap()).toEqual([mapFor('TENANT-A'), mapFor('TENANT-B')]);
+      expect(lastQuery(spy)).toEqual({ text: ALL_TENANTS_SQL, values: [true] });
+    });
+
+    it('should read only the given tenant when called with a tenantId', async () => {
+      const spy = mockConfigurationRows([{ configuration: mapFor('TENANT-A') }]);
+
+      expect(await globalManager.getNetworkMap('TENANT-A')).toEqual([mapFor('TENANT-A')]);
+      expect(lastQuery(spy)).toEqual({ text: ONE_TENANT_SQL, values: [true, 'TENANT-A'] });
+    });
+
+    it('should return an empty array when the tenant has no active map', async () => {
+      const spy = mockConfigurationRows([]);
+
+      expect(await globalManager.getNetworkMap('TENANT-B')).toEqual([]);
+      expect(lastQuery(spy)).toEqual({ text: ONE_TENANT_SQL, values: [true, 'TENANT-B'] });
+    });
+
+    it('should treat an empty-string tenantId as a tenant, not fall back to every tenant', async () => {
+      const spy = mockConfigurationRows([]);
+
+      expect(await globalManager.getNetworkMap('')).toEqual([]);
+      expect(lastQuery(spy)).toEqual({ text: ONE_TENANT_SQL, values: [true, ''] });
+    });
+
+    it('should not cache network maps in the lib', async () => {
+      const spy = mockConfigurationRows([{ configuration: mapFor('TENANT-A') }]);
+
+      await globalManager.getNetworkMap('TENANT-A');
+      await globalManager.getNetworkMap('TENANT-A');
+
+      expect(spy).toHaveBeenCalledTimes(2);
+    });
+  });
+
   it('should not try use cache for getRuleConfig when cached not enabled', async () => {
     const confConfig = {
       configuration: {
