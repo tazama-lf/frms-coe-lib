@@ -102,16 +102,27 @@ export async function configurationBuilder(
     return toReturn;
   };
 
-  manager.getNetworkMap = async (): Promise<NetworkMap[]> => {
-    const query: PgQueryConfig = {
-      text: `SELECT
+  manager.getNetworkMap = async (tenantId?: string): Promise<NetworkMap[]> => {
+    const query: PgQueryConfig =
+      tenantId === undefined
+        ? {
+            text: `SELECT
               configuration
             FROM
               network_map
             WHERE
               active = $1`,
-      values: [true],
-    };
+            values: [true],
+          }
+        : {
+            text: `SELECT
+              configuration
+            FROM
+              network_map
+            WHERE
+              active = $1 AND tenantId = $2`,
+            values: [true, tenantId],
+          };
 
     const queryRes = await manager._configuration.query<{ configuration: NetworkMap }>(query);
     return queryRes.rows.length > 0 ? queryRes.rows.map((value) => value.configuration) : [];

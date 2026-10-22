@@ -94,6 +94,22 @@ let databaseManager: DatabaseManagerInstance<typeof dbConfig>;
 databaseManager = await CreateDatabaseManager(dbConfig);
 ```
 
+**Reading network maps:**
+
+`getNetworkMap` reads active network maps and has two call forms:
+
+```typescript
+// Every tenant's active map - a deliberate cross-tenant read (e.g. startup route discovery)
+const allMaps = await databaseManager.getNetworkMap();
+
+// Only one tenant's active map - [] or [map], since at most one map per tenant can be active
+const tenantMaps = await databaseManager.getNetworkMap(tenantId);
+const networkMap = tenantMaps.find((map) => map.tenantId === tenantId);
+```
+
+- Always match results on `map.tenantId`; never assume `result[0]` belongs to the requested tenant. A `tenantId` that is `undefined` at runtime falls back to the cross-tenant read. An empty string is treated as a tenant id.
+- The library does not cache network maps. Callers own caching (keyed by tenant) because `network-map.activated` service-channel events must be able to evict it.
+
 ### 2. **Logger Service**
 
 The `LoggerService` class provides logging functionality, supporting different log levels like `info`, `debug`, `warn`, and `error`. It can also log messages to a GRPC service.

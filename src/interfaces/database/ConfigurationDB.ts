@@ -30,11 +30,24 @@ export interface ConfigurationDB {
   getTypologyConfig: (typologyId: string, typologyCfg: string, tenantId: string) => Promise<TypologyConfig | undefined>;
 
   /**
+   * Reads active network maps. Not cached: callers own caching, because
+   * `network-map.activated` service-channel events must be able to evict it.
+   *
+   * - Without `tenantId`: every tenant's active map (deliberate cross-tenant read,
+   *   e.g. startup route discovery).
+   * - With `tenantId`: only that tenant's active map - `[]` or `[map]`, since at most
+   *   one map per tenant can be active. An empty string is treated as a tenant id.
+   *
+   * Callers must match results on `map.tenantId` and never assume `result[0]` belongs
+   * to the requested tenant: a tenant id that is `undefined` at runtime falls back to
+   * the cross-tenant read.
+   *
+   * @param {string} [tenantId] tenant identifier to scope the read to
    * @returns {NetworkMap[]} active networkmaps
    *
    * @memberof ConfigurationDB
    */
-  getNetworkMap: () => Promise<NetworkMap[]>;
+  getNetworkMap: (tenantId?: string) => Promise<NetworkMap[]>;
 
   /**
    * @param {string} path path to filter on
